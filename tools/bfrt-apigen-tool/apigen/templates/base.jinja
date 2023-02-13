@@ -1,0 +1,33 @@
+{% set tb_name = table.name | normalize_field_name | lower %}
+/******************************************************************************
+ * 
+ * Copyright (c) 2022   jd.com, Inc. All Rights Reserved
+ * @author		API generator
+ *
+ * This file is generated based on the P4 programs stored in pipline/p4src.
+ * Please refer to the P4 program and the generated bf-rt.json for information
+ * on the tables contained in the P4 program, and the associated key and data
+ * fields.
+ * 
+ * {{ table.name }}
+ *
+ * NOTE: The table name is abbreviated to "{{ tb_name }}". 
+******************************************************************************/
+{% import 'utils.jinja' as utils %}
+
+{% set key_field_typename = prefix + '_' + tb_name + '_key_field_t' %}
+{% set key_field_structname = prefix + '_' + tb_name + '_key_field_s' %}
+{% macro data_field_structname(action_name) %}
+{% if action_name %}{{prefix}}_{{tb_name}}_{{utils.field_name(action_name)}}_data_field_s
+{%- else %}{{prefix}}_{{tb_name}}_data_field_s
+{%- endif %}
+{%- endmacro %}
+{% macro data_field_typename(action_name) %}
+{% if action_name %}{{prefix}}_{{tb_name}}_{{utils.field_name(action_name)}}_data_field_t
+{%- else %}{{prefix}}_{{tb_name}}_data_field_t
+{%- endif %}
+{%- endmacro %}
+
+
+{% block content%}
+{% endblock %}

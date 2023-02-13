@@ -1,0 +1,52 @@
+{
+    "hbgw":
+    {
+        "mgt_ip": "10.226.190.237",
+	"vip": "10.226.190.250",
+	"backup_vip":"10.226.190.99",
+	"port_speed": 40,
+	"port_speed_comment": "40 for 40G, 100 for 100G",
+	"Hardware":1,
+	"Hardware_comment": "1 for WedgeBF-65X, 2 for WedgeBF-32X "
+    },
+    "BGP":
+    {
+	"local_as_num":"65002",
+	"remote_as_num":"65303"
+    },
+    "hostifs":
+    [
+        {
+            "intf_name": "Ethernet17",
+            "ip": "100.125.50.0",
+            "net_mask_len": 31,
+	    "gw_ip": "100.125.50.1",
+            "mac":"00:0c:0c:0c:84:01",
+            "fp_port": 17
+        },
+        {
+            "intf_name": "Ethernet18",
+            "ip": "100.125.50.2",
+            "net_mask_len": 31,
+	    "gw_ip": "100.125.50.3",
+            "mac":"00:0c:0c:0c:84:02",
+            "fp_port": 18
+        },
+        {
+            "intf_name": "Ethernet21",
+            "ip": "100.125.51.0",
+            "net_mask_len": 31,
+	    "gw_ip": "100.125.51.1",
+            "mac":"00:0c:0c:0c:84:03",
+            "fp_port": 21
+        },
+        {
+            "intf_name": "Ethernet22",
+            "ip": "100.125.51.2",
+            "net_mask_len": 31,
+	    "gw_ip": "100.125.51.3",
+            "mac":"00:0c:0c:0c:84:04",
+            "fp_port": 22
+        }
+    ]
+}

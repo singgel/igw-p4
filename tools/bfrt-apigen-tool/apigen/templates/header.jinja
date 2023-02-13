@@ -1,0 +1,80 @@
+{% extends 'base.jinja' %}
+{% block content %}
+#ifndef __NETP4API_{{ tb_name | upper }}_INCLUDED_H__
+#define __NETP4API_{{ tb_name | upper }}_INCLUDED_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "netp4_bfrt_tbl.h"
+
+{% for action in table.action_specs if action.name != 'NoAction' %}
+#define {{prefix|upper}}_{{tb_name|upper}}_ACT_{{utils.field_name(action.name|last_part)|upper}} {{loop.index0}}
+{% endfor %}
+
+/* Key field type defination for the table */
+typedef struct {{key_field_structname}} {
+{% for key_field in table.key %}
+    {{ utils.declare_key_field(key_field) }}
+{% endfor %}
+}{{key_field_typename}};
+
+{% if table.data %}
+/* Data field type defination for the table */
+typedef struct {{data_field_structname('none')}} {
+    
+}{{data_field_typename('none')}};
+{% endif %}
+
+{% for action in table.action_specs if action.name != 'NoAction' and action.data %}
+/* Data field type defination for the '{{action.name}}' action */
+typedef struct {{data_field_structname(action.name|last_part)}} {
+    {{ utils.declare_data_field_with_action(action) }}
+}{{ data_field_typename(action.name|last_part) }};
+
+{% endfor %}
+
+/* Common data field structure */
+typedef struct {{data_field_structname(None)}} {
+    union {
+{% if table.data %}
+        {{ data_field_typename('none')}} none;
+{% endif %}
+{% for action in table.action_specs if action.name != 'NoAction' and action.data %}
+        {{ data_field_typename(action.name|last_part) }} {{utils.field_name(action.name|last_part)}};
+{% endfor %}
+    }data;
+
+    /* Based on the action_seq, contents of the union are interpreted */
+    int action_sq;
+}{{data_field_typename(None)}};
+
+
+int {{prefix}}_{{tb_name}}_add_entry 
+(
+    netp4_bfrtbl_t *tbl, 
+    {{key_field_typename}} *key, 
+    {{data_field_typename(None)}} *data, 
+    bool wait
+);
+
+void {{prefix}}_{{tb_name}}_del_entry 
+(
+    netp4_bfrtbl_t *tbl, 
+    {{key_field_typename}} *key
+);
+
+int {{prefix}}_{{tb_name}}_get_entry
+(
+    netp4_bfrtbl_t *tbl, 
+    {{key_field_typename}} *key, 
+    {{data_field_typename(None)}} *data
+)
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
+{% endblock %}

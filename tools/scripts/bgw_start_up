@@ -1,0 +1,3 @@
+#!/bin/sh
+export PYTHONPATH="${PYTHONPATH}:/root/sde/bf-sde-9.7.1/install/lib/python3.5/site-packages/tofino/"
+python3 /root/sde/bf-sde-9.7.1/install/lib/python3.5/dist-packages/rpc_client/bgw_start_up.py $@

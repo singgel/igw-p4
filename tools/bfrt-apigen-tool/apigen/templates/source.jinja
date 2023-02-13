@@ -1,0 +1,379 @@
+{% extends 'base.jinja' %}
+{% block content %}
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <errno.h>
+
+/* Include GW project header files, you should add it */
+#include "pal_utils.h"
+#include "vector.h"
+#include "{{prefix}}_{{tb_name}}.h"
+
+{% for action in table.action_specs if action.name != 'NoAction' %}
+{% for action_data in action.data %}
+#define get_data_field_content_{{utils.field_name(action_data.name)}}(_f, _r) \
+({ \
+    bool _found; int _i; netp4_bfrtbl_data_field_t *_field;                   \
+    vector_foreach_slot(_f, _field, _i) {                                     \
+        if (0 == strcmp(_field->name, "{{action_data.name}}")) {_found = true; break;} \
+    }                                                                         \
+    if (_found && _field != NULL) {                                            \
+{% if action_data.type.type == 'string' %}
+        _r = _field->content.str;                                             \
+{% elif action_data.type.type == 'uint32' %}
+        _r = (uint32_t)_field->content.u64;                                   \
+{% elif action_data.type.type == 'float' %}
+        _r = _field->content.f;                                               \
+{% elif action_data.type.type == 'bytes' %}
+    {% if action_data.type.width == 1 %}
+        _r = _field->content.b;                                               \
+    {% elif action_data.type.width <= 8%}
+        _r = (uint8_t)_field->content.u64;                                    \
+    {% elif action_data.type.width <= 16%}
+        _r = (uint16_t)_field->content.u64;                                   \
+    {% elif action_data.type.width <= 32%}
+        _r = (uint32_t)_field->content.u64;                                   \
+    {% elif action_data.type.width <= 64%}
+        _r = _field->content.u64;                                             \
+    {% else %}
+        /* TODO: Is this type is PTR ?*/
+        memcpy(_r, _field->ptr_val, _field->ptr_size);                        \
+    {% endif %}
+{% endif %}
+    }})                                                                       \
+
+{% endfor %}
+{% endfor %}
+
+static bf_rt_id_t g_action_id_map[] = {
+    {% for action_spec in table.action_specs if action_spec.name != 'NoAction' %}
+    [{{prefix|upper}}_{{tb_name|upper}}_ACT_{{utils.field_name(action_spec.name|last_part)|upper}}] = {{action_spec.id}}, 
+    {% endfor %}
+};
+
+static inline int __{{tb_name}}_action_id_map(bf_rt_id_t action_id) 
+{
+    int action, i;
+
+    if (ARRAY_SIZE(g_action_id_map) > 0) {
+        for (action = 0; action < ARRAY_SIZE(g_action_id_map); i++) {
+            if (g_action_id_map[action] == action_id) {
+                return action;
+            }
+        }
+    }
+
+    return -1;
+}
+
+static inline vector __{{tb_name}}_build_key_fields
+(
+    {{key_field_typename}} *key
+)
+{
+    vector                   v = NULL;
+    int                      i;
+    netp4_bfrtbl_key_field_t *kfield;
+
+    if (unlikely(key == NULL)) {
+        return v;
+    }
+
+    if (NULL == (v = vector_alloc())) {
+        /* No memory */
+        return NULL;
+    }
+
+    /* Fill the common key content structure with user provided values */
+
+{% for key in table.key %}
+    kfield = malloc(sizeof(netp4_bfrtbl_key_field_t));
+    if (NULL == kfield) {
+            goto failed;
+    }
+
+    kfield->name                    = "{{ key.name }}";
+{% if key.match_type == 'Exact' %}
+    kfield->type                    = EXACT;
+    {% if key.type.type == 'string' %}
+    kfield->data_type               = STRING;
+    kfield->content.exact_str       = key->{{utils.field_name(key.name)}};
+    {% else %}
+        {% if key.type.type == 'bytes' and key.type.width > 64 %}
+        {# The type of value is PTR? If not, How can I kown the value type? #}
+    kfield->data_type               = BYTE_STREAM;
+    kfield->content.exact_ptr.value = key->{{utils.field_name(key.name)}};
+    kfield->content.exact_ptr.size  = sizeof(key->{{utils.field_name(key.name)}});
+        {% else %}
+    kfield->data_type               = UINT64;
+    kfield->content.exact_value     = key->{{utils.field_name(key.name)}};
+        {% endif %}
+    {% endif %}
+{% elif key.match_type == 'Ternary' %}
+    kfield->type                     = TERNARY;
+    {% if key.type.type == 'bytes' and key.type.width > 64 %}
+    kfield->data_type                = BYTE_STREAM;
+    kfield->content.ternary_ptr_value= key->{{utils.field_name(key.name)}}_value;
+    kfield->content.ternary_ptr_mask = key->{{utils.field_name(key.name)}}_mask;
+    kfield->content.ternary_ptr_size = sizeof(key->{{utils.field_name(key.name)}}_value);
+    {% else %}
+    kfield->data_type                = UINT64;
+    kfield->content.ternary_value    = key->{{utils.field_name(key.name)}}_value;
+    kfield->content.ternary_mask     = key->{{utils.field_name(key.name)}}_mask;
+    {% endif %}
+{% elif key.match_type == 'Range'%}
+    kfield->type                     = RANGE;
+    {% if key.type.type == 'bytes' and key.type.width > 64 %}
+    kfield->data_type                = BYTE_STREAM;
+    kfield->content.range_ptr_start  = key->{{utils.field_name(key.name)}}_start;
+    kfield->content.range_ptr_end    = key->{{utils.field_name(key.name)}}_end;
+    kfield->content.range_ptr_size   = sizeof(key->{{utils.field_name(key.name)}}_start);
+    {% else %}
+    kfield->data_type                = UINT64;
+    kfield->content.range_start      = key->{{utils.field_name(key.name)}}_start;
+    kfield->content.range_end        = key->{{utils.field_name(key.name)}}_end;
+    kfield->content.tenary_size      = sizeof(key->{{utils.field_name(key.name)}}_value);
+    {% endif %}
+{% elif key.match_type == 'LPM'%}
+    kfield->type                     = LPM;
+    {% if key.type.type == 'bytes' and key.type.width > 64 %}
+    kfield->data_type                = BYTE_STREAM;
+    kfield->content.lpm_ptr_value    = key->{{utils.field_name(key.name)}};
+    kfield->content.lpm_ptr_plen     = key->{{utils.field_name(key.name)}}_plen;
+    kfield->content.lpm_ptr_size     = sizeof(key->{{utils.field_name(key.name)}});
+    {% else %}
+    kfield->data_type                = UINT64;
+    kfield->content.lpm_value        = key->{{utils.field_name(key.name)}};
+    kfield->content.lpm_plen         = key->{{utils.field_name(key.name)}}_plen;
+    {% endif %}
+{% else %}
+    #error "Failed to generate key field type"
+{% endif %}
+    if (vector_alloc_slot(v) < 0) {
+        goto failed;
+    }
+    vector_set_slot(v, kfield);
+{% endfor %}
+
+    return v;
+
+failed:
+    vector_foreach_slot(v, kfield, i) {
+        free(kfield);
+    }
+    vector_free(v);
+
+    return NULL;
+}
+
+
+static inline vector __{{tb_name}}_build_data_fields
+(
+    {{data_field_typename(None)}} *data
+)
+{
+    vector v = NULL;
+    int i;
+    netp4_bfrtbl_data_field_t *dfield;
+    {% if table.data %}
+    {{ data_field_typename('none')}} *p_none_data;
+    {% else %}
+    {% for action in table.action_specs if action.name != 'NoAction' and action.data%}
+    {{data_field_typename(action.name|last_part)}} *p{{loop.index0}};
+    {% endfor %}
+    {% endif %}
+
+    if (unlikely(data == NULL)) {
+        return v;
+    }
+
+    if (NULL == (v = vector_alloc())) {
+        /* No memory */
+        return NULL;
+    }
+
+    /* Fill the common data field structure with user provided values */
+    {% if table.data %} 
+    /* TODO: define data structure without action */
+    {% else %}
+    {% for action in table.action_specs if action.name != 'NoAction' and action.data %}
+    {% set seq = loop.index0 %}
+    dfield = malloc(sizeof(netp4_bfrtbl_data_field_t));
+    if (NULL == dfield) {
+        goto failed;
+    }
+
+    dfield->name = "{{action.name}}";
+    if ({{prefix|upper}}_{{tb_name|upper}}_ACT_{{utils.field_name(action.name|last_part)|upper}} == data->action_sq)  {
+        p{{seq}} = &data->data.{{utils.field_name(action.name|last_part)}};
+        {% set action_name = utils.field_name(action.name|last_part) %}
+        {% for action_data in action.data %} 
+            {% if action_data.type.type == 'string' %}
+        dfield->content.tr = p{{seq}}->{{utils.field_name(action_data.name)}};
+            {% elif action_data.type.type == 'uint32' %}
+        dfield->content.u64 = p{{seq}}->{{utils.field_name(action_data.name)}};
+            {% elif action_data.type.type == 'float' %}
+        dfield->content.f = p{{seq}}->{{utils.field_name(action_data.name)}};
+            {% elif action_data.type.type == 'bytes' %}
+                {% if action_data.type.width == 1 %}
+        dfield->content.b = p{{seq}}->{{utils.field_name(action_data.name)}};
+                {% elif action_data.type.width <= 64%}
+        dfield->content.u64 = p{{seq}}->{{utils.field_name(action_data.name)}};
+                {% else %}
+        /* TODO: DEBUG - Is the data type PTR?*/
+        dfield->content.ptr_base = p{{seq}}->{{utils.field_name(action_data.name)}};
+        dfield->content.ptr_size = {{calc_size(action_data.type.width)}};
+                {% endif %}
+            {% else %} #error Unkown data field type
+        #error Unkown data field type
+            {% endif %}
+        {% endfor %}    
+
+        /* Add the data field to vector */
+        if (vector_alloc_slot(v) < 0) {
+            goto failed;
+        }
+        vector_set_slot(v, dfield);
+    }
+
+        {% endfor %}
+    {% endif %}
+
+    return v;
+
+failed:
+    vector_foreach_slot(v, dfield, i) {
+        free(dfield);
+    }
+    vector_free(v);
+
+    return NULL;
+}
+
+static int 
+__{{tb_name}}_parse_data_fields
+(
+    vector user_data_fields, 
+    {{data_field_typename(None)}} *data,
+    int action
+)
+{
+    void *p_data;
+    {% if table.data %}
+    {{ data_field_typename('none')}} *p_none_data;
+    {% else %}
+    {% for action in table.action_specs if action.name != 'NoAction' and action.data%}
+    {{data_field_typename(action.name|last_part)}} *p{{loop.index0}};
+    {% endfor %}
+    {% endif %}
+
+    data->action_sq = action;
+
+    {% if table.data %}
+    if (action < 0) {
+        p_none_data = &data->data.none;
+
+    } 
+    {% endif %}
+
+    {% for action in table.action_specs if action.name != 'NoAction' and action.data%}
+    if ({{prefix|upper}}_{{tb_name|upper}}_ACT_{{utils.field_name(action.name|last_part)|upper}} == action) {
+        {% set seq = loop.index0 %}
+        p{{seq}} = &data->data.{{utils.field_name(action.name|last_part)}};
+        {% for action_data in action.data %}
+        get_data_field_content_{{utils.field_name(action_data.name)}}(user_data_fields, p{{seq}}->{{utils.field_name(action_data.name)}}); 
+        {% endfor %}
+    }
+
+    {% endfor %}
+
+    return 0;
+}
+
+/**
+ * {{prefix}}_{{tb_name}}_get_entry() - Get entry from BF runtime.
+ *
+ * PARAMTERS:
+ *  tbl : Pointer to the control plane BF table object.
+ *  key : The table key filled with user provided contents.
+ * data : Pointer to the returned data object.
+ */
+int {{prefix}}_{{tb_name}}_get_entry
+(
+    netp4_bfrtbl_t *tbl, 
+    {{key_field_typename}} *key, 
+    {{data_field_typename(None)}} *data
+)
+{
+    vector key_fields;
+    vector data_fields;
+    int    ret;
+    int    action;
+
+    key_fields = __{{tb_name}}_build_key_fields(key);
+    if (NULL == key_fields) {
+        PAL_ERROR("Failed to build user key fields.");
+        return -ENOMEM;
+    } 
+
+    ret = netp4_bfrtbl_get_entry(tbl, 
+        key_fields, data_fields, true, __{{tb_name}}_action_id_map, &action);
+    if (!ret) {
+        ret = __{{tb_name}}_parse_data_fields(data_fields, data, action);
+    }
+
+    vector_free(key_fields);
+    vector_free(data_fields);
+
+    return ret;
+}
+
+/**
+ * {{prefix}}_{{tb_name}}_add_entry() - Add an entry to BF runtime.
+ *
+ *
+ */
+int {{prefix}}_{{tb_name}}_add_entry
+(
+    netp4_bfrtbl_t *tbl, 
+    {{key_field_typename}} *key, 
+    {{data_field_typename(None)}} *data, 
+    bool wait
+)
+{
+    vector key_fields; 
+    vector data_fields;
+    int    ret;
+
+    key_fields = __{{tb_name}}_build_key_fields(key);
+    data_fields = __{{tb_name}}_build_data_fields(data);
+
+    ret = netp4_bfrtbl_add_entry(
+        tbl, key_fields, data_fields, key.action_sq, wait);
+
+    vector_free(key_fields);
+    vector_free(data_fields);
+
+    return ret;
+}
+
+void {{prefix}}_{{tb_name}}_del_entry
+(
+    netp4_bfrtbl_t *tbl, 
+    {{key_field_typename}} *key
+)
+{
+    vector key_fields; 
+
+    key_fields = __{{tb_name}}_build_key_fields(key);
+
+    netp4_bfrtbl_del_entry(tbl, key_fields);
+
+    vector_free(key_fields);
+}
+
+{% endblock %}
+

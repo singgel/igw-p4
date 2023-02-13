@@ -1,0 +1,68 @@
+#!/bin/bash
+
+RED='\e[1;31m'
+NC='\e[0m'
+
+function perror()
+{
+    echo -e "${RED} ===============================Error=================================== ${NC}"
+    echo -e "${RED} Error: $@ ${NC}"
+    exit 1
+}
+
+function pnerror()
+{
+    echo -e "${RED} ===============================Error=================================== ${NC}"
+    echo -e "${RED} Error: $@ ${NC}"
+}
+
+function pinfo()
+{
+    echo "Info: $@"
+}
+
+function check_str_null()
+{
+    if [ "$2" == "" ];then
+        pnerror "$1"
+    fi
+}
+
+function exit_str_null()
+{
+    if [ "$2" == "" ];then
+        perror "$1"
+    fi
+}
+
+function get_vip()
+{
+    VIP=`cat /etc/hostif.json  | grep vip  | awk -F '"' 'NR==1{print $4}'`
+    exit_str_null "vip is not found!" $VIP
+    NETWORK_VIP="network $VIP/32"
+}
+
+function get_router_bgp_as_num()
+{
+    ROUTE_BGP_AS=`cat /etc/frr/frr.conf  | grep "router bgp"`
+    exit_str_null "router bgp as-number is not found!" $ROUTE_BGP_AS
+}
+
+function bgp_network_vip()
+{
+  CMD=`vtysh  -c "configure" -c "$ROUTE_BGP_AS"  -c "$NETWORK_VIP"  -c "exit" -c "exit" -c "exit"`
+  if [ "$?" != "0" ];then
+        perror "network vip fail"
+  fi
+}
+
+function main()
+{
+    echo "--------------network vip/32 from bgp---------------"
+    get_vip
+    get_router_bgp_as_num
+    bgp_network_vip
+    echo "network vip ok!"
+}
+
+main

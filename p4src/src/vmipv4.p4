@@ -1,0 +1,109 @@
+/**********************************************************************
+* 
+* Copyright (c) 2022 jd.com, Inc. All Rights Reserved
+* @author       liweiwei118@jd.com
+* 
+***********************************************************************/
+
+control IngressVmRouteMapping(inout headers_t hdr,
+            inout common_metadata_t meta,
+            in ingress_intrinsic_metadata_t ig_intr_md,
+            in ingress_intrinsic_metadata_from_parser_t ig_intr_from_prsr,
+            inout ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
+            inout ingress_intrinsic_metadata_for_tm_t  ig_tm_md) {
+    Counter<bit<32>, bit<1>>(2, CounterType_t.PACKETS) route_drop_stats;
+
+    action vm_hostroute_nexthop(bit<16> nexthop){
+        hdr.bg_md.tunnel_nexthop = nexthop;
+    }
+
+    table vm_hostroute_mapping {
+        key = {
+            hdr.bg_md.lkp_vni   : exact;
+            hdr.bg_md.lkp_dip   : exact;
+        }
+
+        actions = {
+            vm_hostroute_nexthop;
+        }
+        size = VM_HOSTROUTE_TABLE_SIZE;
+    }
+
+    apply {
+        if (vm_hostroute_mapping.apply().hit) {
+            //do nothing
+        } else if ( hdr.bg_md.tunnel_nexthop == 0) { 
+            //not hit and tunnel_nexthop == 0
+            hdr.bg_md.need_drop = 1;
+            route_drop_stats.count(1);
+        }
+    }
+}
+
+control EgressRouteProcess(
+        inout headers_t hdr,
+        inout common_metadata_t meta,
+        in egress_intrinsic_metadata_t eg_intr_md,
+        in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
+        inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
+        inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
+    Counter<bit<32>, bit<1>>(2, CounterType_t.PACKETS) nexthop_drop_stats;
+    Hash<bit<16>>(HashAlgorithm_t.CRC16) selector_hash;
+    ActionProfile(ROUTE_NEXTHOP_SIZE) route_action_profile;
+    ActionSelector(route_action_profile, selector_hash, SelectorMode_t.FAIR,
+                   64, ROUTE_ECMP_GROUP_TABLE_SZIE) route_ecmp_group_selector;
+
+    action set_ecmp_nexthop(bit<16> nexthop) {
+        hdr.bg_md.tunnel_nexthop = nexthop;
+    }
+
+    table route_ecmp {
+        key = {
+            hdr.bg_md.tunnel_nexthop        : exact;
+            meta.l3.lkp_sip                 : selector;
+            meta.l3.lkp_l4_sport            : selector;
+            meta.l3.lkp_dip                 : selector;
+            meta.l3.lkp_l4_dport            : selector;
+            meta.l3.lkp_ip_proto            : selector;
+        }
+
+        actions = {
+            set_ecmp_nexthop; 
+        }
+
+        implementation = route_ecmp_group_selector;
+        size = ROUTE_ECMP_GROUP_TABLE_SZIE;
+    }
+
+    action process_nexthop(bit<8> srcid, bit<12> dstid, bit<24> vni, 
+                bit<16> inner_mac_id, bit<16> meterid) {
+        hdr.bg_md.lkp_vni = vni;
+        hdr.bg_md.tunnel_src_id = srcid;
+        hdr.bg_md.tunnel_dst_id = dstid;
+        hdr.bg_md.inner_mac_id = inner_mac_id;
+        hdr.bg_md.meter_bps_idx = meterid;
+    }
+
+    table route_nexthop {
+        key = {
+            hdr.bg_md.tunnel_nexthop : exact;
+        }
+        
+        actions = {
+            process_nexthop;
+        }
+        
+        size = ROUTE_NEXTHOP_SIZE;
+    }
+
+    apply {
+        route_ecmp.apply();
+        if (route_nexthop.apply().hit) {
+            //do nothing
+        } else if (hdr.bg_md.tunnel_nexthop != 0) {
+            //not hit and tunnel_nexthop is exist
+            hdr.bg_md.need_drop = 1;
+            nexthop_drop_stats.count(1);
+        }
+    }
+}

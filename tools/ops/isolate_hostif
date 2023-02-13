@@ -1,0 +1,117 @@
+#!/bin/bash
+
+RED='\e[1;31m'
+NC='\e[0m'
+
+function perror()
+{
+    echo -e "${RED} ===============================Error=================================== ${NC}"
+    echo -e "${RED} Error: $@ ${NC}"
+    exit 1
+}
+
+function pnerror()
+{
+    echo -e "${RED} ===============================Error=================================== ${NC}"
+    echo -e "${RED} Error: $@ ${NC}"
+}
+
+function pinfo()
+{
+    echo "Info: $@"
+}
+
+function check_str_null()
+{
+    if [ "$2" == "" ];then
+        pnerror "$1"
+    fi
+}
+
+function exit_str_null()
+{
+    if [ "$2" == "" ];then
+        perror "$1"
+    fi
+}
+
+function get_ip()
+{
+    IP=`ifconfig -a $HOSTIF | grep inet | grep -v inet6 | awk -F ' ' '{print $2}'`
+    exit_str_null "$HOSTIF is not found or no ip!" $IP
+    IP_CHECK=`cat /etc/hostif.json | grep $IP`
+    exit_str_null "hostif ip is not fount in /etc/hostif.json!" $IP_CHECK
+    VIP=`cat /etc/hostif.json | grep vip | grep -v backup_vip | awk -F '"' '{print $4}'`
+    exit_str_null "vip is not found!" $VIP
+    MIP=`cat /etc/hostif.json | grep mgt_ip | awk -F '"' '{print $4}'`
+    exit_str_null "mgt_ip is not found!" $MIP
+
+    #echo "IP=$IP"
+    #echo "VIP=$VIP"
+    #echo "MIP=$MIP"
+}
+
+function get_prefix-list-name()
+{
+   PL_NAME=`cat /etc/frr/frr.conf | grep $IP/32 | grep "ip prefix-list" | awk -F " " '{print $3}'`
+   exit_str_null "prefix-listname is not found!" $PL_NAME
+   #echo "prefix-list name = $PL_NAME"
+}
+
+function get_vip_prefix-list()
+{
+    VIP_PREFIX_LIST=` cat /etc/frr/frr.conf | grep "ip prefix-list $PL_NAME" | grep $VIP`
+    exit_str_null "vip prefix-listname is not found!" $VIP_PREFIX_LIST
+    #echo "vip prefix-list is = $VIP_PREFIX_LIST"
+}
+
+function get_mip_prefix-list()
+{
+    MIP_PREFIX_LIST=` cat /etc/frr/frr.conf | grep "ip prefix-list $PL_NAME" | grep $MIP`
+    exit_str_null "mip prefix-listname is not found!" $MIP_PREFIX_LIST
+    #echo "mip prefix-list is = $MIP_PREFIX_LIST"
+}
+
+function no_vip_prefix_list()
+{
+  CMD=`vtysh  -c "configure" -c "no $VIP_PREFIX_LIST" -c "exit" -c "exit"`
+  if [ "$?" != "0" ];then
+    perror "no vip prefix-list for $HOSTIF fail"
+  else
+    echo "no vip prefix-list for $HOSTIF ok"
+  fi
+}
+
+function no_mip_prefix_list()
+{
+  CMD=`vtysh  -c "configure" -c "no $MIP_PREFIX_LIST" -c "exit" -c "exit"`
+  if [ "$?" != "0" ];then
+    perror "no mip prefix-list for $HOSTIF fail"
+  else
+    echo "no mip prefix-list for $HOSTIF ok"
+  fi
+}
+
+function if_down_hosit()
+{
+    ifconfig $HOSTIF down
+    echo "ifconfig $HOSTIF down"
+}
+
+function main()
+{
+    get_ip 
+    get_prefix-list-name
+    get_vip_prefix-list
+    get_mip_prefix-list
+    no_vip_prefix_list
+    no_mip_prefix_list
+    if_down_hosit
+}
+
+if [ $# != 1 ];then
+    perror "$0 Ethernetxx #e.g: $0 Ethernet17"
+fi
+HOSTIF=$1
+
+main

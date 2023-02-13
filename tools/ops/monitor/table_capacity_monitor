@@ -1,0 +1,117 @@
+#!/bin/bash
+
+function perror()
+{
+    echo -e "$@"
+    exit 0
+}
+
+function pnerror()
+{
+    echo -e "$@"
+}
+
+function pinfo()
+{
+    echo "Info: $@"
+}
+
+function check_str_null()
+{
+    if [ "$2" == "" ];then
+        pnerror "$1"
+    fi
+}
+
+function exit_str_null()
+{
+    if [ "$2" == "" ];then
+        perror "$1"
+    fi
+}
+
+DPC_CMD="/usr/local/bin/dpc table-info"
+
+function vm_hostroute_mapping_monitor()
+{   
+    vm_hostroute_mapping_cap=`$DPC_CMD | grep vm_hostroute_mapping | awk -F " " '{print $6}'`
+    exit_str_null "capacity_state:0, desc: normal capacity" $vm_hostroute_mapping_cap
+    if [ "$vm_hostroute_mapping_cap" -ge "614400" ];then
+         echo "capacity_state:255, desc: vm_hostroute_mapping capacity is $vm_hostroute_mapping_cap"
+         exit 0
+    fi
+}
+
+function vxlan_route_monitor()
+{   
+    vxlan_route_cap=`$DPC_CMD | grep vxlan_route.vxlan_route | awk -F " " '{print $6}'`
+    exit_str_null "capacity_state:0, desc: normal capacity" $vxlan_route_cap
+    if [ "$vxlan_route_cap" -ge "24000" ];then
+         echo "capacity_state:255, desc: vxlan_route capacity is $vxlan_route_cap"
+         exit 0
+    fi
+}
+
+function route_ecmp_monitor()
+{   
+    route_ecmp_cap=`$DPC_CMD | grep route_ecmp| grep -v "route_ecmp_group_selector" | awk -F " " '{print $6}'`
+    exit_str_null "capacity_state:0, desc: normal capacity" $route_ecmp_cap
+    if [ "$route_ecmp_cap" -ge "18500" ];then
+         echo "capacity_state:255, desc: route_ecmp capacity is $route_ecmp_cap"
+         exit 0
+    fi
+}
+
+function route_ecmp_group_selector_monitor()
+{   
+    route_ecmp_group_selector_cap=`$DPC_CMD | grep route_ecmp_group_selector | grep -v "route_ecmp_group_selector_get_member"| awk -F " " '{print $6}'`
+    exit_str_null "capacity_state:0, desc: normal capacity" $route_ecmp_group_selector_cap
+    if [ "$route_ecmp_group_selector_cap" -ge "18500" ];then
+         echo "capacity_state:255, desc: route_ecmp_group_selector capacity is $route_ecmp_group_selector_cap"
+         exit 0
+    fi
+}
+
+function route_action_profile_monitor()
+{   
+    route_action_profile_cap=`$DPC_CMD | grep route_action_profile | awk -F " " '{print $6}'`
+    exit_str_null "capacity_state:0, desc: normal capacity" $route_action_profile_cap
+    if [ "$route_action_profile_cap" -ge "39400" ];then
+         echo "capacity_state:255, desc: route_action_profile capacity is $route_action_profile_cap"
+         exit 0
+    fi
+}
+
+function route_nexthop_monitor()
+{   
+    route_nexthop_cap=`$DPC_CMD | grep route_nexthop | awk -F " " '{print $6}'`
+    exit_str_null "capacity_state:0, desc: normal capacity" $route_nexthop_cap
+    if [ "$route_nexthop_cap" -ge "39400" ];then
+         echo "capacity_state:255, desc: route_nexthop capacity is $route_nexthop_cap"
+         exit 0
+    fi
+}
+
+function tunnel_inner_rewrite_monitor()
+{   
+    tunnel_inner_rewrite_cap=`$DPC_CMD | grep tunnel_inner_rewrite | awk -F " " '{print $6}'`
+    exit_str_null "capacity_state:0, desc: normal capacity" $tunnel_inner_rewrite_cap
+    if [ "$tunnel_inner_rewrite_cap" -ge "39400" ];then
+         echo "capacity_state:255, desc: tunnel_inner_rewrite capacity is $tunnel_inner_rewrite_cap"
+         exit 0
+    fi
+}
+
+function main()
+{
+    vm_hostroute_mapping_monitor
+    vxlan_route_monitor
+    route_ecmp_monitor
+    route_ecmp_group_selector_monitor
+    route_action_profile_monitor
+    route_nexthop_monitor
+    tunnel_inner_rewrite_monitor
+    echo "capacity_state:0, desc: normal capacity"
+}
+
+main

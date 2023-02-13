@@ -1,0 +1,133 @@
+{# macros defination #}
+
+{% macro actname_abbr(actname) %}
+{{ actname | last_part | normalize_field_name | acronymize | lower }}
+{%- endmacro %}
+
+{% macro calc_size(bits) %}
+{{ bits|round(8, 'ceil')|int // 8}}
+{% endmacro %}
+
+{% macro field_name(name) %}
+{{ name | normalize_field_name | lower}}
+{%- endmacro %}
+
+{% macro declare(type, name) %}
+{{type | mk_c_type}} {{ field_name(name) }}; 
+{% endmacro %}
+
+{% macro bytes_ctype(width) %}
+{% if width == 1 %}bool
+{%- elif width <= 8 %}uint8_t
+{%- elif width <= 16 %}uint16_t
+{%- elif width <= 32 %}uint32_t
+{%- elif width <= 64 %}uint64_t
+{%- else %}uint8_t *
+{%- endif %}
+{%- endmacro %}
+
+{% macro declare_key_field(key) %}
+{%- if key.match_type == 'Exact' %}
+    {% if key.type.type == 'string'%}char *{{field_name(key.name)}};
+    {% elif key.type.type == 'uint32'%}uint32_t {{field_name(key.name)}};
+    {% elif key.type.type == 'float'%}float {{field_name(key.name)}};
+    {% elif key.type.type == 'bytes'%}
+        {% if key.type.width <= 64%}{{bytes_ctype(key.type.width)}} {{field_name(key.name)}};
+        {% else %}uint8_t {{field_name(key.name)}}[{{calc_size(key.type.width)}}];
+        {% endif %}
+    {% else %} #error "Failed to generate key field type"
+    {% endif %}
+{%- elif key.match_type == 'Ternary'%}
+    {% if key.type.type == 'bytes'%}
+        {% if key.type.width <= 64 -%}
+    {{bytes_ctype(key.type.width)}} {{field_name(key.name)}}_value;
+    {{bytes_ctype(key.type.width)}} {{field_name(key.name)}}_mask;
+        {% else -%}
+    uint8_t {{field_name(key.name)}}_value[{{calc_size(key.type.width)}}];  
+    uint8_t {{field_name(key.name)}}_mask[{{calc_size(key.type.width)}}];
+        {% endif %}
+    {% else %}
+    #error "Failed to generate key field type"
+    {% endif %}
+{%- elif key.match_type == 'Range'%}
+    {% if key.type.type == 'bytes'%}
+        {% if key.type.width <= 64 -%}
+    {{bytes_ctype(key.type.width)}} {{field_name(key.name)}}_start;
+    {{bytes_ctype(key.type.width)}} {{field_name(key.name)}}_end;
+        {% else -%}
+    uint8_t {{field_name(key.name)}}_start[{{calc_size(key.type.width)}}];
+    uint8_t {{field_name(key.name)}}_end[{{calc_size(key.type.width)}}];
+        {% endif %}
+    {% else %}
+    #error "Failed to generate key field type"
+    {% endif %}
+{%- elif key.match_type == 'LPM'%}
+    {% if key.type.type == 'bytes'%}
+        {% if key.type.width <= 64 -%}
+    {{bytes_ctype(key.type.width)}} {{field_name(key.name)}};
+    {{bytes_ctype(key.type.width)}} {{field_name(key.name)}}_plen;
+        {% else -%}
+    uint8_t {{field_name(key.name)}}[{{calc_size(key.type.width)}}];
+    {{bytes_ctype(key.type.width)}} {{field_name(key.name)}}_plen;
+        {% endif %}
+    {% else %}
+    #error "Failed to generate key field type"
+    {% endif %}
+{%- endif %}
+{%- endmacro %}
+
+
+{% macro declare_data_field_with_action(action) %}
+{% for action_data in action.data  %}
+{% if action_data.type.type == 'string' %}
+char *{{field_name(action_data.name)}};
+{%- elif action_data.type.type == 'uint32' %}
+uint32_t {{field_name(action_data.name)}};
+{%- elif action_data.type.type == 'float' %}
+float {{field_name(action_data.name)}};
+{%- elif action_data.type.type == 'bytes' %}
+    {% if action_data.type.width == 1 %}
+bool {{field_name(action_data.name)}};
+    {%- elif action_data.type.width <= 8%}
+uint8_t {{field_name(action_data.name)}};
+    {%- elif action_data.type.width <= 16%}
+uint16_t {{field_name(action_data.name)}};
+    {%- elif action_data.type.width <= 32%}
+uint32_t {{field_name(action_data.name)}};
+    {%- elif action_data.type.width <= 64%}
+uint64_t {{field_name(action_data.name)}};
+    {%- else %}
+uint8_t {{field_name(action_data.name)}}[{{calc_size(action_data.type.width)}}];
+    {%- endif %}
+{%- else %} #error Unkown data field type
+{%- endif %}
+{%- endfor %}
+{%- endmacro %}
+
+{# Iterate actions in the table #}
+{% macro foreach_action_without_noaction(table) %}
+{% if table.action_specs is defined %}
+{% for action_spec in table.action_specs %}
+{% if action_spec.name != 'NoAction' %}
+{% with %}
+{{ caller(action_spec) }}
+{%- endwith %}
+{%- endif %}
+{%- endfor %}
+{%- endif %}
+{%- endmacro %}
+
+{% macro bftype_to_ctype(type) %}
+{% if type.type == 'string' %}char *
+{% elif type.type == 'uint32' %}uint32_t
+{% elif type.type == 'float' %}float
+{% elif type.type == 'bytes' %}
+{% if type.width == 1 %}bool
+{% elif type.width <= 8%}uint8_t
+{% elif type.width <= 16%}uint16_t
+{% elif type.width <= 32%}uint32_t
+{% elif type.width <= 64%}uint64_t
+{% else %}uint8_t 
+{% endif%}
+{% endif %}
+{% endmacro%}

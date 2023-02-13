@@ -1,0 +1,65 @@
+#!/bin/bash
+
+function perror()
+{
+    echo -e "$@"
+    exit 0
+}
+
+function pnerror()
+{
+    echo -e "$@"
+}
+
+function pinfo()
+{
+    echo "Info: $@"
+}
+
+function check_str_null()
+{
+    if [ "$2" == "" ];then
+        pnerror "$1"
+    fi
+}
+
+function exit_str_null()
+{
+    if [ "$2" == "" ];then
+        perror "$1"
+    fi
+}
+
+function check_num()
+{
+    host_if_num=`cat /etc/hostif.json  | grep intf_name |wc -l`
+    bgp_establish_num=`vtysh -c "show ip bgp nei" | grep "BGP state" | grep Established | wc -l`
+    if [ "$host_if_num" == "$bgp_establish_num" ];then
+        echo "bgp_state:0, desc: all bgp state is Established"
+        exit 0
+    fi
+}
+
+function check_bgp_state()
+{
+    BGP_STATE=`vtysh -c "show ip bgp nei $NEIGHBOR" | grep -i "BGP state" | grep Established`
+    exit_str_null "bgp_state:255, desc: bgp peer $NEIGHBOR state is not establish!" $BGP_STATE
+}
+
+function bgp_state_monitor()
+{   
+    peers=`cat /etc/hostif.json | grep gw_ip | wc -l`
+    for ((i=1; i<=peers; i++))
+    do
+        NEIGHBOR=`cat /etc/hostif.json | grep gw_ip | awk -F '"' '{print $4}' | sed -n "${i}p"`
+        check_bgp_state
+    done
+}
+
+function main()
+{
+    check_num
+    bgp_state_monitor #this is very slow
+}
+
+main

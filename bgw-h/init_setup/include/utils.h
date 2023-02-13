@@ -1,0 +1,90 @@
+#ifndef _INIT_SETUP_UTILS_H_
+#define _INIT_SETUP_UTILS_H_
+
+#include <stdlib.h>
+#include <errno.h>
+#include <stdint.h>
+#include <arpa/inet.h>
+#include <syslog.h>
+
+#define CONST_UINT8_MAX 255
+
+#define MAC_FMT "%02x:%02x:%02x:%02x:%02x:%02x"
+#define MAC_ARG(x) ((uint8_t*)(x))[0],((uint8_t*)(x))[1],((uint8_t*)(x))[2],((uint8_t*)(x))[3],((uint8_t*)(x))[4],((uint8_t*)(x))[5]
+
+static inline int ether_aton(const char *a, uint8_t mac_addr[6])
+{
+	int i;
+	char *end;
+	unsigned long o[6];
+
+	i = 0;
+	do {
+		errno = 0;
+		o[i] = strtoul(a, &end, 16);
+		if (errno != 0 || end == a || (end[0] != ':' && end[0] != 0))
+			return -1;
+		a = end + 1;
+	} while (++i != sizeof(o) / sizeof(o[0]) && end[0] != 0);
+
+	/* Support the format XX:XX:XX:XX:XX:XX */
+	if (i == 6) {
+		while (i-- != 0) {
+			if (o[i] > CONST_UINT8_MAX)
+				return -1;
+			mac_addr[i] = (uint8_t)o[i];
+		}
+	}
+
+	return 0;
+}
+
+static inline uint32_t ip_atoi(const char *str)
+{
+	uint32_t ipaddr = 0;
+
+	if(inet_pton(AF_INET, str, &ipaddr) != 1) {
+		return 0;
+	}
+	return ntohl(ipaddr);
+}
+
+static inline void reverse_mac(char *rmac, char *mac) {
+	rmac[0] = mac[5];	
+	rmac[1] = mac[4];
+	rmac[2] = mac[3];
+	rmac[3] = mac[2];
+	rmac[4] = mac[1];
+	rmac[5] = mac[0];
+}
+
+#define SETUP_PANIC(msg...)\
+	do{\
+		fprintf(stderr, "PANIC: %s: %d: ", __FILE__, __LINE__);\
+		fprintf(stderr, msg);\
+		abort(); \
+	}while(0)
+
+#define SETUP_LOG(msg...)                                              \
+	do{ 																	\
+		syslog(6, msg); 													\
+	}while(0)
+
+static inline int is_multicast_ether_addr(const uint8_t *addr)
+{
+	return 0x01 & addr[0];
+}
+
+static inline int is_zero_ether_addr(const uint8_t *addr)
+{
+	return !(addr[0] | addr[1] | addr[2] | addr[3] | addr[4] | addr[5]);
+}
+
+static inline int is_valid_ether_addr(const uint8_t *addr)
+{
+	/* FF:FF:FF:FF:FF:FF is a multicast address so we don't need to
+		* explicitly check for it here. */
+	return !is_multicast_ether_addr(addr) && !is_zero_ether_addr(addr);
+}
+
+#endif

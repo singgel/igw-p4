@@ -1,0 +1,7 @@
+#!/usr/bin/python
+# -*- encoding: utf8 -*-
+
+from apigen import generator
+
+generator.run()
+

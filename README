@@ -1,0 +1,20 @@
+BGW-P4 Introduction
+================================
+
+The <bgw-p4> package is organized as follows
+
+    p4src/
+	   Bgw pipeline source code by p4 language 
+
+    bgw-h/
+        init_setup:
+            Include bf_switchd daemon, hostif create, port manager, and hostif.json config file must be placed in /opt/ directory. you need modify makefile to decide which sde version you use.
+        rpc_client:
+            Python program used to initialize some static p4 tables which can run on remote machines 
+    tools/
+	  bfrt-apigen-tool:
+        	Used to generate P4 bf-interface code file
+	  frr:
+        	frr.conf which put in /etc/frr/
+	  pythonlib:
+        	python dependencies lib

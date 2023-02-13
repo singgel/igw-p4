@@ -1,0 +1,1 @@
+$SDE/pkgsrc/p4-build/configure  P4_PATH=/root/p4code/p4src/bgw_switch.p4  P4_NAME=bgw_switch P4_PREFIX=bgw_switch P4_VERSION=p4-16 P4_ARCHITECTURE=tna P4FLAGS="--verbose 2 --create-graphs -g" --with-tofino --prefix=$SDE_INSTALL

@@ -1,0 +1,649 @@
+{% set tb_name = table.name | mk_tbname | lower %}
+/******************************************************************************
+ * 
+ * Copyright (c) 2022   jd.com, Inc. All Rights Reserved
+ * @author		API generator
+ *
+ * This file is generated based on the P4 programs stored in pipline/p4src.
+ * Please refer to the P4 program and the generated bf-rt.json for information
+ * on the tables contained in the P4 program, and the associated key and data
+ * fields.
+ * 
+ * Table: {{ table.name }}
+ *
+ * The name of this table has been automatically abbreviated as {{ tb_name }}. 
+******************************************************************************/
+
+#include "{{ prefix }}_{{ tb_name }}.h"
+{##}
+{% import 'utils.jinja' as utils %}
+{##}
+{% macro declare_key_field(key) %}
+{# Exact #}
+{% if key.match_type == 'Exact' %}
+{% if key.type.type == 'string' %}
+char *{{utils.field_name(key.name)}};
+{% elif key.type.type == 'uint32' %}
+uint32_t {{utils.field_name(key.name)}};
+{% elif key.type.type == 'float' %}
+float {{utils.field_name(key.name)}};
+{% elif key.type.type == 'bytes' %}
+{% if key.type.width == 1 %}
+bool {{utils.field_name(key.name)}};
+{% elif key.type.width <= 8%}
+uint8_t {{utils.field_name(key.name)}};
+{% elif key.type.width <= 16%}
+uint16_t {{utils.field_name(key.name)}};
+{% elif key.type.width <= 32%}
+uint32_t {{utils.field_name(key.name)}};
+{% elif key.type.width <= 64%}
+uint64_t {{utils.field_name(key.name)}};
+{% else %}
+uint8_t {{utils.field_name(key.name)}}[{{utils.calc_size(key.type.width)}}];
+{% endif%} {# endif for key.type.width #}
+{% else%}
+{{key.type.type}} {{utils.field_name(key.name)}};
+{% endif %}
+{# Ternary #}
+{% elif key.match_type == 'Ternary' %}
+{% if key.type.type == 'bytes' %}
+{% if key.type.width == 1 %}
+bool {{utils.field_name(key.name)}};
+    bool {{utils.field_name(key.name)}}_mask;
+{% elif key.type.width <= 8%}
+uint8_t {{utils.field_name(key.name)}};
+    uint8_t {{utils.field_name(key.name)}}_mask;
+{% elif key.type.width <= 16%}
+uint16_t {{utils.field_name(key.name)}};
+    uint16_t {{utils.field_name(key.name)}}_mask;
+{% elif key.type.width <= 32%}
+uint32_t {{utils.field_name(key.name)}};
+    uint32_t {{utils.field_name(key.name)}}_mask;
+{% elif key.type.width <= 64%}
+uint64_t {{utils.field_name(key.name)}};
+    uint64_t {{utils.field_name(key.name)}}_mask;
+{% else %}
+uint8_t {{utils.field_name(key.name)}}[{{utils.calc_size(key.type.width)}}];
+    uint8_t {{utils.field_name(key.name)}}_mask[{{utils.calc_size(key.type.width)}}];
+{% endif%} {# endif for key.type.width #}
+{% else%}
+{{key.type.type}} {{utils.field_name(key.name)}};
+    {{key.type.type}} {{utils.field_name(key.name)}}_mask;
+{% endif %}
+{# Range#}
+{% elif key.match_type == 'Range' %}
+{% if key.type.type == 'bytes' %}
+{% if key.type.width == 1 %}
+bool {{utils.field_name(key.name)}}_start;
+bool {{utils.field_name(key.name)}}_end;
+{% elif key.type.width <= 8%}
+uint8_t {{utils.field_name(key.name)}}_start;
+uint8_t {{utils.field_name(key.name)}}_end;
+{% elif key.type.width <= 16%}
+uint16_t {{utils.field_name(key.name)}}_start;
+uint16_t {{utils.field_name(key.name)}}_end;
+{% elif key.type.width <= 32%}
+uint32_t {{utils.field_name(key.name)}}_start;
+uint32_t {{utils.field_name(key.name)}}_end;
+{% elif key.type.width <= 64%}
+uint64_t {{utils.field_name(key.name)}}_start;
+uint64_t {{utils.field_name(key.name)}}_end;
+{% else %}
+uint8_t {{utils.field_name(key.name)}}_start[{{utils.calc_size(key.type.width)}}];
+uint8_t {{utils.field_name(key.name)}}_end[{{utils.calc_size(key.type.width)}}];
+{% endif%} {# endif for key.type.width #}
+{% else%}
+{{key.type.type}} {{utils.field_name(key.name)}}_start;
+{{key.type.type}} {{utils.field_name(key.name)}}_end;
+{% endif %}
+{# LPM #}
+{% elif key.match_type == 'LPM' %}
+{% if key.type.type == 'bytes' %}
+{% if key.type.width == 1 %}
+bool {{utils.field_name(key.name)}};
+{% elif key.type.width <= 8%}
+uint8_t {{utils.field_name(key.name)}};
+{% elif key.type.width <= 16%}
+uint16_t {{utils.field_name(key.name)}};
+{% elif key.type.width <= 32%}
+uint32_t {{utils.field_name(key.name)}};
+{% elif key.type.width <= 64%}
+uint64_t {{utils.field_name(key.name)}};
+{% else %}
+uint8_t {{utils.field_name(key.name)}}[{{utils.calc_size(key.type.width)}}];
+{% endif%} {# endif for key.type.width #}
+{% else%}
+{{key.type.type}} {{utils.field_name(key.name)}};
+{% endif %}
+uint16_t {{utils.field_name(key.name)}}_plen;
+{% endif %}
+{%- endmacro %}
+
+{# Generate variable names #}
+{% macro gen_action_id_varname(action_name) %}
+tbact_{{utils.actname_abbr(action_name)}}_id
+{%- endmacro %}
+{% macro gen_action_data_id_varname(action_name, data_name) %}
+tbact_{{utils.actname_abbr(action_name)}}_{{utils.field_name(data_name)}}_field_id
+{%- endmacro %}
+{% macro gen_key_field_id_varname(key_name) %}
+tbkey_{{ utils.field_name(key_name)}}_field_id
+{%- endmacro %}
+{# Iterate actions in the table #}
+{% macro foreach_action_without_noaction() %}
+{% if table.action_specs is defined %}
+{% for action_spec in table.action_specs %}
+{% if action_spec.name != 'NoAction' %}
+{% with %}
+{{ caller(action_spec) }}
+{% endwith %}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endmacro %}
+
+
+{% macro tbkey_structname(tbname) %}{{prefix}}_{{tbname}}_key_s{% endmacro %}
+{% macro tbkey_typename(tbname) %}{{prefix}}_{{tbname}}_key_t{% endmacro %}
+{% if table.key is defined and table.key %}
+/**
+ * Structure definition to represent the key of the table {{ tb_name }}
+ */
+typedef struct {{ tbkey_structname(tb_name) }}{
+    {% for key in table.key %}
+    {{declare_key_field(key)}}
+    {% endfor %}
+}{{tbkey_typename(tb_name)}};
+{% endif %}
+
+{% macro tbdata_structname(name) %}{{prefix}}_{{name}}_data_s{% endmacro %}
+{% macro tbdata_typename(name) %}{{prefix}}_{{name}}_data_t{% endmacro %}
+{% call(action_spec) foreach_action_without_noaction() %}
+{% if action_spec.data %}
+{% set actname = utils.actname_abbr(action_spec.name) %}
+/**
+ * Structure definition to represent the data of the {{ tb_name }} table for 
+ * action {{ action_spec.name }}.
+ * 
+ * The action name was already abbreviated to '{{ actname }}'.
+ */
+typedef struct {{tbdata_structname(actname)}} {
+{% for action_data in action_spec.data %}
+{% if action_data.type.type == 'string' %}
+    char *{{utils.field_name(action_data.name)}};
+{% elif action_data.type.type == 'uint32' %}
+    uint32_t {{utils.field_name(action_data.name)}};
+{% elif action_data.type.type == 'float' %}
+    float {{utils.field_name(action_data.name)}};
+{% elif action_data.type.type == 'bytes' %}
+{% if action_data.type.width == 1 %}
+    bool {{utils.field_name(action_data.name)}};
+{% elif action_data.type.width <= 8%}
+    uint8_t {{utils.field_name(action_data.name)}};
+{% elif action_data.type.width <= 16%}
+    uint16_t {{utils.field_name(action_data.name)}};
+{% elif action_data.type.width <= 32%}
+    uint32_t {{utils.field_name(action_data.name)}};
+{% elif action_data.type.width <= 64%}
+    uint64_t {{utils.field_name(action_data.name)}};
+{% else %}
+    uint8_t {{utils.field_name(action_data.name)}}[{{utils.calc_size(action_data.type.width)}}];
+{% endif %}
+{% else%}
+#error template bug.
+{% endif %}
+{% endfor %}
+}{{tbdata_typename(actname)}};
+
+{% endif %}
+{% endcall %}
+
+{% if table.action_specs is defined and table.action_specs %}
+/* Common data structure */
+typedef struct {{ prefix }}_{{ tb_name }}_data_s {
+    union {
+        {% call(action_spec) foreach_action_without_noaction() %}
+        {% if action_spec.data %}
+        {% set actname = utils.actname_abbr(action_spec.name) %}
+        {{ prefix }}_{{ tb_name }}_{{ actname }}_data_t {{actname}}_data;
+        {% endif %}
+        {% endcall %}
+    }data;
+
+    /* Based on the action_id, contents of the enum are interpreted */
+    bf_rt_id_t action_id;
+}{{ prefix }}_{{tb_name}}_data_t;
+{% endif %}
+
+/**
+ * Key field ids, table data field ids, action ids, Table hdl required for
+ * interacting with the table.
+**/
+static bf_rt_table_key_hdl *bf_rt_table_key;
+static bf_rt_table_data_hdl *bf_rt_table_data;
+static const bf_rt_table_hdl *bf_rt_table;
+
+/* Key field ids */
+{% for key in table.key %}
+static bf_rt_id_t {{ gen_key_field_id_varname(key.name) }} = 0;
+{% endfor %}
+
+/* Action Ids */
+{% call(action_spec) foreach_action_without_noaction() %}
+static bf_rt_id_t {{ gen_action_id_varname(action_spec.name) }} = 0;
+{% endcall %}
+
+{% call(action_spec) foreach_action_without_noaction() %}
+/* Data field Ids for "{{ action_spec.name | last_part }}" action */
+{% for action_data in action_spec.data %}
+static bf_rt_id_t {{ gen_action_data_id_varname(action_spec.name, action_data.name) }} = 0;
+{% endfor %}
+
+{% endcall %}
+
+/**
+ * {{prefix}}_{{ tb_name }}_tbl_setup() - Table setup.
+ *
+ * This function does the initial set up of getting key field-ids, action-ids
+ * and data field ids associated with the {{ tb_name }}table. This is done once
+ * during init time.
+ *
+ */
+static int 
+{{prefix}}_{{ tb_name }}_tbl_setup(netp4_bf_rt_t *netp4_bf_p) 
+{
+    bf_status_t bf_status;
+
+    /* Get table object from name */
+    bf_status_t = bf_rt_table_from_name_get(
+        netp4_bf_p->bfrtInfo,
+        "{{table.name}}",
+        &bf_rt_table);
+    if (BF_SUCCESS != bf_status) {
+        return -1;
+    }
+
+    /* Get action IDs */
+    {% call(action_spec) foreach_action_without_noaction() %}
+    {% set actname = utils.actname_abbr(action_spec.name) %}
+    bf_status = bf_rt_action_name_to_id(bf_rt_table, 
+        "{{action_spec.name}}", 
+        &{{ gen_action_id_varname(action_spec.name) }});
+    if (BF_SUCCESS != bf_status) {
+        return -1;
+    }
+    {% endcall %}
+
+    /* Get field-ids for key fields */
+    {% for key in table.key %}
+  	bf_status = bf_rt_key_field_id_get(bf_rt_table, 
+        "{{key.name}}", 
+        &{{ gen_key_field_id_varname(key.name) }});
+    if (BF_SUCCESS != bf_status) {
+        return -1;
+    }
+    {% endfor %}
+
+    /* Get field-ids for action data fields */
+    {% call(action_spec) foreach_action_without_noaction() %}
+    /***********************************************************************
+     * DATA FIELD ID GET FOR "{{action_spec.name}}" ACTION
+     **********************************************************************/
+    {% for action_data in action_spec.data %}
+    bf_status = bf_rt_data_field_id_with_action_get(
+        bf_rt_table,
+        "{{action_data.name}}",
+        {{gen_action_id_varname(action_spec.name)}}, 
+        &{{gen_action_data_id_varname(action_spec.name, action_data.name)}});
+    if (BF_SUCCESS != bf_status) {
+        return -1;
+    }
+    {% endfor %}
+    {% endcall %}
+
+    /* Allocate key and data once, and use reset across different uses */
+    bf_status = bf_rt_table_key_allocate(bf_rt_table, &bf_rt_table_key);
+    if (BF_SUCCESS != bf_status) {
+        return -1;
+    }
+
+    bf_status = bf_rt_table_data_allocate(bf_rt_table, &bf_rt_table_data);
+    if (BF_SUCCESS != bf_status) {
+        return -1;
+    }
+
+    return 0;
+}
+
+/**
+ * {{prefix}}_{{ tb_name }}_teardown - This function clears up
+ * any allocated memory during {{table.name|last_part}}_setup()
+ */
+static void 
+{{ prefix }}_{{ tb_name }}_teardown(netp4_bf_rt_t *netp4_bf_p) 
+{
+    /* Deallocate key and data */
+    (void)bf_rt_table_key_deallocate(bf_rt_table_key);
+    (void )bf_rt_table_data_deallocate(bf_rt_table_data);
+
+    return;
+}
+
+
+{% if table.key is defined and table.key -%}
+/**
+ * {{ prefix }}_{{ tb_name }}_key_setup() - Setup key object.
+ *
+ * This function sets the passed key value into the key object passed using
+ * the setValue methods on the key object.
+ */
+static int 
+{{ prefix }}_{{ tb_name }}_key_setup({{ tbkey_typename(tb_name) }} *key_val, bf_rt_table_key_hdl *key_obj)
+{
+    bf_status_t bf_status = BF_SUCCESS;
+
+    {% for table_key in table.key %}
+    /* Set value into the key object. Key type is "{{table_key.match_type}}" */
+    {% if "Exact" == table_key.match_type %}
+    {% if "string" == table_key.type.type %}
+    bf_status = bf_rt_key_field_set_value(tbl_key, 
+        {{ gen_key_field_id_varname(table_key.name) }}, key->{{utils.field_name(table_key.name)}});
+    {% elif "bytes" == table_key.type.type and table_key.type.width > 64 %}
+    bf_status = bf_rt_key_field_set_value_ptr(tbl_key, 
+        {{ gen_key_field_id_varname(table_key.name) }}, key->{{utils.field_name(table_key.name)}}, {{ utils.calc_size(table_key.type.width) }});
+    {% else %}
+    bf_status = bf_rt_key_field_set_value(tbl_key, 
+        {{ gen_key_field_id_varname(table_key.name) }}, key->{{utils.field_name(table_key.name)}});
+    {% endif %}
+    {% elif "Ternary" == table_key.match_type %}
+    {% if "bytes" == table_key.type.type and table_key.type.width > 64 %}
+    bf_status = bf_rt_key_field_set_value_and_mask_ptr(
+        tbl_key, 
+        {{ gen_key_field_id_varname(table_key.name) }},
+        key->{{utils.field_name(table_key.name)}}, 
+        key->{{utils.field_name(table_key.name)}}_mask, 
+        {{utils.calc_size(table_key.type.width)}});
+    {% else %}
+    bf_status = bf_rt_key_field_set_value_and_mask(
+        tbl_key, 
+        {{ gen_key_field_id_varname(table_key.name) }},
+        key->{{utils.field_name(table_key.name)}}, 
+        key->{{utils.field_name(table_key.name)}}_mask);
+    {% endif %}
+    {% elif "Range" == table_key.match_type %}
+    {% if "bytes" == table_key.type.type and table_key.type.width > 64 %}
+    bf_status = bf_rt_key_field_set_value_and_range_ptr(
+        tbl_key, 
+        {{ gen_key_field_id_varname(table_key.name) }},
+        key->{{utils.field_name(table_key.name)}}_start, 
+        key->{{utils.field_name(table_key.name)}}_end, 
+        {{utils.calc_size(table_key.type.width)}});
+    {% else %}
+    bf_status = bf_rt_key_field_set_value_and_range(
+        tbl_key, 
+        {{ gen_key_field_id_varname(table_key.name) }},
+        key->{{utils.field_name(table_key.name)}}_start, 
+        key->{{utils.field_name(table_key.name)}}_end);
+    {% endif %}
+    {% elif "LPM" == table_key.match_type %}
+    {% if "bytes" == table_key.type.type and table_key.type.width > 64 %}
+    bf_status = bf_rt_key_field_set_value_and_lpm_ptr(
+        tbl_key, 
+        {{ gen_key_field_id_varname(table_key.name) }},
+        key->{{utils.field_name(table_key.name)}}, 
+        key->{{utils.field_name(table_key.name)}}_plen, 
+        {{utils.calc_size(table_key.type.width)}});
+    {% else %}
+    bf_status = bf_rt_key_field_set_value_and_lpm(
+        tbl_key, 
+        {{ gen_key_field_id_varname(table_key.name) }},
+        key->{{utils.field_name(table_key.name)}}, 
+        key->{{utils.field_name(table_key.name)}}_plen);
+    {% endif %}
+    {% else %}
+    #error Unkown match type {{table_key.match_type}}
+    {% endif %}
+    if (BF_SUCCESS != bf_status} {
+        return -1;
+    }
+
+    {% endfor %}
+    return 0;
+}
+{% endif %}
+
+{% call(action_spec) foreach_action_without_noaction() %}
+{% if action_spec.data %}
+{% set actname = utils.actname_abbr(action_spec.name) %}
+/**
+ * Data setup function for action "{{action_spec.name}}"
+ */
+static int {{ prefix }}_{{tb_name}}_data_setup_for_{{utils.actname_abbr(action_spec.name)}} 
+(
+    const {{tbdata_typename(actname)}} *act_data, 
+    bf_rt_table_data_hdl *data_hdl
+)
+{
+    bf_status_t bf_status = BF_SUCCESS;
+
+    {% for action_data in action_spec.data %}
+    {% if action_data.type.type == 'string' %}
+    bf_status = bf_rt_data_field_set_string(
+        data_hdl, {{ gen_action_data_id_varname(action_spec.name, action_data.name) }}, act_data->{{utils.field_name(action_data.name)}});
+    {% elif action_data.type.type == 'uint32' %}
+    bf_status = bf_rt_data_field_set_value(
+        data_hdl, {{ gen_action_data_id_varname(action_spec.name, action_data.name) }}, act_data->{{utils.field_name(action_data.name)}});
+    {% elif action_data.type.type == 'float' %}
+    bf_status = bf_rt_data_field_set_float(
+        data_hdl, {{ gen_action_data_id_varname(action_spec.name, action_data.name) }}, act_data->{{utils.field_name(action_data.name)}});
+    {% elif action_data.type.type == 'bytes' %}
+    {% if action_data.type.width == 1 %}
+    bf_status = bf_rt_data_field_set_bool(
+        data_hdl, {{ gen_action_data_id_varname(action_spec.name, action_data.name) }}, act_data->{{utils.field_name(action_data.name)}});
+    {% elif action_data.type.width <= 64%}
+    bf_status = bf_rt_data_field_set_value(
+        data_hdl, {{ gen_action_data_id_varname(action_spec.name, action_data.name) }}, act_data->{{utils.field_name(action_data.name)}});
+    {% else %}
+    bf_status = bf_rt_data_field_set_value_ptr(
+        data_hdl, {{ gen_action_data_id_varname(action_spec.name, action_data.name) }}, act_data->{{utils.field_name(action_data.name)}}, {{utils.calc_size(action_data.type.width)}});
+    {% endif %}
+    {% else%}
+    #error template bug.
+    {% endif %}
+    if (BF_SUCCESS != bf_status) {
+        return -1;
+    }
+
+    {% endfor %}
+
+    return 0;
+}
+{% endif %}
+{% endcall %}
+
+{% call(action_spec) foreach_action_without_noaction() %}
+{% if action_spec.data %}
+{% set actname = utils.actname_abbr(action_spec.name) %}
+/**
+ *
+ * This function add or modifies an entry in the {{ tb_name }} table with 
+ " {{ action_spec.name}}" action.
+ * 
+ */
+static int 
+{{ prefix }}_{{tb_name}}_entry_add_modify_with_{{actname}}
+(
+    netp4_bf_rt_t *netp4_bf_p, 
+    const {{tbkey_typename(tb_name)}} *key,  
+    const {{tbdata_typename(actname)}} *data,
+    const bool add
+) 
+{
+    bf_status_t bf_status;
+
+    bf_rt_table_key_reset(bf_rt_table, &bf_rt_table_key);
+    bf_rt_table_action_data_reset(
+        bf_rt_table, {{ gen_action_id_varname(action_spec.name) }}, &bf_rt_table_data);
+
+    {{prefix}}_{{tb_name}}_key_setup(key, bf_rt_table_key);
+    {{prefix}}_{{tb_name}}_data_setup_for_{{actname}}(data, bf_rt_table_data);
+
+    if (add) {
+        bf_status = bf_rt_table_entry_add(bf_rt_table, 
+            netp4_bf_p->session, 
+            netp4_bf_p->dev_tgt,
+            bf_rt_table_key,
+            bf_rt_table_data);
+    } else {
+        bf_status = bf_rt_table_entry_mod(bf_rt_table, 
+            netp4_bf_p->session, 
+            netp4_bf_p->dev_tgt,
+            bf_rt_table_key,
+            bf_rt_table_data);
+    }
+
+    if (BF_SUCCESS != bf_status) {
+        return -1;
+    }
+
+    bf_rt_session_complete_operations(netp4_bf_p->session);
+
+    return 0;
+}
+
+{% endif %}
+{% endcall %}
+
+{% call(action_spec) foreach_action_without_noaction() %}
+{% if action_spec.data %}
+{% set actname = utils.actname_abbr(action_spec.name) %}
+static int 
+{{prefix}}_{{tb_name}}_process_{{actname}}_entry_get
+(
+    const bf_rt_table_data_hdl *data_hdl, 
+    {{tbdata_typename(actname)}} *act_data
+)
+{
+    bf_status_t bf_status = BF_SUCCESS;
+
+    {% for action_data in action_spec.data %}
+    {% if action_data.type.type == 'string' %}
+    bf_status = bf_rt_data_field_get_string(
+        data_hdl, {{ gen_action_data_id_varname(action_spec.name, action_data.name) }}, &act_data->{{utils.field_name(action_data.name)}});
+    {% elif action_data.type.type == 'uint32' %}
+    uint64 {{utils.field_name(action_data.name)}};
+    bf_status = bf_rt_data_field_get_value(
+        data_hdl, {{ gen_action_data_id_varname(action_spec.name, action_data.name) }}, &{{utils.field_name(action_data.name)}});
+    act_data->{{utils.field_name(action_data.name)}} = {{utils.field_name(action_data.name)}};
+    {% elif action_data.type.type == 'float' %}
+    bf_status = bf_rt_data_field_get_float(
+        data_hdl, {{ gen_action_data_id_varname(action_spec.name, action_data.name) }}, &act_data->{{utils.field_name(action_data.name)}});
+    {% elif action_data.type.type == 'bytes' %}
+    {% if action_data.type.width == 1 %}
+    uint64 {{utils.field_name(action_data.name)}};
+    bf_status = bf_rt_data_field_get_bool(
+        data_hdl, {{ gen_action_data_id_varname(action_spec.name, action_data.name) }}, &{{utils.field_name(action_data.name)}});
+    act_data->{{utils.field_name(action_data.name)}} = {{utils.field_name(action_data.name)}};;
+    {% elif action_data.type.width <= 64%}
+    uint64 {{utils.field_name(action_data.name)}};
+    bf_status = bf_rt_data_field_get_value(
+        data_hdl, {{ gen_action_data_id_varname(action_spec.name, action_data.name) }}, &{{utils.field_name(action_data.name)}});
+    act_data->{{utils.field_name(action_data.name)}} = {{utils.field_name(action_data.name)}};;
+    {% else %}
+    bf_status = bf_rt_data_field_get_value_ptr(
+        data_hdl, {{ gen_action_data_id_varname(action_spec.name, action_data.name) }}, {{utils.calc_size(action_data.type.width)}}, act_data->{{utils.field_name(action_data.name)}});
+    {% endif %}
+    {% else%}
+    #error template bug.
+    {% endif %}
+    if (BF_SUCCESS != bf_status) {
+        return -1;
+    }
+
+    {% endfor %}
+
+    return 0;
+}
+{% endif %}
+{% endcall %}
+
+static int {{prefix}}_{{tb_name}}_process_entry_get
+(
+    const bf_rt_table_data_hdl *data_hdl, 
+    {{prefix}}_{{tb_name}}_data_t *data
+) 
+{
+    bf_status_t bf_status;
+    bf_rt_id_t action_id;
+
+    bf_status =  bf_rt_data_action_id_get(data, &action_id);
+    if (BF_SUCCESS != bf_status) {
+        return -1;
+    }
+
+{% call(action_spec) foreach_action_without_noaction() %}
+{% if action_spec.data %}
+{% set actname = utils.actname_abbr(action_spec.name) %}
+    if (action_id == {{gen_action_id_varname(action_spec.name)}}) {
+        return {{prefix}}_{{tb_name}}_process_{{actname}}_entry_get(data_hdl,
+            &data->data.{{actname}}_data);
+    }
+{% endif %}
+{% endcall %}
+
+    return -1;
+}
+
+int {{prefix}}_{{tb_name}}_entry_get
+(
+    netp4_bf_rt_t *netp4_bf_p, 
+    {{tbkey_typename(tb_name)}} *key,
+    {{prefix}}_{{tb_name}}_data_t *data
+)
+{
+    bf_status status = BF_SUCCESS;
+
+    /* Reset key and data before use */
+    bf_rt_table_key_reset(bf_rt_table, &bf_rt_table_key);
+
+    /**
+     * Data reset is done without action-id, since the action-id is filled in by
+     * the get function 
+     */
+    bf_rt_table_data_reset(bf_rt_table, *bf_rt_table_data);
+
+    {{prefix}}_{{tb_name}}_key_setup(key, bf_rt_table_key);
+
+    /* Entry get from hardware with the flag set to read from hardware */
+    bf_rt_entry_read_flag_e flag = ENTRY_READ_FROM_HW;
+    status = bf_rt_table_entry_get(bf_rt_table, netp4_bf_p->session,
+        &netp4_bf_p->dev_tgt, bf_rt_table_key, bf_rt_table_data, flag);
+    if (BF_SUCCESS != status) {
+        return -1;
+    }
+
+    return {{prefix}}_{{tb_name}}_process_entry_get(bf_rt_table_data, data);
+}
+
+int 
+{{prefix}}_{{tb_name}}_entry_delete(
+    netp4_bf_rt_t *netp4_bf_p, const {{tbkey_typename(tb_name)}} *key)
+{
+    bf_status_t bf_status;
+
+    /* Reset key before use */
+    bf_rt_table_key_reset(bf_rt_table, &bf_rt_table_key);
+
+    {{prefix}}_{{tb_name}}_key_setup(key, bf_rt_table_key);
+    
+    bf_status = bf_rt_table_entry_ret(bf_rt_table, 
+        netp4_bf_p->session, &netp4_bf_p->dev_tgt, bf_rt_table_key);
+
+    if (BF_SUCCESS != bf_status) {
+        return -1;
+    }
+
+    bf_rt_session_complete_operations(netp4_bf_p->session);
+
+    return 0;
+}

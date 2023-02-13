@@ -1,0 +1,25 @@
+/******************************************************************************
+ * 
+ * Copyright (c) 2022   jd.com, Inc. All Rights Reserved
+ * This file is generated based on the P4 programs stored in pipline/p4src.
+ * Please refer to the P4 program and the generated bf-rt.json for information
+ * on the tables contained in the P4 program, and the associated key and data
+ * fields.
+ * 
+******************************************************************************/
+#ifndef __{{prefix|upper}}_H_INCLUDED_
+#define __{{prefix|upper}}_H_INCLUDED_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+{% for file in header_files %}
+#include "{{file}}"
+{% endfor %}
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

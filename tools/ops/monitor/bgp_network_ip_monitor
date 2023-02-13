@@ -1,0 +1,59 @@
+#!/bin/bash
+
+function perror()
+{
+    echo -e "$@"
+    exit 0
+}
+
+function pnerror()
+{
+    echo -e "$@"
+}
+
+function pinfo()
+{
+    echo "Info: $@"
+}
+
+function check_str_null()
+{
+    if [ "$2" == "" ];then
+        pnerror "$1"
+    fi
+}
+
+function exit_str_null()
+{
+    if [ "$2" == "" ];then
+        perror "$1"
+    fi
+}
+
+function network_vip_check()
+{
+     VIP=`cat /etc/hostif.json | grep vip | grep -v backup_vip | awk -F '"' '{print $4}'`
+     VIP_STATE=`vtysh -c "show run" | grep "network $VIP/32"`
+     exit_str_null "bgp_network:255, desc: vip is no network!" $VIP_STATE
+}
+
+function network_mip_check()
+{
+     MIP=`cat /etc/hostif.json | grep mgt_ip | awk -F '"' '{print $4}'`
+     MIP_STATE=`vtysh -c "show run" | grep "network $MIP/32"`
+     exit_str_null "bgp_network:255, desc: mgt_ip is no network!" $MIP_STATE
+}
+
+function network_monitor()
+{   
+    network_mip_check
+    network_vip_check
+    echo "bgp_network:0, desc: mgt_ip and vip is network"
+}
+
+function main()
+{
+    network_monitor
+}
+
+main

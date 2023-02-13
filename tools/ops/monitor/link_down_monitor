@@ -1,0 +1,55 @@
+#!/bin/bash
+
+function perror()
+{
+    echo -e "$@"
+    exit 0
+}
+
+function pnerror()
+{
+    echo -e "$@"
+}
+
+function pinfo()
+{
+    echo "Info: $@"
+}
+
+function check_str_null()
+{
+    if [ "$2" == "" ];then
+        pnerror "$1"
+    fi
+}
+
+function exit_str_null()
+{
+    if [ "$2" == "" ];then
+        perror "$1"
+    fi
+}
+
+function check_link_up()
+{
+    LINK_STATE=`ip link show dev $HOSTIF_NAME | grep UP`
+    exit_str_null "link_state:255, desc: $HOSTIF_NAME is down!" $LINK_STATE
+}
+
+function link_monitor()
+{   
+    peers=`cat /etc/hostif.json | grep intf_name | wc -l`
+    for ((i=1; i<=peers; i++))
+    do
+        HOSTIF_NAME=`cat /etc/hostif.json | grep intf_name | awk -F '"' '{print $4}' | sed -n "${i}p"`
+        check_link_up
+    done
+}
+
+function main()
+{
+    link_monitor
+    echo "link_state:0, desc: all link is up"
+}
+
+main
