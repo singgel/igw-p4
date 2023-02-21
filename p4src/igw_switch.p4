@@ -29,6 +29,7 @@
 #include "src/vmipv4.p4"
 #include "src/vxlan_route.p4"
 #include "src/traffic_stats.p4"
+#include "src/nat.p4"
 
 #include  "pipe02/P02_ingress.p4"
 #include  "pipe02/P02_ingress_parser.p4"

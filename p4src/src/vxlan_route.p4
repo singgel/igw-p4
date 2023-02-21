@@ -117,66 +117,57 @@ control Vlinklogic(inout headers_t hdr,
     }
 
     apply {
-        if (hdr.bg_md.igr_tunnel_type == TYPE_INGRESS_TUNNEL_VBR) {
+        if (hdr.bg_md.igr_tunnel_type == TYPE_INGRESS_INTERNET_IN) {
             vlink_table.apply();
         }
     }
 }
 
-control BgwIpType(inout headers_t hdr,
+control IgwIpType(inout headers_t hdr,
             inout common_metadata_t meta,
             in ingress_intrinsic_metadata_t ig_intr_md,
             in ingress_intrinsic_metadata_from_parser_t ig_intr_from_prsr,
             inout ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
             inout ingress_intrinsic_metadata_for_tm_t  ig_tm_md) {
 
-    /*
-    action ip_from_cen_hit(bit<3> egress_id, bit<8> src_idx) {
-        hdr.bg_md.igr_tunnel_type = TYPE_INGRESS_TUNNEL_CEN;
+    action ip_from_internet_in_hit() {
+        hdr.bg_md.igr_tunnel_type = TYPE_INGRESS_INTERNET_IN;
         hdr.bg_md.egr_tunnel_type = EGRESS_TUNNEL_TYPE_VXLAN;
-        meta.l3.egr_pipeline = egress_id;
+        meta.l3.egr_pipeline = EGR_PIPELINE;
         meta.tunnel.route_idx = (bit<32>) hdr.bg_md.lkp_vni;
-        hdr.bg_md.tunnel_src_id = src_idx;
-        bgw_ip_type_stats.count();
-    }
-
-    action ip_from_vpc_hit(bit<3> egress_id) {
-        hdr.bg_md.igr_tunnel_type = TYPE_INGRESS_TUNNEL_VPC;
-        hdr.bg_md.egr_tunnel_type = EGRESS_TUNNEL_TYPE_VXLAN;
-        meta.l3.egr_pipeline = egress_id;
-        meta.tunnel.route_idx = (bit<32>) hdr.bg_md.lkp_vni;
-        bgw_ip_type_stats.count();
     }    
-    */
-
-    action ip_from_vbr_hit() {
-        hdr.bg_md.igr_tunnel_type = TYPE_INGRESS_TUNNEL_VBR;
+    
+    action ip_from_internet_out_hit() {
+        hdr.bg_md.igr_tunnel_type = TYPE_INGRESS_INTERNET_OUT;
         hdr.bg_md.egr_tunnel_type = EGRESS_TUNNEL_TYPE_VXLAN;
         meta.l3.egr_pipeline = EGR_PIPELINE;
         meta.tunnel.route_idx = (bit<32>) hdr.bg_md.lkp_vni;
     }
 
-    action nop() {}
+    action need_drop() {
+        ig_intr_md_for_dprsr.drop_ctl = 0x1;
+    }
 
-    table bgw_ip_type {
+    table igw_ip_type {
         key = {
-            hdr.vxlan.isValid()         : exact;
+            hdr.ipv4.isValid()          : ternary;
+            hdr.ipv4.dstAddr            : ternary;
+            hdr.vxlan.isValid()         : ternary;
+            hdr.inner_ipv4.isValid()    : ternary;
+            hdr.vxlan.tof               : ternary;
         }
 
         actions = {
-            ip_from_vbr_hit;
-            nop;
+            ip_from_internet_in_hit;
+            ip_from_internet_out_hit;
+            need_drop;
         }
         
-        size = 2;
-        const entries = {
-            {true}   : ip_from_vbr_hit;
-            {false}   : nop;
-        }
+        size = 32;
     }
 
     apply {
-        bgw_ip_type.apply();
+        igw_ip_type.apply();
     }
 }
 

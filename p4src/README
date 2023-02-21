@@ -22,8 +22,8 @@ SDE 9.7.1
 
 2. build p4 prog
 
-	P4_PATH=/root/p4code/p4src/bgw_switch.p4 
-	P4_NAME=bgw_switch
+	P4_PATH=/root/p4code/p4src/igw_switch.p4 
+	P4_NAME=igw_switch
 
 	cmake $SDE/p4studio/ \
 		-DCMAKE_INSTALL_PREFIX=$SDE/install \

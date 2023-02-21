@@ -111,12 +111,25 @@ parser P02_EgressParser(
     
     state parse_std_vxlan {
         pkt.extract(hdr.vxlan);
-        meta.tunnel.vxlan_type = VXLAN_TYPE_STD;
-        transition parse_inner_ethernet;
+        //meta.tunnel.vxlan_type = VXLAN_TYPE_STD;
+        transition select(hdr.vxlan.flags[2:2]) {
+            1 : parse_jd_inner_ethernet;  
+            default : parse_inner_ethernet;
+        }
     }
     
+    state parse_jd_inner_ethernet {
+        pkt.extract(hdr.inner_ethernet);
+        meta.tunnel.vxlan_type = VXLAN_TYPE_JD;
+        transition select(hdr.inner_ethernet.etherType) {
+            ETHERTYPE_IPV4 : parse_inner_ipv4;
+            default : accept;
+        }
+    }  
+
     state parse_inner_ethernet {
         pkt.extract(hdr.inner_ethernet);
+        meta.tunnel.vxlan_type = VXLAN_TYPE_STD;
         transition select(hdr.inner_ethernet.etherType) {
             ETHERTYPE_IPV4 : parse_inner_ipv4;
             default : accept;

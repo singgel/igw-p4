@@ -18,7 +18,7 @@ struct tunnel_metadata_t {
 }
 
 struct l3_metadata_t {
-    bit<8> lkp_ip_proto;
+    bit<8>  lkp_ip_proto;
     bit<16> lkp_l4_sport;
     bit<16> lkp_l4_dport;    
     bit<32> lkp_sip;
