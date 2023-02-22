@@ -14,13 +14,7 @@ control MeterBpsTable(
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
     DirectMeter(MeterType_t.BYTES) meter_bps_all;
 
-    action exec_vlink_meter() {
-        hdr.vxlan.vni = hdr.bg_md.lkp_vni;
-        hdr.bg_md.meter_packet_color = (bit<2>)meter_bps_all.execute();
-    }   
-
-    action exec_cen_meter() {
-        hdr.vxlan.vni = hdr.bg_md.lkp_vni;
+    action nop() {
         hdr.bg_md.meter_packet_color = (bit<2>)meter_bps_all.execute();
     }    
     
@@ -30,8 +24,7 @@ control MeterBpsTable(
         }
 
         actions = {
-            exec_vlink_meter;
-            exec_cen_meter;
+            nop;
         }
         size = METER_BPS_TABLE_SIZE;
         meters = meter_bps_all;

@@ -12,16 +12,12 @@ control ProcessGwEgress(
         in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
         inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
-    EgressRouteProcess()     route_process;
-    MeterBpsTable()          meter_bps_table;
 
     apply {
-        route_process.apply(EPP_META);   
-        if (hdr.bg_md.pkt_dir != 0) { 
-            //cloud to idc
-            meter_bps_table.apply(EPP_META);
+        if (hdr.bg_md.igr_tunnel_type == TYPE_INGRESS_INTERNET_IN) { 
+        
         } else { 
-            // idc to cloud
+
         }
     }
 }
@@ -42,8 +38,6 @@ control P02_Egress(
         ProcessMirror()             mirror;
     #endif
     DecapMetaData_I2E02()           decap_md;
-    EgressPortStats()               egress_port_stats;     
-    EgressVifStats()                egress_vif_stats;
 
     apply {
         if (hdr.bg_md.isValid()) {
@@ -62,22 +56,13 @@ control P02_Egress(
             if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
                process_gw_egress.apply(EPP_META);     
                rewrite_vxlan.apply(EPP_META);    
-            }
-            
-            egress_system_acl.apply(EPP_META);
-            egress_port_stats.apply(EPP_META);
-            
-            if ((hdr.bg_md.tunnel_direct_send == MATCH_PACKET) && 
-                    (hdr.bg_md.need_drop != 1)) {
-                egress_vif_stats.apply(EPP_META);
-            }
-            
-            if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
                tunnel_inner_rewrite.apply(EPP_META);           
             }
             
+            egress_system_acl.apply(EPP_META);
+
             if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
-               tunnel_mac_rewrite.apply(EPP_META);           
+               tunnel_mac_rewrite.apply(EPP_META); // Rewrite Underlay Mac    
             }
         }
 
