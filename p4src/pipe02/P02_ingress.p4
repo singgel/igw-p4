@@ -19,7 +19,6 @@ control P02_Ingress(
     DecapMetaData_02()          decap_md;
     EncapMetaData_02()          encap_md;
     FipInnerIpSnat()            fip_snat;
-    IngressVifStats()           ingress_vif_stats;
 
     apply {
         decap_md.apply(IPP_META);
@@ -31,9 +30,9 @@ control P02_Ingress(
         }
         
         if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
-            if (hdr.bg_md.igr_tunnel_type == TYPE_INGRESS_INTERNET_IN) {
-                ingress_vif_stats.apply(IPP_META);
-            } else {//internet out must vxlan inner_ip pkt
+            if (hdr.bg_md.igr_tunnel_type == TYPE_INGRESS_INTERNET_IN) {//internet in
+                
+            } else {//internet out 
                 fip_snat.apply(IPP_META);
             }
         }

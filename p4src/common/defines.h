@@ -65,6 +65,8 @@
 #define SKIP_PACKET 3
 #define MATCH_PACKET 0
 
+#define EGR_PIPELINE_TWO  2
+
 #define __2_PIPELINE_BOX__  1
 #ifdef __2_PIPELINE_BOX__
     #define CPU_PORT 192

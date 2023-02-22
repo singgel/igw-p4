@@ -134,14 +134,12 @@ control IgwIpType(inout headers_t hdr,
         hdr.bg_md.igr_tunnel_type = TYPE_INGRESS_INTERNET_IN;
         hdr.bg_md.egr_tunnel_type = EGRESS_TUNNEL_TYPE_VXLAN;
         meta.l3.egr_pipeline = EGR_PIPELINE;
-        meta.tunnel.route_idx = (bit<32>) hdr.bg_md.lkp_vni;
     }    
     
     action ip_from_internet_out_hit() {
         hdr.bg_md.igr_tunnel_type = TYPE_INGRESS_INTERNET_OUT;
         hdr.bg_md.egr_tunnel_type = EGRESS_TUNNEL_TYPE_VXLAN;
-        meta.l3.egr_pipeline = EGR_PIPELINE;
-        meta.tunnel.route_idx = (bit<32>) hdr.bg_md.lkp_vni;
+        meta.l3.egr_pipeline = EGR_PIPELINE_TWO;
     }
 
     action need_drop() {
@@ -154,6 +152,7 @@ control IgwIpType(inout headers_t hdr,
             hdr.ipv4.dstAddr            : ternary;
             hdr.vxlan.isValid()         : ternary;
             hdr.inner_ipv4.isValid()    : ternary;
+            meta.tunnel.vxlan_type      : ternary;
             hdr.vxlan.tof               : ternary;
         }
 
@@ -162,8 +161,8 @@ control IgwIpType(inout headers_t hdr,
             ip_from_internet_out_hit;
             need_drop;
         }
-        
         size = 32;
+        const default_action = ip_from_internet_out_hit();
     }
 
     apply {

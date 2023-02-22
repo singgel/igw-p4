@@ -131,12 +131,12 @@ def ecmp_group02_init_2p():
     bf.tearDown()
 
 if __name__ == "__main__":
-    rewrite_vxlan_init()
+    #rewrite_vxlan_init()
     mirror_init()
     if PIPELINE_NUM == 4:
         ecmp_group02_init_4p()
     else:
         ecmp_group02_init_2p()
-    port_stats_init()
+    #port_stats_init()
     drop_init()
-    print("BGW init ok")
+    print("IGW init ok")
