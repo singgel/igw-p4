@@ -12,12 +12,16 @@ control ProcessGwEgress(
         in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
         inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
+    RewriteInnerMac()               tunnel_inner_rewrite;
+    InternetOutProcess()            internet_out;          
+    RewriteVxlan()                  rewrite_vxlan;   
 
     apply {
         if (hdr.bg_md.igr_tunnel_type == TYPE_INGRESS_INTERNET_IN) { 
-        
-        } else { 
-
+            rewrite_vxlan.apply(EPP_META);      //internet in
+            tunnel_inner_rewrite.apply(EPP_META);           
+        } else { //internet out
+            internet_out.apply(EPP_META);           
         }
     }
 }
@@ -30,9 +34,7 @@ control P02_Egress(
         inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
     ProcessGwEgress()               process_gw_egress;
-    RewriteVxlan()                  rewrite_vxlan;                  
     EgressSystemAcl()               egress_system_acl;
-    RewriteInnerMac()               tunnel_inner_rewrite;
     RewriteOuterMac()               tunnel_mac_rewrite;
     #ifndef __MIRROR_ON_ETH__
         ProcessMirror()             mirror;
@@ -55,8 +57,6 @@ control P02_Egress(
         } else {
             if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
                process_gw_egress.apply(EPP_META);     
-               rewrite_vxlan.apply(EPP_META);    
-               tunnel_inner_rewrite.apply(EPP_META);           
             }
             
             egress_system_acl.apply(EPP_META);

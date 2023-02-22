@@ -84,3 +84,36 @@ control RewriteVxlan(
         }
     }
 }
+
+control InternetOutProcess(
+        inout headers_t hdr,
+        inout common_metadata_t meta,
+        in egress_intrinsic_metadata_t eg_intr_md,
+        in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
+        inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
+        inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
+
+    action internet_out_decap_vxlan() {
+        hdr.inner_ethernet.setInvalid();  
+        hdr.vxlan.setInvalid();  
+        hdr.udp.setInvalid();  
+        hdr.ipv4.setInvalid();  
+        meta.tunnel.inner_ipv4_checksum_en = true;
+    }
+
+    table internet_out_process {
+        key = {
+            meta.tunnel.vxlan_type      : exact;
+            hdr.inner_ipv4.isValid()    : exact;
+        }
+
+        actions = {
+            internet_out_decap_vxlan;
+        }
+        size = VXLAN_GW_SIZE;
+    }
+
+    apply {
+        internet_out_process.apply();
+    }
+}
