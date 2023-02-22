@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SDE_DIR=/root/sde/bf-sde-9.3.1
+SDE_DIR=/root/sde/bf-sde-9.7.3
 
 ps -ef | grep init_setup | grep -v grep
 if [ $? -eq 0 ]; then
@@ -21,4 +21,4 @@ rm -f /var/run/init_setup.file
 sh $SDE_DIR/install/bin/bf_kpkt_mod_load $SDE_DIR/install/
 sh $SDE_DIR/install/bin/bf_knet_mod_load $SDE_DIR/install/
 cd $SDE_DIR
-./run_init_setup.sh -p bgw_switch
+./run_init_setup.sh -p igw_switch

@@ -566,7 +566,7 @@ static void init_setup_daemonize(void) {
 	printf("\n");
 }
 
-#define P4_NAME "bgw_switch"
+#define P4_NAME "igw_switch"
 
 extern void switch_monitor_init(void);
 int main(int argc, char **argv) {	

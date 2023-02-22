@@ -25,7 +25,8 @@ struct l3_metadata_t {
     bit<32> lkp_dip;
     bit<16> lkp_outer_l4_sport;
     bit<16> lkp_outer_l4_dport;  
-    bit<3> egr_pipeline;
+    bit<8>  lkp_outer_ip_proto;
+    bit<3>  egr_pipeline;
 }
 
 struct dscp_metadata_t {

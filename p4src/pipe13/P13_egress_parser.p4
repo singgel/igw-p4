@@ -58,6 +58,7 @@ parser P13_EgressParser(
 
     state parse_ipv4 {
         pkt.extract(hdr.ipv4);
+        meta.l3.lkp_outer_ip_proto = hdr.ipv4.protocol;
         transition select(hdr.ipv4.ihl) {
             (4w0x5) : parse_ipv4_no_options;
             default : accept;

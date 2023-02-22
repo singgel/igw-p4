@@ -14,7 +14,7 @@ from pm import config, portup
 from table import jd_bfrt, system_acl,process_local, rewrite_vxlan, process_mirror, ecmp_group02,port_stats
 import datetime
 
-P4_NAME = "bgw_switch"
+P4_NAME = "igw_switch"
 GRPC_SERVER ="127.0.0.1"
 PIPELINE_NUM = 4
 
