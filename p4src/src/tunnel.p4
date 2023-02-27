@@ -5,6 +5,118 @@
 * 
 ***********************************************************************/
 
+control EnCapVxlan(
+        inout headers_t hdr,
+        inout common_metadata_t meta,
+        in egress_intrinsic_metadata_t eg_intr_md,
+        in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
+        inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
+        inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
+    bit<16> payload_len;
+    bit<8> ip_proto;
+
+    action copy_ipv4_header() {
+        // Copy all of the IPv4 header fields.
+        hdr.inner_ipv4.setValid();
+        hdr.inner_ipv4.version = hdr.ipv4.version;
+        hdr.inner_ipv4.ihl = hdr.ipv4.ihl;
+        hdr.inner_ipv4.dscp = hdr.ipv4.dscp;
+        hdr.inner_ipv4.ecn = hdr.ipv4.ecn;
+        hdr.inner_ipv4.totalLen = hdr.ipv4.totalLen;
+        hdr.inner_ipv4.identification = hdr.ipv4.identification;
+        hdr.inner_ipv4.flags = hdr.ipv4.flags;
+        hdr.inner_ipv4.fragOffset = hdr.ipv4.fragOffset;
+        hdr.inner_ipv4.ttl = hdr.ipv4.ttl;
+        hdr.inner_ipv4.protocol = hdr.ipv4.protocol;
+        // hdr.inner_ipv4.hdrChecksum = hdr.ipv4.hdrChecksum;
+        hdr.inner_ipv4.srcAddr = hdr.ipv4.srcAddr;
+        hdr.inner_ipv4.dstAddr = hdr.ipv4.dstAddr;
+        hdr.ipv4.setInvalid();
+    }
+
+    action rewrite_inner_ipv4_udp() {
+        payload_len = hdr.ipv4.totalLen;
+        copy_ipv4_header();
+        hdr.inner_udp = hdr.udp;
+        hdr.udp.setInvalid();
+        ip_proto = IP_PROTOCOLS_IPV4;
+    }
+
+    action rewrite_inner_ipv4_unknown() {
+        payload_len = hdr.ipv4.totalLen;
+        copy_ipv4_header();
+        ip_proto = IP_PROTOCOLS_IPV4;
+    }
+
+    table encap_outer {
+        key = {
+            hdr.ipv4.isValid() : exact;
+            hdr.udp.isValid() : exact;
+        }
+
+        actions = {
+            rewrite_inner_ipv4_udp;
+            rewrite_inner_ipv4_unknown;
+        }
+
+        const entries = {
+            (true, false) : rewrite_inner_ipv4_unknown();
+            (true, true) : rewrite_inner_ipv4_udp();
+        }
+    }
+
+    action add_udp_header(bit<16> src_port, bit<16> dst_port) {
+        hdr.udp.setValid();
+        hdr.udp.srcPort = src_port;
+        hdr.udp.dstPort = dst_port;
+        hdr.udp.checksum = 0;
+        // hdr.udp.length = 0;
+    }
+
+    action add_vxlan_header() {
+        hdr.vxlan.setValid();
+        hdr.vxlan.flags = 8w0x08;
+    }
+
+    action add_ipv4_header(bit<8> proto) {
+        hdr.ipv4.setValid();
+        hdr.ipv4.version = 4w4;
+        hdr.ipv4.ihl = 4w5;
+        // hdr.ipv4.total_len = 0;
+        hdr.ipv4.identification = 0;
+        hdr.ipv4.flags = 0;
+        hdr.ipv4.fragOffset = 0;
+        hdr.ipv4.protocol = proto;
+        // hdr.ipv4.srcAddr = 0;
+        // hdr.ipv4.dstAddr = 0;
+        hdr.ipv4.ttl = 8w64;
+        hdr.ipv4.dscp = 0;
+    }
+
+    action rewrite_ipv4_vxlan() {
+        hdr.inner_ethernet.setValid();
+        hdr.inner_ethernet = hdr.ethernet;
+        add_ipv4_header(IP_PROTOCOLS_UDP);
+        // Total length = packet length + 50
+        //   IPv4 (20) + UDP (8) + VXLAN (8)+ Inner Ethernet (14)
+        hdr.ipv4.totalLen = payload_len + 16w50;
+
+        add_udp_header(hdr.bg_md.l3_ecmp_entry_idx, UDP_PORT_VXLAN);
+        // UDP length = packet length + 30
+        //   UDP (8) + VXLAN (8)+ Inner Ethernet (14)
+        hdr.udp.length = payload_len + 16w30;
+
+        add_vxlan_header();
+        hdr.ethernet.etherType = ETHERTYPE_IPV4;
+    }
+    
+    apply {
+        // Copy L3/L4 header into inner headers.
+        encap_outer.apply();
+        // Add outer L3/L4/Tunnel headers.
+        rewrite_ipv4_vxlan();
+    }
+}
 
 control InternetInProcess(
         inout headers_t hdr,
@@ -14,6 +126,7 @@ control InternetInProcess(
         inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
     Counter<bit<32>, bit<1>>(2, CounterType_t.PACKETS) dstip_drop_stats;
+    EnCapVxlan()    encap_outer_vxlan;
 
     action rewrite_std_vxlan() {
         hdr.udp.srcPort = hdr.bg_md.l3_ecmp_entry_idx;
@@ -22,32 +135,22 @@ control InternetInProcess(
         hdr.inner_ipv4.ttl = hdr.inner_ipv4.ttl -1;
         meta.tunnel.inner_ipv4_checksum_en = true;
     }
-    
-    action encap_std_vxlan() {
-    
-    }
 
     action nop() {}
 
-    table vxlan_gw_process {
+    table rewrite_vxlan_process {
         key = {
-            hdr.vxlan.isValid()         : exact;
             hdr.inner_ipv4.isValid()    : exact;
-            hdr.bg_md.dl_pkt            : exact;
         }
 
         actions = {
             rewrite_std_vxlan;
-            encap_std_vxlan;
             nop;
         }
 
         const entries = {
-            (true, true, 2w0x1) : rewrite_std_vxlan();
-            (false,false, 2w0x0) : encap_std_vxlan();
-            (false,true, 2w0x0) : encap_std_vxlan();
-            (true,false, 2w0x0) : encap_std_vxlan();
-            (true,true, 2w0x0) : encap_std_vxlan();
+            (true) : rewrite_std_vxlan();
+            (false) : nop();
         }
 
         default_action = nop();
@@ -100,12 +203,13 @@ control InternetInProcess(
     }
 
     apply {
-        switch (vxlan_gw_process.apply().action_run){
-            rewrite_std_vxlan:
-            encap_std_vxlan: {
-                hdr.vxlan.vni = hdr.bg_md.lkp_vni;
-            }
-        }
+        if ((hdr.bg_md.dl_pkt == 1) && hdr.vxlan.isValid()) {
+            rewrite_vxlan_process.apply();
+            hdr.vxlan.vni = hdr.bg_md.lkp_vni;
+        } else {
+            encap_outer_vxlan.apply(EPP_META);
+            hdr.vxlan.vni = hdr.bg_md.lkp_vni;
+        }  
         
         tunnel_inner_rewrite.apply();           
 
