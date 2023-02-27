@@ -12,8 +12,10 @@ control P13_Egress(
         in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
         inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
-    DecapMetaData_I2E13()           decap_md;
-    ComputeIpHashes()               compute_ipv4_hashes;
+    DecapMetaData_I2E13()       decap_md;
+    ComputeIpHashes()           compute_ipv4_hashes;
+    VmLocationMapping()         vm_location_mapping;
+
     #ifdef __MIRROR_ON_ETH__
         ProcessMirror()             mirror;
     #endif
@@ -26,6 +28,7 @@ control P13_Egress(
         } else {
             decap_md.apply(EPP_META);
             compute_ipv4_hashes.apply(EPP_META);
+            vm_location_mapping.apply(EPP_META);
         }
     }
 }

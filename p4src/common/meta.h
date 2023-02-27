@@ -11,6 +11,8 @@
 struct tunnel_metadata_t {
     bit<2> vxlan_type;
     bit<32> route_idx;
+    bit<32> fip;
+    bit<32> fip_dip;
     bool resubmit;
     bool inner_ipv4_checksum_en;
     bit<10> session_id;

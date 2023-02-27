@@ -27,7 +27,7 @@ const bit<32> METER_BPS_TABLE_SIZE = 256;
     const bit<32> VXLAN_RT_TABLE_SIZE = 40000;
 #endif
 
-const bit<32> VM_HOSTROUTE_TABLE_SIZE = 1024000;
+const bit<32> VM_HOST_TABLE_SIZE = 2048;
 
 const bit<32> ROUTE_ECMP_GROUP_TABLE_SZIE = 30720;
 

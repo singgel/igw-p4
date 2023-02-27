@@ -35,7 +35,7 @@ control VxlanRoute(inout headers_t hdr,
 
     action vxlan_to_nexthop_overlay(bit<16> nexthop) {
         hdr.bg_md.tunnel_nexthop = nexthop;
-        hdr.bg_md.pkt_dir = 1;
+        hdr.bg_md.dl_pkt = 1;
         vxlan_tunnel_fwd();
     }
 
@@ -162,7 +162,7 @@ control IgwIpType(inout headers_t hdr,
             need_drop;
         }
         size = 32;
-        const default_action = ip_from_internet_out_hit();
+        const default_action = ip_from_internet_in_hit();
     }
 
     apply {

@@ -37,3 +37,47 @@ control FipInnerIpSnat(inout headers_t hdr,
         fip_inner_ip_snat.apply();
     }
 }
+
+control FipIpDnat(
+        inout headers_t hdr,
+        inout common_metadata_t meta,
+        in egress_intrinsic_metadata_t eg_intr_md,
+        in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
+        inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
+        inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
+
+    action set_dip(bit<32> dstip) {
+        meta.tunnel.fip_dip = dstip;
+    }
+
+    action nop() { }
+
+    table fip_dnat {
+        key = {
+            meta.tunnel.fip  : exact;
+        }
+
+        actions = {
+            set_dip;
+            nop;
+        }
+
+        size = 1024;
+        const default_action = nop();
+    }
+    
+    apply {
+        if (hdr.vxlan.isValid() && hdr.inner_ipv4.isValid() &&
+            (hdr.bg_md.dl_pkt == 1)) { //dl_packet
+            meta.tunnel.fip = hdr.inner_ipv4.dstAddr;
+            meta.tunnel.fip_dip = hdr.inner_ipv4.dstAddr;
+        } else if (hdr.ipv4.isValid()) {
+            meta.tunnel.fip = hdr.ipv4.dstAddr;
+            meta.tunnel.fip_dip = hdr.ipv4.dstAddr;
+        } else {
+            eg_dprsr_md.drop_ctl = 1;     
+        }
+        
+        fip_dnat.apply();
+    }
+}
