@@ -15,25 +15,42 @@ control InternetInProcess(
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
     Counter<bit<32>, bit<1>>(2, CounterType_t.PACKETS) dstip_drop_stats;
 
-    action set_std_vxlan() {
+    action rewrite_std_vxlan() {
         hdr.udp.srcPort = hdr.bg_md.l3_ecmp_entry_idx;
         hdr.udp.dstPort = UDP_PORT_VXLAN;
         hdr.udp.checksum = 0;
         hdr.inner_ipv4.ttl = hdr.inner_ipv4.ttl -1;
         meta.tunnel.inner_ipv4_checksum_en = true;
     }
+    
+    action encap_std_vxlan() {
+    
+    }
+
+    action nop() {}
 
     table vxlan_gw_process {
         key = {
-            meta.tunnel.vxlan_type      : exact;
-            hdr.bg_md.egr_tunnel_type   : exact;
+            hdr.vxlan.isValid()         : exact;
             hdr.inner_ipv4.isValid()    : exact;
+            hdr.bg_md.dl_pkt            : exact;
         }
 
         actions = {
-            set_std_vxlan;
+            rewrite_std_vxlan;
+            encap_std_vxlan;
+            nop;
         }
-        size = VXLAN_GW_SIZE;
+
+        const entries = {
+            (true, true, 2w0x1) : rewrite_std_vxlan();
+            (false,false, 2w0x0) : encap_std_vxlan();
+            (false,true, 2w0x0) : encap_std_vxlan();
+            (true,false, 2w0x0) : encap_std_vxlan();
+            (true,true, 2w0x0) : encap_std_vxlan();
+        }
+
+        default_action = nop();
     }
 
     action rewrite_tunnel_ipv4_dst(bit<32> ip) {
@@ -84,7 +101,8 @@ control InternetInProcess(
 
     apply {
         switch (vxlan_gw_process.apply().action_run){
-            set_std_vxlan:{
+            rewrite_std_vxlan:
+            encap_std_vxlan: {
                 hdr.vxlan.vni = hdr.bg_md.lkp_vni;
             }
         }
