@@ -63,6 +63,7 @@
 
 #define SKIP_TUNNEL_MAC_REWRITE 2
 #define SKIP_PACKET 3
+#define DL_PACKET 1
 #define MATCH_PACKET 0
 
 #define EGR_PIPELINE_TWO  2

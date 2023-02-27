@@ -12,14 +12,12 @@ control ProcessGwEgress(
         in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
         inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
-    RewriteInnerMac()               tunnel_inner_rewrite;
     InternetOutProcess()            internet_out;          
-    RewriteVxlan()                  rewrite_vxlan;   
+    InternetInProcess()             internet_in;   
 
     apply {
         if (hdr.bg_md.igr_tunnel_type == TYPE_INGRESS_INTERNET_IN) { 
-            rewrite_vxlan.apply(EPP_META);      //internet in
-            tunnel_inner_rewrite.apply(EPP_META);           
+            internet_in.apply(EPP_META);      //internet in
         } else { //internet out
             internet_out.apply(EPP_META);           
         }
@@ -61,7 +59,8 @@ control P02_Egress(
             
             egress_system_acl.apply(EPP_META);
 
-            if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
+            if ((hdr.bg_md.tunnel_direct_send == MATCH_PACKET) || 
+               (hdr.bg_md.tunnel_direct_send == DL_PACKET)) {
                tunnel_mac_rewrite.apply(EPP_META); // Rewrite Underlay Mac    
             }
         }

@@ -90,39 +90,6 @@ control VxlanRoute(inout headers_t hdr,
     }
 }
 
-control Vlinklogic(inout headers_t hdr,
-            inout common_metadata_t meta,
-            in ingress_intrinsic_metadata_t ig_intr_md,
-            in ingress_intrinsic_metadata_from_parser_t ig_intr_from_prsr,
-            inout ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
-            inout ingress_intrinsic_metadata_for_tm_t  ig_tm_md) {
-
-    /*update vif vni to bgw vni*/
-    action update_tunnel_vni (bit<24> tunnel_id) {
-        meta.tunnel.route_idx = (bit<32>)tunnel_id;
-    }
-
-    action nop() {}
-
-    table vlink_table {
-        key = {
-            hdr.bg_md.lkp_vni : exact;
-        }
-
-        actions = {
-            update_tunnel_vni;
-            nop;
-        }
-        size = VLINK_TABLE_SIZE;
-    }
-
-    apply {
-        if (hdr.bg_md.igr_tunnel_type == TYPE_INGRESS_INTERNET_IN) {
-            vlink_table.apply();
-        }
-    }
-}
-
 control IgwIpType(inout headers_t hdr,
             inout common_metadata_t meta,
             in ingress_intrinsic_metadata_t ig_intr_md,
@@ -134,12 +101,28 @@ control IgwIpType(inout headers_t hdr,
         hdr.bg_md.igr_tunnel_type = TYPE_INGRESS_INTERNET_IN;
         hdr.bg_md.egr_tunnel_type = EGRESS_TUNNEL_TYPE_VXLAN;
         meta.l3.egr_pipeline = EGR_PIPELINE;
+        hdr.bg_md.dl_pkt = 0;
     }    
-    
+
+    action ip_from_internet_in_dl_hit() {
+        hdr.bg_md.igr_tunnel_type = TYPE_INGRESS_INTERNET_IN;
+        hdr.bg_md.egr_tunnel_type = EGRESS_TUNNEL_TYPE_VXLAN;
+        meta.l3.egr_pipeline = EGR_PIPELINE;
+        hdr.bg_md.dl_pkt = 1;
+    }    
+
     action ip_from_internet_out_hit() {
         hdr.bg_md.igr_tunnel_type = TYPE_INGRESS_INTERNET_OUT;
         hdr.bg_md.egr_tunnel_type = EGRESS_TUNNEL_TYPE_VXLAN;
         meta.l3.egr_pipeline = EGR_PIPELINE_TWO;
+        hdr.bg_md.dl_pkt = 0;
+    }
+
+    action ip_from_internet_out_dl_hit() {
+        hdr.bg_md.igr_tunnel_type = TYPE_INGRESS_INTERNET_OUT;
+        hdr.bg_md.egr_tunnel_type = EGRESS_TUNNEL_TYPE_VXLAN;
+        meta.l3.egr_pipeline = EGR_PIPELINE_TWO;
+        hdr.bg_md.dl_pkt = 1;
     }
 
     action need_drop() {
@@ -158,7 +141,9 @@ control IgwIpType(inout headers_t hdr,
 
         actions = {
             ip_from_internet_in_hit;
+            ip_from_internet_in_dl_hit;
             ip_from_internet_out_hit;
+            ip_from_internet_out_dl_hit;
             need_drop;
         }
         size = 32;
@@ -196,34 +181,5 @@ control RewriteOuterMac(
 
     apply {
         tunnel_mac_rewrite.apply();
-    }       
-}
-
-control RewriteInnerMac(
-        inout headers_t hdr,
-        inout common_metadata_t meta,
-        in egress_intrinsic_metadata_t eg_intr_md,
-        in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
-        inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
-        inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
-
-    action rewrite_inner_mac(bit<48> smac, bit<48> dmac) {
-        hdr.inner_ethernet.srcAddr = smac;
-        hdr.inner_ethernet.dstAddr = dmac;
-    }  
-    
-    table tunnel_inner_rewrite {
-        key = {
-            hdr.bg_md.inner_mac_id : exact;
-        }
-
-        actions = {
-            rewrite_inner_mac;
-        }
-        size = TUNNEL_INNER_MAC_SIZE;
-    }
-    
-    apply {
-        tunnel_inner_rewrite.apply();
     }       
 }

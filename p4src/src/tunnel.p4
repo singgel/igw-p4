@@ -6,7 +6,7 @@
 ***********************************************************************/
 
 
-control RewriteVxlan(
+control InternetInProcess(
         inout headers_t hdr,
         inout common_metadata_t meta,
         in egress_intrinsic_metadata_t eg_intr_md,
@@ -66,7 +66,31 @@ control RewriteVxlan(
         size = TUNNEL_SRC_TABLE_SIZE;
     }
 
+    action rewrite_inner_mac(bit<48> smac, bit<48> dmac) {
+        hdr.inner_ethernet.srcAddr = smac;
+        hdr.inner_ethernet.dstAddr = dmac;
+    }  
+    
+    table tunnel_inner_rewrite {
+        key = {
+            hdr.bg_md.inner_mac_id : exact;
+        }
+
+        actions = {
+            rewrite_inner_mac;
+        }
+        size = TUNNEL_INNER_MAC_SIZE;
+    }
+
     apply {
+        switch (vxlan_gw_process.apply().action_run){
+            set_std_vxlan:{
+                hdr.vxlan.vni = hdr.bg_md.lkp_vni;
+            }
+        }
+        
+        tunnel_inner_rewrite.apply();           
+
         if (tunnel_dst_rewrite.apply().hit) {
             //do nothing
         } else if (hdr.bg_md.tunnel_dst_id != 0) {
@@ -74,14 +98,7 @@ control RewriteVxlan(
             hdr.bg_md.need_drop = 1;
             dstip_drop_stats.count(1);
         }
-
         tunnel_src_rewrite.apply();
-        
-        switch (vxlan_gw_process.apply().action_run){
-            set_std_vxlan:{
-                hdr.vxlan.vni = hdr.bg_md.lkp_vni;
-            }
-        }
     }
 }
 
@@ -101,16 +118,23 @@ control InternetOutProcess(
         meta.tunnel.inner_ipv4_checksum_en = true;
     }
 
+    action nop() {}
+
     table internet_out_process {
         key = {
-            meta.tunnel.vxlan_type      : exact;
+            //meta.tunnel.vxlan_type      : exact;
             hdr.inner_ipv4.isValid()    : exact;
         }
 
         actions = {
             internet_out_decap_vxlan;
+            nop;
         }
-        size = VXLAN_GW_SIZE;
+        size = 2;
+        const entries = {
+            {true}    : internet_out_decap_vxlan;
+            {false}   : nop;
+        }
     }
 
     apply {
