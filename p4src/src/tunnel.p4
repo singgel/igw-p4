@@ -98,13 +98,14 @@ control EnCapVxlan(
     }
 
     action rewrite_ipv4_vxlan() {
-        hdr.inner_ethernet = hdr.ethernet;
+        hdr.inner_ethernet.setValid();;
         add_ipv4_header(IP_PROTOCOLS_UDP);
+        hdr.inner_ethernet.etherType = ETHERTYPE_IPV4;
         // Total length = packet length + 50
         //   IPv4 (20) + UDP (8) + VXLAN (8)+ Inner Ethernet (14)
         hdr.ipv4.totalLen = payload_len + 16w50;
 
-        add_udp_header(hdr.bg_md.l3_ecmp_entry_idx, UDP_PORT_VXLAN);
+        add_udp_header(0, UDP_PORT_VXLAN);
         // UDP length = packet length + 30
         //   UDP (8) + VXLAN (8)+ Inner Ethernet (14)
         hdr.udp.length = payload_len + 16w30;
@@ -208,10 +209,8 @@ control InternetInProcess(
     apply {
         if ((hdr.bg_md.dl_pkt == 1) && hdr.vxlan.isValid()) {
             rewrite_vxlan_process.apply();
-            hdr.vxlan.vni = hdr.bg_md.lkp_vni;
         } else {
             encap_outer_vxlan.apply(EPP_META);
-            hdr.vxlan.vni = hdr.bg_md.lkp_vni;
         }  
         
         //rewrite overlay mac
@@ -219,6 +218,8 @@ control InternetInProcess(
 
         if (tunnel_dst_rewrite.apply().hit) {
             //do nothing
+            hdr.vxlan.vni = hdr.bg_md.lkp_vni;
+            meta.tunnel.inner_ipv4_checksum_en = true;
         } else if (hdr.bg_md.tunnel_dst_id != 0) {
             //not hit and tunnel_dst_id is exist
             hdr.bg_md.need_drop = 1;
