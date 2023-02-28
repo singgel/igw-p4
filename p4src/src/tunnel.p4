@@ -73,34 +73,27 @@ control EnCapVxlan(
         // hdr.udp.length = 0;
     }
 
-    action add_vxlan_header() {
+    action add_vxlan_header(bit<24> vni) {
         hdr.vxlan.setValid();
         hdr.vxlan.flags = 8w0x08;
-        hdr.vxlan.version = 4w0x0;
-        hdr.vxlan.reserved = 20w0x0;
-        hdr.vxlan.tof = 4w0x0;
-        hdr.vxlan.reserved2 = 4w0x0;
+        hdr.vxlan.vni = vni;
     }
 
     action add_ipv4_header(bit<8> proto) {
         hdr.ipv4.setValid();
         hdr.ipv4.version = 4w4;
         hdr.ipv4.ihl = 4w5;
-        // hdr.ipv4.total_len = 0;
         hdr.ipv4.identification = 0;
         hdr.ipv4.flags = 0;
         hdr.ipv4.fragOffset = 0;
         hdr.ipv4.protocol = proto;
-        // hdr.ipv4.srcAddr = 0;
-        // hdr.ipv4.dstAddr = 0;
         hdr.ipv4.ttl = 8w64;
         hdr.ipv4.dscp = 0;
     }
 
     action rewrite_ipv4_vxlan() {
-        hdr.inner_ethernet.setValid();;
+        hdr.inner_ethernet = hdr.ethernet;
         add_ipv4_header(IP_PROTOCOLS_UDP);
-        hdr.inner_ethernet.etherType = ETHERTYPE_IPV4;
         // Total length = packet length + 50
         //   IPv4 (20) + UDP (8) + VXLAN (8)+ Inner Ethernet (14)
         hdr.ipv4.totalLen = payload_len + 16w50;
@@ -110,15 +103,30 @@ control EnCapVxlan(
         //   UDP (8) + VXLAN (8)+ Inner Ethernet (14)
         hdr.udp.length = payload_len + 16w30;
 
-        add_vxlan_header();
+        add_vxlan_header(hdr.bg_md.lkp_vni);
         hdr.ethernet.etherType = ETHERTYPE_IPV4;
+        meta.tunnel.inner_ipv4_checksum_en = true;
+    }
+    
+    table add_vxlan {
+        key = {
+            meta.tunnel.vxlan_type : exact;
+        }
+
+        actions = {
+            rewrite_ipv4_vxlan;
+        }
+
+        const entries = {
+            (2w0x1) : rewrite_ipv4_vxlan();
+        }
     }
     
     apply {
         // Copy L3/L4 header into inner headers.
         encap_outer.apply();
         // Add outer L3/L4/Tunnel headers.
-        rewrite_ipv4_vxlan();
+        add_vxlan.apply();
     }
 }
 
@@ -209,6 +217,7 @@ control InternetInProcess(
     apply {
         if ((hdr.bg_md.dl_pkt == 1) && hdr.vxlan.isValid()) {
             rewrite_vxlan_process.apply();
+            hdr.vxlan.vni = hdr.bg_md.lkp_vni;
         } else {
             encap_outer_vxlan.apply(EPP_META);
         }  
@@ -218,8 +227,6 @@ control InternetInProcess(
 
         if (tunnel_dst_rewrite.apply().hit) {
             //do nothing
-            hdr.vxlan.vni = hdr.bg_md.lkp_vni;
-            meta.tunnel.inner_ipv4_checksum_en = true;
         } else if (hdr.bg_md.tunnel_dst_id != 0) {
             //not hit and tunnel_dst_id is exist
             hdr.bg_md.need_drop = 1;
