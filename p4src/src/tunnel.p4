@@ -76,6 +76,10 @@ control EnCapVxlan(
     action add_vxlan_header() {
         hdr.vxlan.setValid();
         hdr.vxlan.flags = 8w0x08;
+        hdr.vxlan.version = 4w0x0;
+        hdr.vxlan.reserved = 20w0x0;
+        hdr.vxlan.tof = 4w0x0;
+        hdr.vxlan.reserved2 = 4w0x0;
     }
 
     action add_ipv4_header(bit<8> proto) {
@@ -94,7 +98,6 @@ control EnCapVxlan(
     }
 
     action rewrite_ipv4_vxlan() {
-        hdr.inner_ethernet.setValid();
         hdr.inner_ethernet = hdr.ethernet;
         add_ipv4_header(IP_PROTOCOLS_UDP);
         // Total length = packet length + 50
@@ -211,6 +214,7 @@ control InternetInProcess(
             hdr.vxlan.vni = hdr.bg_md.lkp_vni;
         }  
         
+        //rewrite overlay mac
         tunnel_inner_rewrite.apply();           
 
         if (tunnel_dst_rewrite.apply().hit) {

@@ -15,6 +15,7 @@ control P13_Egress(
     DecapMetaData_I2E13()       decap_md;
     ComputeIpHashes()           compute_ipv4_hashes;
     VmLocationMapping()         vm_location_mapping;
+    FipIpDnat()                 dnat;
 
     #ifdef __MIRROR_ON_ETH__
         ProcessMirror()             mirror;
@@ -28,6 +29,7 @@ control P13_Egress(
         } else {
             decap_md.apply(EPP_META);
             compute_ipv4_hashes.apply(EPP_META);
+            dnat.apply(EPP_META);
             vm_location_mapping.apply(EPP_META);
         }
     }
