@@ -32,6 +32,7 @@ control EnCapVxlan(
         hdr.inner_ipv4.srcAddr = hdr.ipv4.srcAddr;
         hdr.inner_ipv4.dstAddr = hdr.ipv4.dstAddr;
         hdr.ipv4.setInvalid();
+        meta.tunnel.inner_ipv4_checksum_en = true;
     }
 
     action rewrite_inner_ipv4_udp() {
@@ -39,6 +40,14 @@ control EnCapVxlan(
         copy_ipv4_header();
         hdr.inner_udp = hdr.udp;
         hdr.udp.setInvalid();
+        ip_proto = IP_PROTOCOLS_IPV4;
+    }
+
+    action rewrite_inner_ipv4_tcp() {
+        payload_len = hdr.ipv4.totalLen;
+        copy_ipv4_header();
+        hdr.inner_tcp = hdr.tcp;
+        hdr.tcp.setInvalid();
         ip_proto = IP_PROTOCOLS_IPV4;
     }
 
@@ -52,31 +61,33 @@ control EnCapVxlan(
         key = {
             hdr.ipv4.isValid() : exact;
             hdr.udp.isValid() : exact;
+            hdr.tcp.isValid() : exact;
         }
 
         actions = {
             rewrite_inner_ipv4_udp;
+            rewrite_inner_ipv4_tcp;
             rewrite_inner_ipv4_unknown;
         }
-
+        size = 8;
         const entries = {
-            (true, false) : rewrite_inner_ipv4_unknown();
-            (true, true) : rewrite_inner_ipv4_udp();
+            (true, false, false) : rewrite_inner_ipv4_unknown();
+            (true, true, false) : rewrite_inner_ipv4_udp();
+            (true, false, true) : rewrite_inner_ipv4_tcp();
         }
     }
 
+    // Add outer IP encapsulatio
     action add_udp_header(bit<16> src_port, bit<16> dst_port) {
         hdr.udp.setValid();
         hdr.udp.srcPort = src_port;
         hdr.udp.dstPort = dst_port;
         hdr.udp.checksum = 0;
-        // hdr.udp.length = 0;
     }
 
-    action add_vxlan_header(bit<24> vni) {
+    action add_vxlan_header() {
         hdr.vxlan.setValid();
         hdr.vxlan.flags = 8w0x08;
-        hdr.vxlan.vni = vni;
     }
 
     action add_ipv4_header(bit<8> proto) {
@@ -84,7 +95,7 @@ control EnCapVxlan(
         hdr.ipv4.version = 4w4;
         hdr.ipv4.ihl = 4w5;
         hdr.ipv4.identification = 0;
-        hdr.ipv4.flags = 0;
+        hdr.ipv4.flags = 0x2;
         hdr.ipv4.fragOffset = 0;
         hdr.ipv4.protocol = proto;
         hdr.ipv4.ttl = 8w64;
@@ -103,23 +114,19 @@ control EnCapVxlan(
         //   UDP (8) + VXLAN (8)+ Inner Ethernet (14)
         hdr.udp.length = payload_len + 16w30;
 
-        add_vxlan_header(hdr.bg_md.lkp_vni);
+        add_vxlan_header();
         hdr.ethernet.etherType = ETHERTYPE_IPV4;
-        meta.tunnel.inner_ipv4_checksum_en = true;
     }
     
     table add_vxlan {
         key = {
             meta.tunnel.vxlan_type : exact;
         }
-
+        size = 4;
         actions = {
             rewrite_ipv4_vxlan;
         }
-
-        const entries = {
-            (2w0x1) : rewrite_ipv4_vxlan();
-        }
+        const default_action = rewrite_ipv4_vxlan;
     }
     
     apply {
@@ -160,6 +167,7 @@ control InternetInProcess(
             nop;
         }
 
+        size = 2;
         const entries = {
             (true) : rewrite_std_vxlan();
             (false) : nop();
@@ -218,9 +226,14 @@ control InternetInProcess(
         if ((hdr.bg_md.dl_pkt == 1) && hdr.vxlan.isValid()) {
             rewrite_vxlan_process.apply();
             hdr.vxlan.vni = hdr.bg_md.lkp_vni;
+        } else if (hdr.vxlan.isValid()){
+            //internet in, not dl packet, but is vxlan packet
+            //todo
         } else {
             encap_outer_vxlan.apply(EPP_META);
-        }  
+            hdr.udp.srcPort = hdr.bg_md.l3_ecmp_entry_idx;
+            hdr.vxlan.vni = hdr.bg_md.lkp_vni;
+        } 
         
         //rewrite overlay mac
         tunnel_inner_rewrite.apply();           

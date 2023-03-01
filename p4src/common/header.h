@@ -95,8 +95,7 @@ header arp_t {
 // VXLAN -- RFC 7348
 header vxlan_t {
     bit<8>  flags;
-    bit<4>  version;
-    bit<20> reserved;
+    bit<24> reserved;
     bit<24> vni;
     bit<4>  tof;
     bit<4>  reserved2;

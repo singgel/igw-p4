@@ -79,7 +79,7 @@ parser P02_EgressParser(
 
     state parse_ipv4_no_options {
         transition select(hdr.ipv4.protocol, hdr.ipv4.ihl, hdr.ipv4.fragOffset) {
-            (IP_PROTOCOLS_ICMP, 5, 0) : parse_icmp;
+            //(IP_PROTOCOLS_ICMP, 5, 0) : parse_icmp;
             (IP_PROTOCOLS_TCP, 5, 0) : parse_tcp;
             (IP_PROTOCOLS_UDP, 5, 0) : parse_udp;
             default : accept;
@@ -103,12 +103,13 @@ parser P02_EgressParser(
         transition accept;
     }
 
+    /****must delete because of vxlan encap
     state parse_icmp {
         pkt.extract(hdr.icmp);
         meta.l3.lkp_outer_l4_sport = 0;
         meta.l3.lkp_outer_l4_dport = 0;
         transition accept;
-    }
+    }**************************************/
     
     state parse_std_vxlan {
         pkt.extract(hdr.vxlan);
