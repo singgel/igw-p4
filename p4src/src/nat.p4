@@ -34,7 +34,9 @@ control FipInnerIpSnat(inout headers_t hdr,
     }
     
     apply {
-        fip_inner_ip_snat.apply();
+        if (hdr.inner_ipv4.isValid()) {
+            fip_inner_ip_snat.apply();
+        }
     }
 }
 

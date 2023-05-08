@@ -75,7 +75,7 @@ parser P02_IngressParser(
         meta.l3.lkp_outer_l4_sport = hdr.udp.srcPort;
         meta.l3.lkp_outer_l4_dport = hdr.udp.dstPort;
         transition select(hdr.udp.dstPort) {
-            UDP_PORT_VXLAN : parse_std_vxlan;  //4789
+            UDP_PORT_VXLAN : parse_std_vxlan;  //4789            
             default : accept;
         }
     }
@@ -97,8 +97,8 @@ parser P02_IngressParser(
     state parse_std_vxlan {
         pkt.extract(hdr.vxlan);
         //meta.tunnel.vxlan_type = VXLAN_TYPE_STD;
-        transition select(hdr.vxlan.flags[2:2]) {
-            1 : parse_jd_inner_ethernet;  
+        transition select(hdr.vxlan.flags[2:2], hdr.vxlan.version) {
+            (1, 0x1) : parse_jd_inner_ethernet;  
             default : parse_inner_ethernet;
         }
     }

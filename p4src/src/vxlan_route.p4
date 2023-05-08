@@ -99,29 +99,25 @@ control IgwIpType(inout headers_t hdr,
 
     action ip_from_internet_in_hit() {
         hdr.bg_md.igr_tunnel_type = TYPE_INGRESS_INTERNET_IN;
-        hdr.bg_md.egr_tunnel_type = EGRESS_TUNNEL_TYPE_VXLAN;
-        meta.l3.egr_pipeline = EGR_PIPELINE;
+        meta.l3.egr_pipeline = EGR_PIPELINE_13;
         hdr.bg_md.dl_pkt = 0;
     }    
 
     action ip_from_internet_in_dl_hit() {
         hdr.bg_md.igr_tunnel_type = TYPE_INGRESS_INTERNET_IN;
-        hdr.bg_md.egr_tunnel_type = EGRESS_TUNNEL_TYPE_VXLAN;
-        meta.l3.egr_pipeline = EGR_PIPELINE;
+        meta.l3.egr_pipeline = EGR_PIPELINE_13;
         hdr.bg_md.dl_pkt = 1;
     }    
 
     action ip_from_internet_out_hit() {
         hdr.bg_md.igr_tunnel_type = TYPE_INGRESS_INTERNET_OUT;
-        hdr.bg_md.egr_tunnel_type = EGRESS_TUNNEL_TYPE_VXLAN;
-        meta.l3.egr_pipeline = EGR_PIPELINE_TWO;
+        meta.l3.egr_pipeline = EGR_PIPELINE_02;
         hdr.bg_md.dl_pkt = 0;
     }
 
     action ip_from_internet_out_dl_hit() {
         hdr.bg_md.igr_tunnel_type = TYPE_INGRESS_INTERNET_OUT;
-        hdr.bg_md.egr_tunnel_type = EGRESS_TUNNEL_TYPE_VXLAN;
-        meta.l3.egr_pipeline = EGR_PIPELINE_TWO;
+        meta.l3.egr_pipeline = EGR_PIPELINE_02;
         hdr.bg_md.dl_pkt = 1;
     }
 
