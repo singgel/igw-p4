@@ -41,9 +41,10 @@ parser P13_EgressParser(
      
     state parse_bridge_header {
         pkt.extract(hdr.bg_md);
-        transition select(hdr.bg_md.outer_ethernet_type, hdr.bg_md.outer_ethernet_invalid) {
-            (ETHERTYPE_IPV4, 1w1) : parse_ipv4;
-            (_, 1w0) : parse_ethernet;
+        transition select(hdr.bg_md.outer_ethernet_type, hdr.bg_md.outer_ethernet_invalid, hdr.bg_md.dl_pkt) {
+            (ETHERTYPE_IPV4, 1w1, 1) : parse_ipv4;
+            (ETHERTYPE_IPV4, 1w1, 0) : parse_ipv4_v2;
+            (_, 1w0,_) : parse_ethernet;
             default : accept;
         }
     }
@@ -65,6 +66,15 @@ parser P13_EgressParser(
         }
     }
 
+    state parse_ipv4_v2 {
+        pkt.extract(hdr.ipv4);
+        meta.l3.lkp_outer_ip_proto = hdr.ipv4.protocol;
+        transition select(hdr.ipv4.ihl) {
+            (4w0x5) : parse_ipv4_no_options_v2;
+            default : accept;
+        }
+    }
+
     state parse_ipv4_no_options {
         transition select(hdr.ipv4.protocol, hdr.ipv4.ihl, hdr.ipv4.fragOffset) {
             (IP_PROTOCOLS_ICMP, 5, 0) : parse_icmp;
@@ -75,14 +85,31 @@ parser P13_EgressParser(
         }
     }
 
+    state parse_ipv4_no_options_v2 {
+        transition select(hdr.ipv4.protocol, hdr.ipv4.ihl, hdr.ipv4.fragOffset) {
+            (IP_PROTOCOLS_ICMP, 5, 0) : parse_icmp;
+            (IP_PROTOCOLS_TCP, 5, 0) : parse_tcp;
+            (IP_PROTOCOLS_UDP, 5, 0) : parse_udp_v2;
+            // Do NOT parse the next header if IP packet is fragmented.
+            default : accept;
+        }
+    }
+
     state parse_udp {
         pkt.extract(hdr.udp);
         meta.l3.lkp_outer_l4_sport = hdr.udp.srcPort;
         meta.l3.lkp_outer_l4_dport = hdr.udp.dstPort;
-        transition select(hdr.udp.dstPort, hdr.bg_md.dl_pkt) {
-            (UDP_PORT_VXLAN, 2w0x1) : parse_std_vxlan;
+        transition select(hdr.udp.dstPort) {
+            UDP_PORT_VXLAN : parse_std_vxlan;
             default : accept;
         }
+    }
+
+    state parse_udp_v2 {
+        pkt.extract(hdr.udp);
+        meta.l3.lkp_outer_l4_sport = hdr.udp.srcPort;
+        meta.l3.lkp_outer_l4_dport = hdr.udp.dstPort;
+        transition accept;
     }
 
     state parse_tcp {

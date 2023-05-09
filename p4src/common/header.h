@@ -155,8 +155,8 @@ header bridge_metadata_t {
     bit<32> lkp_dip;
     bit<24> lkp_vni;
     
-    bit<2>  dl_pkt;
-    bit<2>  pad_01;
+    bit<1>  dl_pkt;
+    bit<3>  pad_01;
     bit<3>  igr_tunnel_type;
     bit<1>  outer_ethernet_invalid;
     bit<1>  need_drop;
@@ -184,8 +184,8 @@ header bridge_metadata_t {
     bit<32> lkp_dip;
     bit<24> lkp_vni;
 
-    bit<2>  dl_pkt;
-    bit<2>  pad_01;
+    bit<1>  dl_pkt;
+    bit<3>  pad_01;
     bit<3>  igr_tunnel_type;
     bit<1>  outer_ethernet_invalid;
     bit<1>  need_drop;
