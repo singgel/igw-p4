@@ -28,9 +28,12 @@ control P13_Egress(
             #endif
         } else {
             decap_md.apply(EPP_META);
-            compute_ipv4_hashes.apply(EPP_META);
-            dnat.apply(EPP_META);
-            vm_location_mapping.apply(EPP_META);
+            
+            if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
+                compute_ipv4_hashes.apply(EPP_META);
+                dnat.apply(EPP_META);
+                vm_location_mapping.apply(EPP_META);
+            }
         }
     }
 }

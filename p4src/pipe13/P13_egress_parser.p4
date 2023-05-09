@@ -79,8 +79,8 @@ parser P13_EgressParser(
         pkt.extract(hdr.udp);
         meta.l3.lkp_outer_l4_sport = hdr.udp.srcPort;
         meta.l3.lkp_outer_l4_dport = hdr.udp.dstPort;
-        transition select(hdr.udp.dstPort) {
-            UDP_PORT_VXLAN : parse_std_vxlan;
+        transition select(hdr.udp.dstPort, hdr.bg_md.dl_pkt) {
+            (UDP_PORT_VXLAN, 2w0x1) : parse_std_vxlan;
             default : accept;
         }
     }
