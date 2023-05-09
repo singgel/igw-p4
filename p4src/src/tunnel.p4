@@ -145,7 +145,6 @@ control InternetInProcess(
         inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
     Counter<bit<32>, bit<1>>(2, CounterType_t.PACKETS) dstip_drop_stats;
-    EnCapVxlan()    encap_outer_vxlan;
 
     action rewrite_std_vxlan() {
         hdr.udp.srcPort = hdr.bg_md.l3_ecmp_entry_idx;
@@ -223,15 +222,8 @@ control InternetInProcess(
     }
 
     apply {
-        if ((hdr.bg_md.dl_pkt == 1) && hdr.vxlan.isValid()) {
+        if (hdr.vxlan.isValid()) {
             rewrite_vxlan_process.apply();
-            hdr.vxlan.vni = hdr.bg_md.lkp_vni;
-        } else if (hdr.vxlan.isValid()){
-            //internet in, not dl packet, but is vxlan packet
-            //todo
-        } else {
-            encap_outer_vxlan.apply(EPP_META);
-            hdr.udp.srcPort = hdr.bg_md.l3_ecmp_entry_idx;
             hdr.vxlan.vni = hdr.bg_md.lkp_vni;
         } 
         

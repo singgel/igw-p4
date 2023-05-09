@@ -16,6 +16,7 @@ control P13_Egress(
     ComputeIpHashes()           compute_ipv4_hashes;
     VmLocationMapping()         vm_location_mapping;
     FipIpDnat()                 dnat;
+    EnCapVxlan()    encap_outer_vxlan;
 
     #ifdef __MIRROR_ON_ETH__
         ProcessMirror()             mirror;
@@ -27,6 +28,9 @@ control P13_Egress(
                 mirror.apply(EPP_META);
             #endif
         } else {
+            if ((hdr.bg_md.dl_pkt == 0) && !hdr.vxlan.isValid()) {
+                encap_outer_vxlan.apply(EPP_META);
+            }
             decap_md.apply(EPP_META);
             
             if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
