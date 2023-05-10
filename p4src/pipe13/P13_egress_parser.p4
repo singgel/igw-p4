@@ -77,7 +77,7 @@ parser P13_EgressParser(
 
     state parse_ipv4_no_options {
         transition select(hdr.ipv4.protocol, hdr.ipv4.ihl, hdr.ipv4.fragOffset) {
-            (IP_PROTOCOLS_ICMP, 5, 0) : parse_icmp;
+            //(IP_PROTOCOLS_ICMP, 5, 0) : parse_icmp;
             (IP_PROTOCOLS_TCP, 5, 0) : parse_tcp;
             (IP_PROTOCOLS_UDP, 5, 0) : parse_udp;
             // Do NOT parse the next header if IP packet is fragmented.
@@ -87,7 +87,7 @@ parser P13_EgressParser(
 
     state parse_ipv4_no_options_v2 {
         transition select(hdr.ipv4.protocol, hdr.ipv4.ihl, hdr.ipv4.fragOffset) {
-            (IP_PROTOCOLS_ICMP, 5, 0) : parse_icmp;
+            //(IP_PROTOCOLS_ICMP, 5, 0) : parse_icmp;
             (IP_PROTOCOLS_TCP, 5, 0) : parse_tcp;
             (IP_PROTOCOLS_UDP, 5, 0) : parse_udp_v2;
             // Do NOT parse the next header if IP packet is fragmented.
@@ -119,12 +119,12 @@ parser P13_EgressParser(
         transition accept;
     }
 
-    state parse_icmp {
+    /*state parse_icmp {
         pkt.extract(hdr.icmp);
         meta.l3.lkp_outer_l4_sport = 0;
         meta.l3.lkp_outer_l4_dport = 0;
         transition accept;
-    }
+    }*/
     
     state parse_std_vxlan {
         pkt.extract(hdr.vxlan);

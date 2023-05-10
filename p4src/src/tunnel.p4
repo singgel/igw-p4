@@ -103,7 +103,8 @@ control EnCapVxlan(
     }
 
     action rewrite_ipv4_vxlan() {
-        hdr.inner_ethernet = hdr.ethernet;
+        hdr.inner_ethernet.setValid();
+        hdr.inner_ethernet.etherType = hdr.bg_md.outer_ethernet_type;
         add_ipv4_header(IP_PROTOCOLS_UDP);
         // Total length = packet length + 50
         //   IPv4 (20) + UDP (8) + VXLAN (8)+ Inner Ethernet (14)
