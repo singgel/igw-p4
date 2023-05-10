@@ -16,6 +16,8 @@ control P13_Ingress(
 
     apply {
         ig_tm_md.ucast_egress_port =  hdr.bg_md.igr_port;
-        nexthop_process.apply(IPP_META);
+        if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
+            nexthop_process.apply(IPP_META);
+        }
     }
 }

@@ -28,10 +28,11 @@ control P13_Egress(
                 mirror.apply(EPP_META);
             #endif
         } else {
+            decap_md.apply(EPP_META);
+
             if ((hdr.bg_md.dl_pkt == 0) && !hdr.vxlan.isValid()) {
                 encap_outer_vxlan.apply(EPP_META);
             }
-            decap_md.apply(EPP_META);
             
             if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
                 compute_ipv4_hashes.apply(EPP_META);
