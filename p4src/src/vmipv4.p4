@@ -32,13 +32,7 @@ control VmLocationMapping(
 
     apply {
         if (vm_loc_mapping.apply().hit) {
-            //do nothing
-            if (hdr.vxlan.isValid() && hdr.inner_ipv4.isValid() &&
-                (hdr.bg_md.dl_pkt == 1)) { //dl_packet
-                hdr.inner_ipv4.dstAddr = meta.tunnel.fip_dip;
-            } else if (hdr.ipv4.isValid()) {
-                hdr.ipv4.dstAddr = meta.tunnel.fip_dip;
-            } 
+            hdr.inner_ipv4.dstAddr = meta.tunnel.fip_dip;
         } else { 
             hdr.bg_md.need_drop = 1;
             vm_host_drop_stats.count(1);

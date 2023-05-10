@@ -69,17 +69,10 @@ control FipIpDnat(
     }
     
     apply {
-        if (hdr.vxlan.isValid() && hdr.inner_ipv4.isValid() &&
-            (hdr.bg_md.dl_pkt == 1)) { //dl_packet
+        if (hdr.vxlan.isValid() && hdr.inner_ipv4.isValid()) { 
             meta.tunnel.fip = hdr.inner_ipv4.dstAddr;
             meta.tunnel.fip_dip = hdr.inner_ipv4.dstAddr;
-        } else if (hdr.ipv4.isValid()) {
-            meta.tunnel.fip = hdr.ipv4.dstAddr;
-            meta.tunnel.fip_dip = hdr.ipv4.dstAddr;
-        } else {
-            eg_dprsr_md.drop_ctl = 1;     
-        }
-        
-        fip_dnat.apply();
+            fip_dnat.apply();
+        } 
     }
 }
