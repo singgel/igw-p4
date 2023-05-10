@@ -69,8 +69,9 @@ control NexthopProcess(inout headers_t hdr,
 
         actions = {
             set_ecmp_nexthop; 
+            NoAction;
         }
-
+        const default_action = NoAction();
         implementation = route_ecmp_group_selector;
         size = ROUTE_ECMP_GROUP_TABLE_SZIE;
     }

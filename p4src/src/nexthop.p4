@@ -34,8 +34,9 @@ control EcmpGroup02(inout headers_t hdr,
 
         actions = {
             ecmp_group_entry_lag_v2;
+            NoAction;
         }
-
+        const default_action = NoAction();
         implementation = pipe02_group_selector;
         size = ECMP_GROUP_TABLE_SZIE_V2;
     }
