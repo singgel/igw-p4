@@ -15,18 +15,25 @@ control VmLocationMapping(
 
     Counter<bit<32>, bit<1>>(2, CounterType_t.PACKETS) vm_host_drop_stats;
 
-    action vm_hostroute_nexthop(bit<16> nexthop){
+    action vm_hostroute_nexthop(bit<16> nexthop,bit<24> vni){
         hdr.bg_md.tunnel_nexthop = nexthop;
+        meta.tunnel.route_idx = (bit<32>)vni;
+    }
+    
+    action vm_hostroute_not_hit(){
+         meta.tunnel.route_idx = 0;
     }
 
     table vm_loc_mapping {
         key = {
             meta.tunnel.fip_dip   : exact;
         }
-
+        
         actions = {
             vm_hostroute_nexthop;
+            vm_hostroute_not_hit;
         }
+        const default_action = vm_hostroute_not_hit();
         size = VM_HOST_TABLE_SIZE;
     }
 

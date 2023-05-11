@@ -21,11 +21,7 @@ const bit<32> MPATH_NH_SIZE = 64;
 
 const bit<32> METER_BPS_TABLE_SIZE = 256;
 
-#ifdef BGW_USE_ALPM
-    const bit<32> VXLAN_RT_TABLE_SIZE = 150000;
-#else
-    const bit<32> VXLAN_RT_TABLE_SIZE = 40000;
-#endif
+const bit<32> VXLAN_RT_TABLE_SIZE = 40000;
 
 const bit<32> VM_HOST_TABLE_SIZE = 2048;
 

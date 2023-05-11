@@ -5,56 +5,18 @@
 * 
 ***********************************************************************/
 
-control VxlanRoute(inout headers_t hdr,
-            inout common_metadata_t meta,
-            in ingress_intrinsic_metadata_t ig_intr_md,
-            in ingress_intrinsic_metadata_from_parser_t ig_intr_from_prsr,
-            inout ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
-            inout ingress_intrinsic_metadata_for_tm_t  ig_tm_md) {
-    Counter<bit<32>, bit<1>>(2, CounterType_t.PACKETS) ttl_drop_stats;
-
-    action vxlan_tunnel_loop(bit<24> tunnel_id) {
-        ig_intr_md_for_dprsr.resubmit_type = RESUBMIT_WITH_DATA;
-        meta.resubmit.tunnel_route_idx = tunnel_id;
-        meta.tunnel.resubmit = true;
-    }
-    
-    action vxlan_tunnel_fwd() {
-        meta.tunnel.resubmit = false;
-    }
-
-    action vxlan_cen_to_br(bit<24> tunnel_id) {
-        vxlan_tunnel_loop(tunnel_id);
-    }
-
-    action vxlan_to_nexthop(bit<16> nexthop, bit<3> egress_pipe) {
-        meta.l3.egr_pipeline = egress_pipe;
-        hdr.bg_md.tunnel_nexthop = nexthop;
-        vxlan_tunnel_fwd();
-    }
+control IngressRoute(
+        inout headers_t hdr,
+        inout common_metadata_t meta,
+        in egress_intrinsic_metadata_t eg_intr_md,
+        in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
+        inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
+        inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
 
     action vxlan_to_nexthop_overlay(bit<16> nexthop) {
         hdr.bg_md.tunnel_nexthop = nexthop;
-        hdr.bg_md.dl_pkt = 1;
-        vxlan_tunnel_fwd();
     }
 
-    action vxlan_to_loacl(bit<3> egress_pipe) {
-        meta.l3.egr_pipeline = egress_pipe;
-        hdr.bg_md.tunnel_nexthop = 0;
-        vxlan_tunnel_fwd();
-    }
-    
-    action vxlan_to_loacl_overlay() {
-        hdr.bg_md.tunnel_nexthop = 0;
-        vxlan_tunnel_fwd();
-    }
-
-    #ifdef BGW_USE_ALPM
-    @pragma alpm 1
-    @pragma alpm_partitions 2048
-    @pragma alpm_subtrees_per_partition 2
-    #endif
     table vxlan_route {
         key = {
             meta.tunnel.route_idx : exact;
@@ -62,32 +24,14 @@ control VxlanRoute(inout headers_t hdr,
         }
 
         actions = {
-            vxlan_to_nexthop;
             vxlan_to_nexthop_overlay;
-            vxlan_to_loacl;
-            vxlan_to_loacl_overlay;
         }
-        size = VXLAN_RT_TABLE_SIZE;
+        size = 1024;
     }
 
     apply {
-        if (hdr.inner_ipv4.isValid()) {
-            if (hdr.inner_ipv4.ttl > 1) {
-                vxlan_route.apply();
-            } else {
-                ig_intr_md_for_dprsr.drop_ctl = 0x1;
-                ttl_drop_stats.count(1);
-            }
-        } 
-
-        if (meta.tunnel.resubmit) {
-            if (ig_intr_md.resubmit_flag != 0) {
-                ig_intr_md_for_dprsr.drop_ctl = 0x5;
-            }
-        } else {
-            hdr.bg_md.lkp_vni = (bit<24>) meta.tunnel.route_idx;
-        }
-    }
+        vxlan_route.apply();
+    } 
 }
 
 control IgwIpType(inout headers_t hdr,

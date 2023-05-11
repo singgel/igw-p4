@@ -16,6 +16,7 @@ control P13_Egress(
     ComputeIpHashes()           compute_ipv4_hashes;
     VmLocationMapping()         vm_location_mapping;
     FipIpDnat()                 dnat;
+    IngressRoute()              ingress_route;
     EnCapVxlan()    encap_outer_vxlan;
 
     #ifdef __MIRROR_ON_ETH__
@@ -38,6 +39,7 @@ control P13_Egress(
                 compute_ipv4_hashes.apply(EPP_META);
                 dnat.apply(EPP_META);
                 vm_location_mapping.apply(EPP_META);
+                ingress_route.apply(EPP_META);
             }
         }
     }
