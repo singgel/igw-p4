@@ -38,6 +38,8 @@ struct ratelimit_metadata_t {
     bit<18> bandwidth_id;
     bit<16> shared_bandwidth_id;
     bit<1> redirect_flag;
+    bit<2> color;
+    bit<2> shared_color;
 }
 
 @pa_auto_init_metadata

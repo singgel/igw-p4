@@ -63,3 +63,77 @@ control EipInRedirect(
         }
     }
 }
+
+control EipInRatelimit(
+        inout headers_t hdr,
+        inout common_metadata_t meta,
+        in egress_intrinsic_metadata_t eg_intr_md,
+        in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
+        inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
+        inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
+    DirectMeter(MeterType_t.BYTES) shared_rl_meter;
+    DirectMeter(MeterType_t.BYTES) rl_meter;    
+    DirectCounter<bit<32>>(CounterType_t.PACKETS) ratelimit_drop_stats;
+
+    action execute_shared_ratelimit() {
+        meta.ratelimit.shared_color = (bit<2>)shared_rl_meter.execute(); 
+    }
+
+    table shared_bw_ratelimit {
+        key = {
+            meta.ratelimit.shared_bandwidth_id : exact;
+        }
+        actions = {
+            execute_shared_ratelimit;
+        }
+        size = 40960;
+        meters = shared_rl_meter;
+    }
+
+    action execute_ratelimit() {
+        meta.ratelimit.color = (bit<2>)rl_meter.execute(); 
+    }
+
+    table bw_ratelimit {
+        key = {
+            meta.ratelimit.bandwidth_id : exact;
+        }
+        actions = {
+            execute_ratelimit;
+        }
+        size = 40960;
+        meters = rl_meter;
+    }
+
+    action drop_packet() {
+        eg_dprsr_md.drop_ctl = 0x1;
+        ratelimit_drop_stats.count();
+    }
+
+    action nop() {
+        ratelimit_drop_stats.count();
+    }
+
+    table ratelimit_drop {
+        key = {
+            meta.ratelimit.shared_color : exact;
+            meta.ratelimit.color : exact;
+        }
+
+        actions = {
+            drop_packet;
+            nop;
+        }
+        size = 4;
+        const default_action = nop();
+        counters = ratelimit_drop_stats;
+    }
+
+    apply {
+        if (hdr.vxlan.isValid()) {
+            shared_bw_ratelimit.apply();
+            bw_ratelimit.apply();
+            ratelimit_drop.apply();
+        }
+    }
+}

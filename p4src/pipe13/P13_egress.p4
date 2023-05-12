@@ -14,12 +14,10 @@ control P13_Egress(
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
     DecapMetaData_I2E13()       decap_md;
     ComputeIpHashes()           compute_ipv4_hashes;
-    VmLocationMapping()         vm_location_mapping;
-    FipIpDnat()                 dnat;
-    IngressRoute()              ingress_route;
     EnCapVxlan()    encap_outer_vxlan;
     EipInRedirect()   eip_in_redirect;
-    
+    EipInRatelimit()  eip_in_ratelimit;
+
     #ifdef __MIRROR_ON_ETH__
         ProcessMirror()             mirror;
     #endif
@@ -41,10 +39,8 @@ control P13_Egress(
             }
 
             if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
+                eip_in_ratelimit.apply(EPP_META);
                 compute_ipv4_hashes.apply(EPP_META);
-                dnat.apply(EPP_META);
-                vm_location_mapping.apply(EPP_META);
-                ingress_route.apply(EPP_META);
             }
         }
     }

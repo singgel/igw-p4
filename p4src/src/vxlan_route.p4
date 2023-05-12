@@ -4,15 +4,12 @@
 * @author       liweiwei118@jd.com
 * 
 ***********************************************************************/
-
-control IngressRoute(
-        inout headers_t hdr,
-        inout common_metadata_t meta,
-        in egress_intrinsic_metadata_t eg_intr_md,
-        in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
-        inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
-        inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
-
+control IngressRoute(inout headers_t hdr,
+            inout common_metadata_t meta,
+            in ingress_intrinsic_metadata_t ig_intr_md,
+            in ingress_intrinsic_metadata_from_parser_t ig_intr_from_prsr,
+            inout ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
+            inout ingress_intrinsic_metadata_for_tm_t  ig_tm_md) {
     action vxlan_to_nexthop_overlay(bit<16> nexthop) {
         hdr.bg_md.tunnel_nexthop = nexthop;
     }
