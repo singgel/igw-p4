@@ -134,10 +134,6 @@ header mirror_metadata_t {
      bit<48> timestamp;
 }
 
-header resubmit_metadata_t {
-    bit<24> tunnel_route_idx;
-}
-
 @pa_no_overlay("ingress", "hdr.bridged_md.tunnel_nexthop")
 @pa_no_overlay("ingress", "hdr.bridged_md.need_drop")
 @pa_no_overlay("egress", "hdr.bridged_md.need_drop")

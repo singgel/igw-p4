@@ -18,7 +18,8 @@ control P13_Egress(
     FipIpDnat()                 dnat;
     IngressRoute()              ingress_route;
     EnCapVxlan()    encap_outer_vxlan;
-
+    EipInRedirect()   eip_in_redirect;
+    
     #ifdef __MIRROR_ON_ETH__
         ProcessMirror()             mirror;
     #endif
@@ -35,6 +36,10 @@ control P13_Egress(
                 encap_outer_vxlan.apply(EPP_META);
             }
             
+            if ((hdr.bg_md.dl_pkt == 0) && hdr.vxlan.isValid())  {
+                eip_in_redirect.apply(EPP_META);
+            }
+
             if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
                 compute_ipv4_hashes.apply(EPP_META);
                 dnat.apply(EPP_META);

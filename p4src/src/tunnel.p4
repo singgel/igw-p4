@@ -148,6 +148,9 @@ control InternetInProcess(
     Counter<bit<32>, bit<1>>(2, CounterType_t.PACKETS) dstip_drop_stats;
 
     action rewrite_std_vxlan() {
+        hdr.vxlan.flags = 0x08;
+        hdr.vxlan.version = 0;
+        hdr.vxlan.tof = 0;
         hdr.udp.srcPort = hdr.bg_md.l3_ecmp_entry_idx;
         hdr.udp.dstPort = UDP_PORT_VXLAN;
         hdr.udp.checksum = 0;

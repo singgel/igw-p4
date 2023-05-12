@@ -68,8 +68,7 @@ control IngressSystemAcl(inout headers_t hdr,
     }
     
     apply {
-        if ((ig_intr_md.ingress_port != CPU_PORT) && 
-            (ig_intr_md.resubmit_flag == 0)) {
+        if ((ig_intr_md.ingress_port != CPU_PORT)) {
             ingress_system_acl.apply();
         }
     }

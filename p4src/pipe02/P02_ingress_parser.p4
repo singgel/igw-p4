@@ -16,16 +16,7 @@ parser P02_IngressParser(
 
     state start {
         pkt.extract(ig_intr_md);
-        transition select(ig_intr_md.resubmit_flag) {
-            1 : parse_resubmit;
-            0 : parse_port_metadata;
-        }
-    }
-
-    //@pa_solitary do not share phv, install/bin/bf-p4c --help-pragmas 
-    state parse_resubmit {
-        pkt.extract(meta.resubmit);
-        transition parse_ethernet;  
+        transition parse_port_metadata;  
     }
 
     state parse_port_metadata {
@@ -267,13 +258,8 @@ control P02_IngressDeparser(
     in common_metadata_t meta,
     in ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr) {
     Mirror() mirror;
-    Resubmit() resubmit;
 
     apply {
-        if (ig_intr_md_for_dprsr.resubmit_type == RESUBMIT_WITH_DATA) {
-            resubmit.emit(meta.resubmit);
-        }
-        
         if (ig_intr_md_for_dprsr.mirror_type == MIRROR_TYPE_I2E) {
             mirror.emit(meta.tunnel.session_id, meta.mirror);
         }

@@ -13,7 +13,6 @@ struct tunnel_metadata_t {
     bit<32> route_idx;
     bit<32> fip;
     bit<32> fip_dip;
-    bool resubmit;
     bool inner_ipv4_checksum_en;
     bit<10> session_id;
     bit<2> drop_reason;
@@ -35,9 +34,10 @@ struct dscp_metadata_t {
     bit<6> val;
 }
 
-struct ptrace_metadata_t {
-    bit<1> flag;
-    bit<1> log_flag;
+struct ratelimit_metadata_t {
+    bit<18> bandwidth_id;
+    bit<16> shared_bandwidth_id;
+    bit<1> redirect_flag;
 }
 
 @pa_auto_init_metadata
@@ -46,9 +46,8 @@ struct common_metadata_t {
     tunnel_metadata_t tunnel;
     l3_metadata_t l3;
     dscp_metadata_t dscp;
-
     mirror_metadata_t mirror;
-    resubmit_metadata_t resubmit;
+    ratelimit_metadata_t ratelimit;
 }
 
 #endif /* _BGW_META_ */

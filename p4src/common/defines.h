@@ -98,4 +98,6 @@
 #define CRC_ADJUST_BYTES 4
 #define BR_ADJUST_BYTES 19
 
+#define  TOF_EIP_IN 1
+
 #endif /* _BGW_DEFINES_ */

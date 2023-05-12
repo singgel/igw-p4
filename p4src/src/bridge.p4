@@ -39,34 +39,21 @@ control DecapMetaData_02(inout headers_t hdr,
         hdr.bg_md.lkp_vni = 0;     
         ig_init_bridge();
     }   
-    
-    action ig_resubmit_decap_md02_v4() {
-        //to do
-    }    
-    
-    action ig_resubmit_decap_md02_nop() {
-        //to do
-    }
 
     table ig_decap_md02 {
         key = {
             hdr.inner_ipv4.isValid() : exact;
-            ig_intr_md.resubmit_flag : exact;
         }
 
         actions = {
             ig_decap_md02_v4;
             ig_decap_md02_nop;
-            ig_resubmit_decap_md02_v4;
-            ig_resubmit_decap_md02_nop;
         }
 
-        size = 4;
+        size = 2;
         const entries = {
-            {true, 0}   : ig_decap_md02_v4;
-            {false, 0}   : ig_decap_md02_nop;
-            {true, 1}   : ig_resubmit_decap_md02_v4;
-            {false, 1}   : ig_resubmit_decap_md02_nop;
+            {true}   : ig_decap_md02_v4;
+            {false}   : ig_decap_md02_nop;
         }
     }
 
