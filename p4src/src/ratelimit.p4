@@ -13,13 +13,15 @@ control EipInRedirect(
         inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
 
-    action set_bw_id(bit<18> bandwidth_id, bit<16> shared_bandwidth_id,bit<1> redirect_flag) {
+    action nop() {}
+
+    action set_bw_id(bit<18> bandwidth_id, bit<11> shared_bandwidth_id,
+            bit<1> within_redirect_flag, bit<1> between_redirect_flag) {
         meta.ratelimit.bandwidth_id = bandwidth_id;
         meta.ratelimit.shared_bandwidth_id = shared_bandwidth_id;
-        meta.ratelimit.redirect_flag = redirect_flag;
+        meta.ratelimit.within_redirect_flag = within_redirect_flag;
+        meta.ratelimit.between_redirect_flag = between_redirect_flag;
     }
-
-    action nop() {}
 
     table eip_in_redirect {
         key = {
@@ -31,11 +33,24 @@ control EipInRedirect(
             nop;
         }
 
-        size = 1024;
+        size = 200000;
         const default_action = nop();
     }
+    
+    action nop2() {}
 
-     action rewrite_jd_vxlan(bit<32> srcip) {
+    action rewrite_az_in_jd_vxlan(bit<32> srcip, bit<32> vip) {
+        hdr.vxlan.flags = 0x0c;
+        hdr.vxlan.version = 1;
+        hdr.vxlan.vni = 125;
+        hdr.vxlan.tof = TOF_AZ_IN;
+        hdr.udp.srcPort = 250;
+        hdr.ipv4.srcAddr = srcip; 
+        hdr.ipv4.dstAddr = vip; 
+        hdr.bg_md.tunnel_direct_send = DL_PACKET;
+    }
+
+     action rewrite_eip_in_jd_vxlan(bit<32> srcip) {
         hdr.vxlan.flags = 0x0c;
         hdr.vxlan.version = 1;
         hdr.vxlan.vni = 125;
@@ -47,20 +62,22 @@ control EipInRedirect(
 
     table modify_jd_vxlan {
         key = {
-            hdr.vxlan.isValid() : exact;
+            hdr.vxlan.isValid() : ternary;
+            hdr.vxlan.tof: ternary;
+            meta.ratelimit.between_redirect_flag : ternary;
+            meta.ratelimit.within_redirect_flag : ternary;
         }
-        size = 2;
+        size = 4;
         actions = {
-            rewrite_jd_vxlan;
+            rewrite_eip_in_jd_vxlan;
+            rewrite_az_in_jd_vxlan;
+            nop2;
         }
-        const default_action = rewrite_jd_vxlan(0xffff);
     }
 
     apply {
         eip_in_redirect.apply();
-        if (meta.ratelimit.redirect_flag == 1) {
-            modify_jd_vxlan.apply();
-        }
+        modify_jd_vxlan.apply();
     }
 }
 
@@ -86,7 +103,7 @@ control EipInRatelimit(
         actions = {
             execute_shared_ratelimit;
         }
-        size = 40960;
+        size = 2048;
         meters = shared_rl_meter;
     }
 
@@ -101,7 +118,7 @@ control EipInRatelimit(
         actions = {
             execute_ratelimit;
         }
-        size = 40960;
+        size = 200000;
         meters = rl_meter;
     }
 
@@ -130,10 +147,8 @@ control EipInRatelimit(
     }
 
     apply {
-        if (hdr.vxlan.isValid()) {
-            shared_bw_ratelimit.apply();
-            bw_ratelimit.apply();
-            ratelimit_drop.apply();
-        }
+        shared_bw_ratelimit.apply();
+        bw_ratelimit.apply();
+        ratelimit_drop.apply();
     }
 }

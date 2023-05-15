@@ -98,6 +98,9 @@
 #define CRC_ADJUST_BYTES 4
 #define BR_ADJUST_BYTES 19
 
-#define  TOF_EIP_IN 1
+#define  TOF_EIP_IN  1
+#define  TOF_EIP_OUT 2
+#define  TOF_AZ_IN   3
+#define  TOF_AZ_OUT  4
 
 #endif /* _BGW_DEFINES_ */

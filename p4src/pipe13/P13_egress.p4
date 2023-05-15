@@ -13,7 +13,6 @@ control P13_Egress(
         inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
     DecapMetaData_I2E13()       decap_md;
-    ComputeIpHashes()           compute_ipv4_hashes;
     EnCapVxlan()    encap_outer_vxlan;
     EipInRedirect()   eip_in_redirect;
     EipInRatelimit()  eip_in_ratelimit;
@@ -34,13 +33,12 @@ control P13_Egress(
                 encap_outer_vxlan.apply(EPP_META);
             }
             
-            if ((hdr.bg_md.dl_pkt == 0) && hdr.vxlan.isValid())  {
-                eip_in_redirect.apply(EPP_META);
-            }
+            if (hdr.vxlan.isValid() && (hdr.vxlan.tof != TOF_EIP_IN))  {
+                eip_in_redirect.apply(EPP_META); 
+            } 
 
             if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
-                eip_in_ratelimit.apply(EPP_META);
-                compute_ipv4_hashes.apply(EPP_META);
+                eip_in_ratelimit.apply(EPP_META); 
             }
         }
     }

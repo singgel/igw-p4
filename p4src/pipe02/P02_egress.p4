@@ -14,9 +14,11 @@ control ProcessGwEgress(
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
     InternetOutProcess()            internet_out;          
     InternetInProcess()             internet_in;   
+    NexthopProcess()            nexthop_process;
 
     apply {
         if (hdr.bg_md.igr_tunnel_type == TYPE_INGRESS_INTERNET_IN) { 
+            nexthop_process.apply(EPP_META);      
             internet_in.apply(EPP_META);      //internet in
         } else { //internet out
             internet_out.apply(EPP_META);           
