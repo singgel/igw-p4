@@ -88,6 +88,7 @@ control EnCapVxlan(
     action add_vxlan_header() {
         hdr.vxlan.setValid();
         hdr.vxlan.flags = 8w0x08;
+        hdr.vxlan.tof = 0;
     }
 
     action add_ipv4_header(bit<8> proto) {

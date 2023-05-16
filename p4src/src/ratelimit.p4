@@ -16,11 +16,11 @@ control EipInRedirect(
     action nop() {}
 
     action set_bw_id(bit<18> bandwidth_id, bit<11> shared_bandwidth_id,
-            bit<1> within_redirect_flag, bit<1> between_redirect_flag) {
+            bit<1> within_cluster, bit<1> between_cluster) {
         meta.ratelimit.bandwidth_id = bandwidth_id;
         meta.ratelimit.shared_bandwidth_id = shared_bandwidth_id;
-        meta.ratelimit.within_redirect_flag = within_redirect_flag;
-        meta.ratelimit.between_redirect_flag = between_redirect_flag;
+        meta.ratelimit.within_cluster = within_cluster;
+        meta.ratelimit.between_cluster = between_cluster;
     }
 
     table eip_in_redirect {
@@ -39,24 +39,23 @@ control EipInRedirect(
     
     action nop2() {}
 
-    action rewrite_az_in_jd_vxlan(bit<32> srcip, bit<32> vip) {
+    action rewrite_az_in_jd_vxlan(bit<32> vip) {
         hdr.vxlan.flags = 0x0c;
         hdr.vxlan.version = 1;
-        hdr.vxlan.vni = 125;
+        hdr.vxlan.vni = 99;
         hdr.vxlan.tof = TOF_AZ_IN;
-        hdr.udp.srcPort = 250;
-        hdr.ipv4.srcAddr = srcip; 
+        hdr.udp.srcPort = 50;
         hdr.ipv4.dstAddr = vip; 
         hdr.bg_md.tunnel_direct_send = DL_PACKET;
     }
 
-     action rewrite_eip_in_jd_vxlan(bit<32> srcip) {
+     action rewrite_eip_in_jd_vxlan(bit<32> dstip) {
         hdr.vxlan.flags = 0x0c;
         hdr.vxlan.version = 1;
         hdr.vxlan.vni = 125;
         hdr.vxlan.tof = TOF_EIP_IN;
         hdr.udp.srcPort = 250;
-        hdr.ipv4.srcAddr = srcip; 
+        hdr.ipv4.dstAddr = dstip; 
         hdr.bg_md.tunnel_direct_send = DL_PACKET;
     }
 
@@ -64,10 +63,10 @@ control EipInRedirect(
         key = {
             hdr.vxlan.isValid() : ternary;
             hdr.vxlan.tof: ternary;
-            meta.ratelimit.between_redirect_flag : ternary;
-            meta.ratelimit.within_redirect_flag : ternary;
+            meta.ratelimit.between_cluster : ternary;
+            meta.ratelimit.within_cluster : ternary;
         }
-        size = 4;
+        size = 6;
         actions = {
             rewrite_eip_in_jd_vxlan;
             rewrite_az_in_jd_vxlan;
