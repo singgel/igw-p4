@@ -15,7 +15,7 @@ control EipInRedirect(
     Hash<bit<16>>(HashAlgorithm_t.CRC16) selector_hash;
     ActionProfile(64) dl_ip_group_action_profile;
     ActionSelector(dl_ip_group_action_profile, selector_hash, SelectorMode_t.FAIR,
-                   256,8) dl_ip_group_selector;
+                   256,2) dl_ip_group_selector;
     bit<32> hash_index;
 
     action nop() {}
@@ -91,7 +91,7 @@ control EipInRedirect(
             ecmp_dl_ip;
         }
         implementation = dl_ip_group_selector;
-        size = 8;
+        size = 2;
     }
 
     apply {
