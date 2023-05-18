@@ -142,7 +142,7 @@ header bridge_metadata_t {
     bit<8> proto;
     bit<8> tunnel_src_id;
     bit<16> l3_ecmp_entry_idx;
-    bit<16> meter_bps_idx;
+    bit<16> shared_bandwidth_id;
     bit<16> tunnel_nexthop;
     bit<16> inner_mac_id;
     bit<7> pad_0;
@@ -171,7 +171,7 @@ header bridge_metadata_t {
     bit<8> proto;
     bit<8> tunnel_src_id;
     bit<16> l3_ecmp_entry_idx;
-    bit<16> meter_bps_idx;
+    bit<16> shared_bandwidth_id;
     bit<16> tunnel_nexthop;
     bit<16> inner_mac_id;
     bit<7> pad_0;

@@ -5,32 +5,86 @@
 * 
 ***********************************************************************/
 
-control MeterBpsTable(
+control EipInMeter(
         inout headers_t hdr,
         inout common_metadata_t meta,
         in egress_intrinsic_metadata_t eg_intr_md,
         in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
         inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
-    DirectMeter(MeterType_t.BYTES) meter_bps_all;
+    DirectMeter(MeterType_t.BYTES) rl_meter;    
 
-    action nop() {
-        hdr.bg_md.meter_packet_color = (bit<2>)meter_bps_all.execute();
-    }    
-    
-    table meter_bps_table {
+    action execute_ratelimit() {
+        hdr.bg_md.meter_packet_color = (bit<2>)rl_meter.execute(); 
+    }
+
+    table bw_ratelimit {
         key = {
-            hdr.bg_md.meter_bps_idx : exact;
+            meta.ratelimit.bandwidth_id : exact;
         }
-
         actions = {
-            nop;
+            execute_ratelimit;
         }
-        size = METER_BPS_TABLE_SIZE;
-        meters = meter_bps_all;
+        size = 150000;
+        meters = rl_meter;
     }
 
     apply {
-        meter_bps_table.apply();
+        bw_ratelimit.apply();
+    }
+}
+
+control EipInSharedMeter(inout headers_t hdr,
+            inout common_metadata_t meta,
+            in ingress_intrinsic_metadata_t ig_intr_md,
+            in ingress_intrinsic_metadata_from_parser_t ig_intr_from_prsr,
+            inout ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
+            inout ingress_intrinsic_metadata_for_tm_t  ig_tm_md) {
+    DirectMeter(MeterType_t.BYTES) shared_rl_meter;
+    DirectCounter<bit<32>>(CounterType_t.PACKETS) ratelimit_drop_stats;
+
+    action execute_shared_ratelimit() {
+        hdr.bg_md.meter_packet_color = (bit<2>)shared_rl_meter.execute(); 
+    }
+
+    table shared_bw_ratelimit {
+        key = {
+            hdr.bg_md.shared_bandwidth_id : exact;
+        }
+        actions = {
+            execute_shared_ratelimit;
+        }
+        size = 2048;
+        meters = shared_rl_meter;
+    }
+
+    action drop_packet() {
+        ig_intr_md_for_dprsr.drop_ctl = 0x1;
+        ratelimit_drop_stats.count();
+    }
+
+    action nop() {
+        ratelimit_drop_stats.count();
+    }
+
+    table ratelimit_drop {
+        key = {
+            hdr.bg_md.meter_packet_color : exact;
+        }
+
+        actions = {
+            drop_packet;
+            nop;
+        }
+        size = 4;
+        const default_action = nop();
+        counters = ratelimit_drop_stats;
+    }
+
+    apply {
+        if (hdr.bg_md.meter_packet_color != COLOR_RED) {
+            shared_bw_ratelimit.apply();
+        }
+        ratelimit_drop.apply();
     }
 }

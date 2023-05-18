@@ -42,9 +42,10 @@ control EcmpGroup02(inout headers_t hdr,
     }
 
     apply{
-        if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
+        if ((hdr.bg_md.tunnel_direct_send == MATCH_PACKET) || 
+            (hdr.bg_md.tunnel_direct_send == DL_PACKET)) {
             ig_tm_md.ucast_egress_port = ig_intr_md.ingress_port;
             ecmp_group_02_v2.apply();
-        }    
+        }
     }
 }

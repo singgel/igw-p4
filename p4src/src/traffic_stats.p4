@@ -33,36 +33,6 @@ control IngressPortStats(inout headers_t hdr,
     }
 }
 
-control IngressVifStats(inout headers_t hdr,
-            inout common_metadata_t meta,
-            in ingress_intrinsic_metadata_t ig_intr_md,
-            in ingress_intrinsic_metadata_from_parser_t ig_intr_from_prsr,
-            inout ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
-            inout ingress_intrinsic_metadata_for_tm_t  ig_tm_md) {
-    DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats;
-
-    action count() { stats.count(54); }
-    table ingress_vif_stats  {
-        key = {
-            hdr.vxlan.vni    : exact;
-            hdr.ipv4.srcAddr : exact;
-        }
-
-        actions = {
-            count;
-        }
-
-        size = VIF_STATS_SIZE;
-        counters = stats;
-    }
-
-    apply {
-        if (hdr.vxlan.isValid() && hdr.inner_ipv4.isValid()) {
-            ingress_vif_stats.apply();
-        }
-    }
-}
-
 control EgressPortStats(
         inout headers_t hdr,
         inout common_metadata_t meta,
@@ -94,45 +64,33 @@ control EgressPortStats(
     }
 }
 
-control EgressVifStats(
-        inout headers_t hdr,
-        inout common_metadata_t meta,
-        in egress_intrinsic_metadata_t eg_intr_md,
-        in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
-        inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
-        inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
-    DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats;
+control EipInMeterDropStats(inout headers_t hdr,
+            inout common_metadata_t meta,
+            in ingress_intrinsic_metadata_t ig_intr_md,
+            in ingress_intrinsic_metadata_from_parser_t ig_intr_from_prsr,
+            inout ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
+            inout ingress_intrinsic_metadata_for_tm_t  ig_tm_md) {
+    DirectCounter<bit<32>>(CounterType_t.PACKETS) meter_drop_stats;
 
-    action count() { stats.count(69); }
-
-    action dscp_replace() {
-        stats.count();
-        hdr.ipv4.dscp = hdr.inner_ipv4.dscp;
-    }
-    action dscp_set(bit<6> dscp_val) {
-        stats.count();
-        hdr.ipv4.dscp = dscp_val;
+    action drop_stats() {
+        meter_drop_stats.count();
     }
 
-    table egress_vif_stats  {
+    table meter_drop_show {
         key = {
-            hdr.bg_md.lkp_vni  : exact;
-            hdr.ipv4.dstAddr : exact;
+            hdr.inner_ipv4.dstAddr  : exact;
         }
 
         actions = {
-            count;
-            dscp_replace;
-            dscp_set;
+            drop_stats;
         }
-
-        size = VIF_STATS_SIZE;
-        counters = stats;
+        size = 150000;
+        counters = meter_drop_stats;
     }
 
     apply {
-        if (hdr.vxlan.isValid() && hdr.inner_ipv4.isValid()) {
-            egress_vif_stats.apply();
+        if (hdr.inner_ipv4.isValid() && (hdr.bg_md.meter_packet_color == COLOR_RED)) {
+            meter_drop_show.apply();
         }
     }
 }

@@ -36,11 +36,8 @@ struct dscp_metadata_t {
 
 struct ratelimit_metadata_t {
     bit<18> bandwidth_id;
-    bit<11> shared_bandwidth_id;
     bit<1> within_cluster;
     bit<1> between_cluster;
-    bit<2> color;
-    bit<2> shared_color;
 }
 
 @pa_auto_init_metadata

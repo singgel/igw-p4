@@ -16,10 +16,14 @@ control P13_Ingress(
     FipIpDnat()                 dnat;
     VmLocationMapping()         vm_location_mapping;
     IngressRoute()              ingress_route;
+    EipInSharedMeter()          eip_in_shared_meter;
+    EipInMeterDropStats()       eip_in_drop_stats;
 
     apply {
         ig_tm_md.ucast_egress_port = hdr.bg_md.igr_port;
         if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
+            eip_in_shared_meter.apply(IPP_META);
+            eip_in_drop_stats.apply(IPP_META);
             compute_ipv4_hashes.apply(IPP_META);
             dnat.apply(IPP_META);
             vm_location_mapping.apply(IPP_META);

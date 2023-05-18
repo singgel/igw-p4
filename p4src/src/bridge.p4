@@ -72,7 +72,8 @@ control EncapMetaData_02(inout headers_t hdr,
         hdr.bg_md.igr_port = ig_intr_md.ingress_port;
         hdr.bg_md.proto = PKT_BRIDGE;
         hdr.bg_md.outer_ethernet_type = hdr.ethernet.etherType;
-        if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
+        if ((hdr.bg_md.tunnel_direct_send == MATCH_PACKET) || 
+            (hdr.bg_md.tunnel_direct_send == DL_PACKET)) {
             hdr.bg_md.outer_ethernet_invalid = 1w1;
             hdr.ethernet.setInvalid();
         }

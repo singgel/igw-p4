@@ -103,4 +103,6 @@
 #define  TOF_AZ_IN   3
 #define  TOF_AZ_OUT  4
 
+#define  COLOR_RED  3
+
 #endif /* _BGW_DEFINES_ */
