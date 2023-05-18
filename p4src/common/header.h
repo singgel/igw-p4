@@ -148,7 +148,7 @@ header bridge_metadata_t {
     bit<7> pad_0;
     bit<9> igr_port;
     bit<16> outer_ethernet_type;  // must be placed in 12-13 bytes
-    bit<32> lkp_dip;
+    bit<32> eip_or_bwid;
     bit<24> lkp_vni;
     
     bit<1>  dl_pkt;
@@ -177,7 +177,7 @@ header bridge_metadata_t {
     bit<7> pad_0;
     bit<9> igr_port;
     bit<16> outer_ethernet_type;  // must be placed in 12-13 bytes
-    bit<32> lkp_dip;
+    bit<32> eip_or_bwid;
     bit<24> lkp_vni;
 
     bit<1>  dl_pkt;

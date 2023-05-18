@@ -95,7 +95,7 @@ control DecapMetaData_I2E13(
         meta.l3.lkp_l4_sport = hdr.bg_md.lkp_l4_sport;
         meta.l3.lkp_l4_dport = hdr.bg_md.lkp_l4_dport;
     #endif
-        hdr.bg_md.lkp_dip = hdr.inner_ipv4.dstAddr;
+        hdr.bg_md.eip_or_bwid = hdr.inner_ipv4.dstAddr;
     }  
 
     action eg_decap_md13_v4_no_dl() {
@@ -104,7 +104,7 @@ control DecapMetaData_I2E13(
         meta.l3.lkp_ip_proto = meta.l3.lkp_outer_ip_proto;
         meta.l3.lkp_l4_sport = meta.l3.lkp_outer_l4_sport;
         meta.l3.lkp_l4_dport =  meta.l3.lkp_outer_l4_dport;
-        hdr.bg_md.lkp_dip = hdr.ipv4.dstAddr;
+        hdr.bg_md.eip_or_bwid = hdr.ipv4.dstAddr;
     }  
 
     action nop() {}
@@ -146,6 +146,7 @@ control DecapMetaData_I2E02(
     action eg_decap_md02_v4() {
         meta.l3.lkp_sip = hdr.inner_ipv4.srcAddr;
         meta.l3.lkp_dip = hdr.inner_ipv4.dstAddr;
+        meta.ratelimit.bandwidth_id = (bit<18>)hdr.bg_md.eip_or_bwid;
     #ifdef __SDE_9_7_SUPPORT__
         meta.l3.lkp_l4_sport = hdr.bg_md.lkp_l4_sport;
         meta.l3.lkp_l4_dport = hdr.bg_md.lkp_l4_dport;
