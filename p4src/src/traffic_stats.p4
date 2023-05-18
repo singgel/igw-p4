@@ -94,3 +94,94 @@ control EipInMeterDropStats(inout headers_t hdr,
         }
     }
 }
+
+control EipOutMeterDropStats(
+        inout headers_t hdr,
+        inout common_metadata_t meta,
+        in egress_intrinsic_metadata_t eg_intr_md,
+        in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
+        inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
+        inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
+    DirectCounter<bit<32>>(CounterType_t.PACKETS) meter_drop_stats;
+
+    action drop_stats() {
+        meter_drop_stats.count();
+    }
+
+    table meter_drop_show {
+        key = {
+            hdr.inner_ipv4.srcAddr  : exact;
+        }
+
+        actions = {
+            drop_stats;
+        }
+        size = 150000;
+        counters = meter_drop_stats;
+    }
+
+    apply {
+        if (hdr.inner_ipv4.isValid() && (hdr.bg_md.meter_packet_color == COLOR_RED)) {
+            meter_drop_show.apply();
+        }
+    }
+}
+
+control EipInIngressPktStats(
+        inout headers_t hdr,
+        inout common_metadata_t meta,
+        in egress_intrinsic_metadata_t eg_intr_md,
+        in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
+        inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
+        inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
+    DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats;
+
+    action count() { stats.count(BR_ADJUST_BYTES); }
+    table eip_in_ingress_pkt_stats  {
+        key = {
+            hdr.inner_ipv4.dstAddr : exact;
+        }
+
+        actions = {
+            count;
+        }
+
+        size = 100000;
+        counters = stats;
+    }
+
+    apply {
+        if (hdr.inner_ipv4.isValid()) {
+            eip_in_ingress_pkt_stats.apply();
+        }
+    }
+}
+
+control EipInEgressPktStats(inout headers_t hdr,
+            inout common_metadata_t meta,
+            in ingress_intrinsic_metadata_t ig_intr_md,
+            in ingress_intrinsic_metadata_from_parser_t ig_intr_from_prsr,
+            inout ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
+            inout ingress_intrinsic_metadata_for_tm_t  ig_tm_md) {
+    DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats;
+
+    action count() { stats.count(BR_ADJUST_BYTES); }
+    table eip_in_egress_pkt_stats  {
+        key = {
+            hdr.inner_ipv4.dstAddr    : exact;
+        }
+
+        actions = {
+            count;
+        }
+
+        size = 100000;
+        counters = stats;
+    }
+
+    apply {
+        if (hdr.inner_ipv4.isValid() &&(hdr.bg_md.meter_packet_color != COLOR_RED)) {
+            eip_in_egress_pkt_stats.apply();
+        }
+    }
+}

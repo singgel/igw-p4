@@ -15,12 +15,16 @@ control ProcessGwEgress(
     InternetOutProcess()            internet_out;          
     InternetInProcess()             internet_in;   
     NexthopProcess()            nexthop_process;
+    EipOutSharedMeter()         eip_out_shared_meter;
+    EipOutMeterDropStats()       eip_out_drop_stats;
 
     apply {
         if (hdr.bg_md.igr_tunnel_type == TYPE_INGRESS_INTERNET_IN) { 
             nexthop_process.apply(EPP_META);      
             internet_in.apply(EPP_META);      //internet in
         } else { //internet out
+            eip_out_shared_meter.apply(EPP_META);
+            eip_out_drop_stats.apply(EPP_META);
             internet_out.apply(EPP_META);           
         }
     }

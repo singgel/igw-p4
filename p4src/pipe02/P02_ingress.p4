@@ -20,6 +20,7 @@ control P02_Ingress(
     EncapMetaData_02()          encap_md;
     FipInnerIpSnat()            fip_snat;
     EipOutRedirect()   eip_out_redirect;
+    EipOutMeter()      eip_out_meter;
 
     apply {
         decap_md.apply(IPP_META);
@@ -37,7 +38,7 @@ control P02_Ingress(
                     eip_out_redirect.apply(IPP_META); 
                 } 
                 if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
-                    //eip_out_ratelimit.apply(IPP_META); 
+                    eip_out_meter.apply(IPP_META); 
                 }
             }
         }
