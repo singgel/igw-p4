@@ -29,7 +29,7 @@ control FipInnerIpSnat(inout headers_t hdr,
             nop;
         }
 
-        size = 1024;
+        size = EIP_SIZE;
         const default_action = nop();
     }
     
@@ -62,7 +62,7 @@ control FipIpDnat(inout headers_t hdr,
             nop;
         }
 
-        size = 1024;
+        size = EIP_SIZE;
         const default_action = nop();
     }
     

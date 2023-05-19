@@ -25,7 +25,7 @@ control EipInMeter(
         actions = {
             execute_ratelimit;
         }
-        size = 150000;
+        size = EIP_SIZE;
         meters = rl_meter;
     }
 
@@ -54,7 +54,7 @@ control EipInSharedMeter(inout headers_t hdr,
         actions = {
             execute_shared_ratelimit;
         }
-        size = 2048;
+        size = SHARED_BW_SIZE;
         meters = shared_rl_meter;
     }
 
@@ -110,7 +110,7 @@ control EipOutSharedMeter(
         actions = {
             execute_shared_ratelimit;
         }
-        size = 2048;
+        size = SHARED_BW_SIZE;
         meters = shared_rl_meter;
     }
 
@@ -165,7 +165,7 @@ control EipOutMeter(
         actions = {
             execute_ratelimit;
         }
-        size = 150000;
+        size = EIP_SIZE;
         meters = rl_meter;
     }
 

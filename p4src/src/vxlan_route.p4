@@ -23,7 +23,7 @@ control IngressRoute(inout headers_t hdr,
         actions = {
             vxlan_to_nexthop_overlay;
         }
-        size = 1024;
+        size = 8192;
     }
 
     apply {

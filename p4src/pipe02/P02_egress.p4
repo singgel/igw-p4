@@ -14,19 +14,21 @@ control ProcessGwEgress(
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
     InternetOutProcess()            internet_out;          
     InternetInProcess()             internet_in;   
-    NexthopProcess()            nexthop_process;
     EipOutMeter()               eip_out_meter;
     EipOutSharedMeter()         eip_out_shared_meter;
-    EipOutMeterDropStats()       eip_out_drop_stats;
+    EipOutMeterDropStats()      eip_out_drop_stats;
+    EipOutEgressPktStats()      eip_out_egress_pkt_stats;
+    EipInEgressPktStats()       eip_in_egress_pkt_stats;
 
     apply {
         if (hdr.bg_md.igr_tunnel_type == TYPE_INGRESS_INTERNET_IN) { 
-            nexthop_process.apply(EPP_META);      
             internet_in.apply(EPP_META);      //internet in
+            eip_in_egress_pkt_stats.apply(EPP_META);
         } else { //internet out
             eip_out_meter.apply(EPP_META);
             eip_out_shared_meter.apply(EPP_META);
             eip_out_drop_stats.apply(EPP_META);
+            eip_out_egress_pkt_stats.apply(EPP_META);
             internet_out.apply(EPP_META);           
         }
     }
