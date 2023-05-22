@@ -29,8 +29,20 @@ control DecapMetaData_02(inout headers_t hdr,
         hdr.bg_md.lkp_l4_sport =  meta.l3.lkp_l4_sport;
         hdr.bg_md.lkp_l4_dport =  meta.l3.lkp_l4_dport;
     #endif
-        meta.l3.lkp_sip = hdr.inner_ipv4.srcAddr;
-        meta.l3.lkp_dip = hdr.inner_ipv4.dstAddr;
+        meta.l3.lkp_sip = (bit<128>)hdr.inner_ipv4.srcAddr;
+        meta.l3.lkp_dip = (bit<128>)hdr.inner_ipv4.dstAddr;
+        ig_init_bridge();
+    }   
+
+    action ig_decap_md02_v6() {
+        hdr.bg_md.setValid();
+        hdr.bg_md.lkp_vni = hdr.vxlan.vni;
+    #ifdef __SDE_9_7_SUPPORT__
+        hdr.bg_md.lkp_l4_sport =  meta.l3.lkp_l4_sport;
+        hdr.bg_md.lkp_l4_dport =  meta.l3.lkp_l4_dport;
+    #endif
+        meta.l3.lkp_sip = hdr.inner_ipv6.srcAddr;
+        meta.l3.lkp_dip = hdr.inner_ipv6.dstAddr;
         ig_init_bridge();
     }   
 
@@ -42,18 +54,21 @@ control DecapMetaData_02(inout headers_t hdr,
 
     table ig_decap_md02 {
         key = {
-            hdr.inner_ipv4.isValid() : exact;
+            hdr.inner_ipv4.isValid() : exact;           
+            hdr.inner_ipv6.isValid() : exact;
         }
 
         actions = {
             ig_decap_md02_v4;
+            ig_decap_md02_v6;
             ig_decap_md02_nop;
         }
 
         size = 2;
         const entries = {
-            {true}   : ig_decap_md02_v4;
-            {false}   : ig_decap_md02_nop;
+            {true,false}   : ig_decap_md02_v4;
+            {false,true}   : ig_decap_md02_v6;
+            {false,false}   : ig_decap_md02_nop;
         }
     }
 
@@ -89,8 +104,8 @@ control DecapMetaData_I2E13(
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
 
     action eg_decap_md13_v4() {
-        meta.l3.lkp_sip = hdr.inner_ipv4.srcAddr;
-        meta.l3.lkp_dip = hdr.inner_ipv4.dstAddr;
+        meta.l3.lkp_sip = (bit<128>)hdr.inner_ipv4.srcAddr;
+        meta.l3.lkp_dip = (bit<128>)hdr.inner_ipv4.dstAddr;
     #ifdef __SDE_9_7_SUPPORT__
         meta.l3.lkp_l4_sport = hdr.bg_md.lkp_l4_sport;
         meta.l3.lkp_l4_dport = hdr.bg_md.lkp_l4_dport;
@@ -99,8 +114,8 @@ control DecapMetaData_I2E13(
     }  
 
     action eg_decap_md13_v4_no_dl() {
-        meta.l3.lkp_sip = hdr.ipv4.srcAddr;
-        meta.l3.lkp_dip = hdr.ipv4.dstAddr;
+        meta.l3.lkp_sip = (bit<128>)hdr.ipv4.srcAddr;
+        meta.l3.lkp_dip = (bit<128>)hdr.ipv4.dstAddr;
         meta.l3.lkp_ip_proto = meta.l3.lkp_outer_ip_proto;
         meta.l3.lkp_l4_sport = meta.l3.lkp_outer_l4_sport;
         meta.l3.lkp_l4_dport =  meta.l3.lkp_outer_l4_dport;
@@ -144,8 +159,8 @@ control DecapMetaData_I2E02(
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
 
     action eg_decap_md02_v4() {
-        meta.l3.lkp_sip = hdr.inner_ipv4.srcAddr;
-        meta.l3.lkp_dip = hdr.inner_ipv4.dstAddr;
+        meta.l3.lkp_sip = (bit<128>)hdr.inner_ipv4.srcAddr;
+        meta.l3.lkp_dip = (bit<128>)hdr.inner_ipv4.dstAddr;
         meta.ratelimit.bandwidth_id = (bit<18>)hdr.bg_md.eip_or_bwid;
     #ifdef __SDE_9_7_SUPPORT__
         meta.l3.lkp_l4_sport = hdr.bg_md.lkp_l4_sport;

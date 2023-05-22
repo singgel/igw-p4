@@ -34,7 +34,7 @@ control P02_Ingress(
         if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
             if (hdr.bg_md.igr_tunnel_type == TYPE_INGRESS_INTERNET_OUT) {//internet out
                 fip_snat.apply(IPP_META);
-                if (hdr.vxlan.isValid() && (hdr.vxlan.tof != TOF_EIP_OUT))  {
+                if (hdr.vxlan.isValid() && (hdr.vxlan.tof != TOF_EIP_OUT) && hdr.inner_ipv4.isValid())  {
                     eip_out_redirect.apply(IPP_META); 
                 } 
                 if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {

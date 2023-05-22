@@ -28,6 +28,7 @@ parser P02_IngressParser(
         pkt.extract(hdr.ethernet);
         transition select(hdr.ethernet.etherType) {
             ETHERTYPE_IPV4 : parse_ipv4;
+            ETHERTYPE_IPV6 : parse_ipv6;
             ETHERTYPE_BFN : parse_cpu;
             default : accept;
         }
@@ -59,6 +60,24 @@ parser P02_IngressParser(
             // Do NOT parse the next header if IP packet is fragmented.
             default : accept;
         }
+    }
+
+    state parse_ipv6 {
+        pkt.extract(hdr.ipv6);
+        meta.l3.lkp_outer_ip_proto = hdr.ipv6.nextHdr;
+        transition select(hdr.ipv6.nextHdr) {
+            (IP_PROTOCOLS_TCP) : parse_tcp;
+            (IP_PROTOCOLS_UDP) : parse_udp6;
+            (IP_PROTOCOLS_ICMP) : parse_icmp;
+            default : accept;
+        }
+    }
+
+    state parse_udp6 {
+        pkt.extract(hdr.udp);
+        meta.l3.lkp_outer_l4_sport = hdr.udp.srcPort;
+        meta.l3.lkp_outer_l4_dport = hdr.udp.dstPort;
+        transition accept;
     }
 
     state parse_udp {

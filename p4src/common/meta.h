@@ -22,8 +22,8 @@ struct l3_metadata_t {
     bit<8>  lkp_ip_proto;
     bit<16> lkp_l4_sport;
     bit<16> lkp_l4_dport;    
-    bit<32> lkp_sip;
-    bit<32> lkp_dip;
+    bit<128> lkp_sip;
+    bit<128> lkp_dip;
     bit<16> lkp_outer_l4_sport;
     bit<16> lkp_outer_l4_dport;  
     bit<8>  lkp_outer_ip_proto;

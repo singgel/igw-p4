@@ -153,6 +153,8 @@ control EipOutIngressPktStats(inout headers_t hdr,
     apply {
         if (hdr.inner_ipv4.isValid()) {
             eip_out_ingress_pkt_stats.apply();
+        } else if (hdr.inner_ipv6.isValid()) {
+            //todo
         }
     }
 }

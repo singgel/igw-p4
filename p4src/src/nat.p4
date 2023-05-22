@@ -21,7 +21,7 @@ control FipInnerIpSnat(inout headers_t hdr,
     table fip_inner_ip_snat {
         key = {
             hdr.vxlan.vni        : exact;
-            meta.l3.lkp_sip      : exact;
+            hdr.inner_ipv4.srcAddr   : exact;
         }
 
         actions = {

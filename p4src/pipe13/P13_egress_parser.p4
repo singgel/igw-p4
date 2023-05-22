@@ -44,6 +44,7 @@ parser P13_EgressParser(
         transition select(hdr.bg_md.outer_ethernet_type, hdr.bg_md.outer_ethernet_invalid, hdr.bg_md.dl_pkt) {
             (ETHERTYPE_IPV4, 1w1, 1) : parse_ipv4;
             (ETHERTYPE_IPV4, 1w1, 0) : parse_ipv4_v2;
+            (ETHERTYPE_IPV6, 1w1, 0) : parse_ipv6;
             (_, 1w0,_) : parse_ethernet;
             default : accept;
         }
@@ -95,6 +96,16 @@ parser P13_EgressParser(
         }
     }
 
+    state parse_ipv6 {
+        pkt.extract(hdr.ipv6);
+        meta.l3.lkp_outer_ip_proto = hdr.ipv6.nextHdr;
+        transition select(hdr.ipv6.nextHdr) {
+            (IP_PROTOCOLS_TCP) : parse_tcp;
+            (IP_PROTOCOLS_UDP) : parse_udp_v2;
+            default : accept;
+        }
+    }
+    
     state parse_udp {
         pkt.extract(hdr.udp);
         meta.l3.lkp_outer_l4_sport = hdr.udp.srcPort;
