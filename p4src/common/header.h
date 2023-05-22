@@ -200,6 +200,7 @@ struct headers_t {
     fabric_h fabric;
     cpu_h cpu;
     ipv4_t ipv4;
+    ipv6_t ipv6;
     udp_t udp;
     tcp_t tcp;
     icmp_t icmp;
@@ -216,6 +217,7 @@ struct headers_t {
     option_word_t inner_option_word_8;
     option_word_t inner_option_word_9;
     option_word_t inner_option_word_10;
+    ipv6_t inner_ipv6;
     tcp_t inner_tcp;
     udp_t inner_udp;
 }

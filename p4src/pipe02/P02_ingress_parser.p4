@@ -99,6 +99,7 @@ parser P02_IngressParser(
         meta.tunnel.vxlan_type = VXLAN_TYPE_JD;
         transition select(hdr.inner_ethernet.etherType) {
             ETHERTYPE_IPV4 : parse_inner_ipv4;
+            ETHERTYPE_IPV6 : parse_inner_ipv6;
             default : accept;
         }
     }  
@@ -108,6 +109,7 @@ parser P02_IngressParser(
         meta.tunnel.vxlan_type = VXLAN_TYPE_STD;
         transition select(hdr.inner_ethernet.etherType) {
             ETHERTYPE_IPV4 : parse_inner_ipv4;
+            ETHERTYPE_IPV6 : parse_inner_ipv6;
             default : accept;
         }
     }  
@@ -230,6 +232,16 @@ parser P02_IngressParser(
         transition select(hdr.inner_ipv4.protocol, hdr.inner_ipv4.fragOffset) {
             (IP_PROTOCOLS_TCP, 0) : parse_inner_tcp;
             (IP_PROTOCOLS_UDP, 0) : parse_inner_udp;
+            default : accept;
+        }
+    }
+
+    state parse_inner_ipv6 {
+        pkt.extract(hdr.inner_ipv6);
+        meta.l3.lkp_ip_proto = hdr.inner_ipv6.nextHdr;
+        transition select(hdr.inner_ipv6.nextHdr) {
+            IP_PROTOCOLS_TCP : parse_inner_tcp;
+            IP_PROTOCOLS_UDP : parse_inner_udp;
             default : accept;
         }
     }
