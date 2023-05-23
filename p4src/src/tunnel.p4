@@ -159,22 +159,31 @@ control InternetInProcess(
         meta.tunnel.inner_ipv4_checksum_en = true;
     }
 
+    action rewrite6_std_vxlan() {
+        hdr.udp.srcPort = hdr.bg_md.l3_ecmp_entry_idx;
+        hdr.udp.dstPort = UDP_PORT_VXLAN;
+        hdr.udp.checksum = 0;
+    }
+
     action nop() {}
 
     table rewrite_vxlan_process {
         key = {
             hdr.inner_ipv4.isValid()    : exact;
+            hdr.inner_ipv6.isValid()    : exact;
         }
 
         actions = {
             rewrite_std_vxlan;
+            rewrite6_std_vxlan;
             nop;
         }
 
-        size = 2;
+        size = 4;
         const entries = {
-            (true) : rewrite_std_vxlan();
-            (false) : nop();
+            (true,false) : rewrite_std_vxlan();
+            (false,true) : rewrite6_std_vxlan();
+            (false,false) : nop();
         }
 
         default_action = nop();
@@ -262,22 +271,31 @@ control InternetOutProcess(
         meta.tunnel.inner_ipv4_checksum_en = true;
     }
 
+    action internet6_out_decap_vxlan() {
+        hdr.inner_ethernet.setInvalid();  
+        hdr.vxlan.setInvalid();  
+        hdr.udp.setInvalid();  
+        hdr.ipv4.setInvalid();  
+    }
+
     action nop() {}
 
     table internet_out_process {
         key = {
-            //meta.tunnel.vxlan_type      : exact;
             hdr.inner_ipv4.isValid()    : exact;
+            hdr.inner_ipv6.isValid()    : exact;
         }
 
         actions = {
             internet_out_decap_vxlan;
+            internet6_out_decap_vxlan;
             nop;
         }
-        size = 2;
+        size = 4;
         const entries = {
-            {true}    : internet_out_decap_vxlan;
-            {false}   : nop;
+            {true,false}    : internet_out_decap_vxlan;
+            {false,true}    : internet6_out_decap_vxlan;
+            {false,false}    : nop;
         }
     }
 

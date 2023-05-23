@@ -45,4 +45,6 @@ const bit<32> EIP_SIZE = 100000;
 
 const bit<32> SHARED_BW_SIZE = 8192;
 
+const bit<32> EIP6_SIZE = 8192;
+
 #endif /* _P4_TABLE_SIZE_ */

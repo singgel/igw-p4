@@ -64,7 +64,7 @@ control DecapMetaData_02(inout headers_t hdr,
             ig_decap_md02_nop;
         }
 
-        size = 2;
+        size = 4;
         const entries = {
             {true,false}   : ig_decap_md02_v4;
             {false,true}   : ig_decap_md02_v6;
@@ -168,6 +168,15 @@ control DecapMetaData_I2E02(
     #endif
     }  
 
+    action eg_decap_md02_v6() {
+        meta.l3.lkp_sip = hdr.inner_ipv6.srcAddr;
+        meta.l3.lkp_dip = hdr.inner_ipv6.dstAddr;
+    #ifdef __SDE_9_7_SUPPORT__
+        meta.l3.lkp_l4_sport = hdr.bg_md.lkp_l4_sport;
+        meta.l3.lkp_l4_dport = hdr.bg_md.lkp_l4_dport;
+    #endif
+    }  
+
     action nop() {
         meta.l3.lkp_sip = 0;
         meta.l3.lkp_dip = 0;
@@ -180,17 +189,20 @@ control DecapMetaData_I2E02(
     table eg_decap_md02 {
         key = {
             hdr.inner_ipv4.isValid() : exact;
+            hdr.inner_ipv6.isValid() : exact;
         }
 
         actions = {
             eg_decap_md02_v4;
+            eg_decap_md02_v6;
             nop;
         }
 
-        size = 2;
+        size = 4;
         const entries = {
-            {true}    : eg_decap_md02_v4;
-            {false}   : nop;
+            {true,false}    : eg_decap_md02_v4;
+            {false,true}    : eg_decap_md02_v6;
+            {false,false}   : nop;
         }
     }
 

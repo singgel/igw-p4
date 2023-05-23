@@ -28,8 +28,8 @@ class EgressSystemAcl(BfRuntimeBase):
     def entry_add_with_drop(self, pri=USER_PRI):
         self.system_acl_table.info.key_field_annotation_add("hdr.ipv4.dstAddr", "ipv4")
         self.system_acl_table.info.key_field_annotation_add("hdr.ipv4.srcAddr", "ipv4")
-        self.system_acl_table.info.key_field_annotation_add("meta.l3.lkp_dip", "ipv4")
-        self.system_acl_table.info.key_field_annotation_add("meta.l3.lkp_sip", "ipv4")
+        self.system_acl_table.info.key_field_annotation_add("meta.l3.lkp_dip", "ipv6")
+        self.system_acl_table.info.key_field_annotation_add("meta.l3.lkp_sip", "ipv6")
         key_list = [self.system_acl_table.make_key([gc.KeyTuple('$MATCH_PRIORITY', pri),
                                              gc.KeyTuple('hdr.bg_md.meter_packet_color', 0, 0),
                                              gc.KeyTuple('hdr.ipv4.$valid', 1, 0x1),
@@ -38,9 +38,9 @@ class EgressSystemAcl(BfRuntimeBase):
                                              gc.KeyTuple('hdr.ipv4.protocol', UDP_PROTOCOL, 0xFF),
                                              gc.KeyTuple('meta.l3.lkp_outer_l4_sport', 0, 0),
                                              gc.KeyTuple('meta.l3.lkp_outer_l4_dport', 0, 0),
-                                             gc.KeyTuple('meta.l3.lkp_dip', "0.0.0.0", "0.0.0.0"),
+                                             #gc.KeyTuple('meta.l3.lkp_dip', "0.0.0.0", "0.0.0.0"),
                                              gc.KeyTuple('meta.l3.lkp_l4_dport', 0, 0),
-                                             gc.KeyTuple('meta.l3.lkp_sip', "0.0.0.0", "0.0.0.0"),
+                                             #gc.KeyTuple('meta.l3.lkp_sip', "0.0.0.0", "0.0.0.0"),
                                              gc.KeyTuple('meta.l3.lkp_l4_sport', 0, 0),
                                              gc.KeyTuple('meta.l3.lkp_ip_proto', 0, 0),
                                              gc.KeyTuple('hdr.bg_md.lkp_vni', 0, 0),  
