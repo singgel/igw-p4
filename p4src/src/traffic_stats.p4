@@ -44,6 +44,7 @@ control EipOutMeterDropStats(
         inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
     DirectCounter<bit<32>>(CounterType_t.PACKETS) meter_drop_stats;
+    DirectCounter<bit<32>>(CounterType_t.PACKETS) ipv6_meter_drop_stats;
 
     action drop_stats() {
         meter_drop_stats.count();
@@ -61,9 +62,27 @@ control EipOutMeterDropStats(
         counters = meter_drop_stats;
     }
 
+    action ipv6_drop_stats() {
+        ipv6_meter_drop_stats.count();
+    }
+
+    table ipv6_meter_drop_show {
+        key = {
+            hdr.inner_ipv6.srcAddr  : exact;
+        }
+
+        actions = {
+            ipv6_drop_stats;
+        }
+        size = 2000;
+        counters = ipv6_meter_drop_stats;
+    }
+    
     apply {
         if (hdr.inner_ipv4.isValid() && (hdr.bg_md.meter_packet_color == COLOR_RED)) {
             meter_drop_show.apply();
+        } else if (hdr.inner_ipv6.isValid() && (hdr.bg_md.meter_packet_color == COLOR_RED)) {
+            ipv6_meter_drop_show.apply();
         }
     }
 }
