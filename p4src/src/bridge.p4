@@ -122,26 +122,35 @@ control DecapMetaData_I2E13(
         hdr.bg_md.eip_or_bwid = hdr.ipv4.dstAddr;
     }  
 
+    action eg_decap_md13_v6() {
+        meta.l3.lkp_sip = hdr.ipv6.srcAddr;
+        meta.l3.lkp_dip = hdr.ipv6.dstAddr;
+        meta.l3.lkp_ip_proto = meta.l3.lkp_outer_ip_proto;
+        meta.l3.lkp_l4_sport = meta.l3.lkp_outer_l4_sport;
+        meta.l3.lkp_l4_dport =  meta.l3.lkp_outer_l4_dport;
+    }  
+
     action nop() {}
     
     table eg_decap_md13 {
         key = {
             hdr.vxlan.isValid() : exact;
             hdr.inner_ipv4.isValid() : exact;
+            hdr.ipv6.isValid() : exact;
         }
 
         actions = {
             eg_decap_md13_v4;
             eg_decap_md13_v4_no_dl;
+            eg_decap_md13_v6;
             nop;
         }
         
         size = 4;
         const entries = {
-            {true, true}   : eg_decap_md13_v4;
-            {true, false}   : nop;
-            {false, true}   : eg_decap_md13_v4_no_dl;
-            {false, false}   : eg_decap_md13_v4_no_dl;
+            {true, true, false}   : eg_decap_md13_v4;
+            {false, false, false}   : eg_decap_md13_v4_no_dl;
+            {false, false,true}   : eg_decap_md13_v6;
         }
     }
 

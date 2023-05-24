@@ -34,7 +34,8 @@ control P13_Egress(
                 encap_outer_vxlan.apply(EPP_META);
             }
             
-            if (hdr.vxlan.isValid() && (hdr.vxlan.tof != TOF_EIP_IN))  {
+            if (hdr.vxlan.isValid() && (hdr.vxlan.tof != TOF_EIP_IN)
+                    && hdr.inner_ipv4.isValid())  {
                 eip_in_redirect.apply(EPP_META); 
             } 
 

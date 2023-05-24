@@ -13,6 +13,7 @@ control EipInMeter(
         inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
     DirectMeter(MeterType_t.BYTES) rl_meter;    
+    DirectMeter(MeterType_t.BYTES) ipv6_rl_meter;    
 
     action execute_ratelimit() {
         hdr.bg_md.meter_packet_color = (bit<2>)rl_meter.execute(); 
@@ -29,8 +30,27 @@ control EipInMeter(
         meters = rl_meter;
     }
 
+    action execute_ipv6_ratelimit() {
+        hdr.bg_md.meter_packet_color = (bit<2>)ipv6_rl_meter.execute(); 
+    }
+
+    table ipv6_bw_ratelimit {
+        key = {
+            hdr.vxlan.vni : exact;
+        }
+        actions = {
+            execute_ipv6_ratelimit;
+        }
+        size = 2000;
+        meters = ipv6_rl_meter;
+    }
+    
     apply {
-        bw_ratelimit.apply();
+        if (hdr.inner_ipv4.isValid()) {
+            bw_ratelimit.apply();
+        } else if (hdr.inner_ipv6.isValid()) {
+            ipv6_bw_ratelimit.apply();
+        }
     }
 }
 
@@ -82,7 +102,7 @@ control EipInSharedMeter(inout headers_t hdr,
     }
 
     apply {
-        if (hdr.bg_md.meter_packet_color != COLOR_RED) {
+        if ((hdr.bg_md.meter_packet_color != COLOR_RED) && hdr.inner_ipv4.isValid()) {
             shared_bw_ratelimit.apply();
         }
         ratelimit_drop.apply();

@@ -27,7 +27,9 @@ control IngressRoute(inout headers_t hdr,
     }
 
     apply {
-        vxlan_route.apply();
+        if (hdr.inner_ipv4.isValid()) {
+            vxlan_route.apply();
+        }
     } 
 }
 

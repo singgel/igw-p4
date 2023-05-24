@@ -57,23 +57,56 @@ control EnCapVxlan(
         ip_proto = IP_PROTOCOLS_IPV4;
     }
 
+    action rewrite_inner_ipv6_udp() {
+        payload_len = hdr.ipv6.payloadLen + 16w40;
+        hdr.inner_ipv6 = hdr.ipv6;
+        hdr.inner_udp = hdr.udp;
+        hdr.udp.setInvalid();
+        hdr.ipv6.setInvalid();
+        ip_proto = IP_PROTOCOLS_IPV6;
+    }
+
+    action rewrite_inner_ipv6_tcp() {
+        payload_len = hdr.ipv6.payloadLen + 16w40;
+        hdr.inner_ipv6 = hdr.ipv6;
+        hdr.inner_tcp = hdr.tcp;
+        hdr.tcp.setInvalid();
+        hdr.ipv6.setInvalid();
+        ip_proto = IP_PROTOCOLS_IPV6;
+    }
+
+    action rewrite_inner_ipv6_unknown() {
+        payload_len = hdr.ipv6.payloadLen + 16w40;
+        hdr.inner_ipv6 = hdr.ipv6;
+        hdr.ipv6.setInvalid();
+        ip_proto = IP_PROTOCOLS_IPV6;
+    }
+
     table encap_outer {
         key = {
             hdr.ipv4.isValid() : exact;
             hdr.udp.isValid() : exact;
             hdr.tcp.isValid() : exact;
+            hdr.ipv6.isValid() : exact;
         }
 
         actions = {
             rewrite_inner_ipv4_udp;
             rewrite_inner_ipv4_tcp;
             rewrite_inner_ipv4_unknown;
+            rewrite_inner_ipv6_udp;
+            rewrite_inner_ipv6_tcp;
+            rewrite_inner_ipv6_unknown;
         }
+
         size = 8;
         const entries = {
-            (true, false, false) : rewrite_inner_ipv4_unknown();
-            (true, true, false) : rewrite_inner_ipv4_udp();
-            (true, false, true) : rewrite_inner_ipv4_tcp();
+            (true, false, false,false) : rewrite_inner_ipv4_unknown();
+            (true, true, false,false) : rewrite_inner_ipv4_udp();
+            (true, false, true,false) : rewrite_inner_ipv4_tcp();
+            (false, false, false,true) : rewrite_inner_ipv6_unknown();
+            (false, true, false,true) : rewrite_inner_ipv6_udp();
+            (false, false, true,true) : rewrite_inner_ipv6_tcp();
         }
     }
 
@@ -272,6 +305,7 @@ control InternetOutProcess(
     }
 
     action internet6_out_decap_vxlan() {
+        hdr.ethernet.etherType = ETHERTYPE_IPV6;
         hdr.inner_ethernet.setInvalid();  
         hdr.vxlan.setInvalid();  
         hdr.udp.setInvalid();  

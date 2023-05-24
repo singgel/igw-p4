@@ -31,7 +31,7 @@ control VmLocationMapping(inout headers_t hdr,
             vm_hostroute_not_hit;
         }
         const default_action = vm_hostroute_not_hit();
-        size = VM_HOST_TABLE_SIZE;
+        size = EIP_SIZE;
     }
 
     apply {
