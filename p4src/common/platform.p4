@@ -77,7 +77,7 @@ control ProcessLocal(inout headers_t hdr,
             receive_from_cpu_nos;
         }
 
-        size = 64;
+        size = 128;
         counters = process_protocol_packet_stats;
     }
 

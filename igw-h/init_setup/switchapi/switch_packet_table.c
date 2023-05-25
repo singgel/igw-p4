@@ -25,11 +25,14 @@
 static void receive_from_cpu_lldp_init() {
 	protocolPacketKey key;
 	copy_tocpuData data;
-	
+
+	memset(&key, 0, sizeof(protocolPacketKey));
 	//receive_from_cpu_lldp 
 	key.priority = HIGHEST_PRI;
 	key.ipv4_isvalid = 0;
 	key.ipv4_isvalid_mask = 0x1;
+	key.ipv6_isvalid = 0;
+	key.ipv6_isvalid_mask = 0x1;
 	key.vxlan_isvalid = 0;
 	key.vxlan_isvalid_mask = 0x1;
 	key.ethertype = ETHERTYPE_LLDP;
@@ -47,6 +50,8 @@ static void receive_from_cpu_lldp_init() {
 	key.priority = LOWEST_PRI;
 	key.ipv4_isvalid = 0;
 	key.ipv4_isvalid_mask = 0x1;
+	key.ipv6_isvalid = 0;
+	key.ipv6_isvalid_mask = 0x1;
 	key.vxlan_isvalid = 0;
 	key.vxlan_isvalid_mask = 0x1;
 	key.ethertype = ETHERTYPE_LLDP;
@@ -66,10 +71,13 @@ static void receive_from_cpu_nos_init() {
 	protocolPacketKey key;
 	copy_tocpuData data;
 	
-	//receive_from_cpu_nos, include arp/ip
+	memset(&key, 0, sizeof(protocolPacketKey));
+	//receive_from_cpu_nos, include arp/ipv4/ipv6
 	key.priority = MIDDLE_PRI;
 	key.ipv4_isvalid = 0;
 	key.ipv4_isvalid_mask = 0;
+	key.ipv6_isvalid = 0;
+	key.ipv6_isvalid_mask = 0;
 	key.vxlan_isvalid = 0;
 	key.vxlan_isvalid_mask = 0;
 	key.ethertype = 0;
@@ -88,9 +96,12 @@ static void arp_copy_to_cpu_nos_init() {
 	protocolPacketKey key;
 	copy_tocpuData data;
 	
+	memset(&key, 0, sizeof(protocolPacketKey));
 	key.priority = LOWEST_PRI;
 	key.ipv4_isvalid = 0;
 	key.ipv4_isvalid_mask = 0x1;
+	key.ipv6_isvalid = 0;
+	key.ipv6_isvalid_mask = 0x1;
 	key.vxlan_isvalid = 0;
 	key.vxlan_isvalid_mask = 0x1;
 	key.ethertype = ETHERTYPE_ARP;
@@ -109,10 +120,13 @@ static void arp_copy_to_cpu_nos_init() {
 static void mgt_ip_copy_to_cpu_nos_init() {
 	protocolPacketKey key;
 	copy_tocpuData data;
-	
+
+	memset(&key, 0, sizeof(protocolPacketKey));
 	key.priority = LOWEST_PRI;
 	key.ipv4_isvalid = 1;
 	key.ipv4_isvalid_mask = 0x1;
+	key.ipv6_isvalid = 0;
+	key.ipv6_isvalid_mask = 0x1;
 	key.vxlan_isvalid = 0;
 	key.vxlan_isvalid_mask = 0;
 	key.ethertype = ETHERTYPE_IPV4;
@@ -132,9 +146,12 @@ static void vip_copy_to_cpu_nos_init() {
 	protocolPacketKey key;
 	copy_tocpuData data;
 	
+	memset(&key, 0, sizeof(protocolPacketKey));
 	key.priority = LOWEST_PRI;
 	key.ipv4_isvalid = 1;
 	key.ipv4_isvalid_mask = 0x1;
+	key.ipv6_isvalid = 0;
+	key.ipv6_isvalid_mask = 0x1;
 	key.vxlan_isvalid = 0; //must be invalid
 	key.vxlan_isvalid_mask = 0x1;
 	key.ethertype = ETHERTYPE_IPV4;
@@ -157,10 +174,13 @@ static void backup_vip_copy_to_cpu_nos_init() {
 	if (switch_cfg.backup_vip == 0) {
 		return ;
 	}
-		
+
+	memset(&key, 0, sizeof(protocolPacketKey));
 	key.priority = LOWEST_PRI;
 	key.ipv4_isvalid = 1;
 	key.ipv4_isvalid_mask = 0x1;
+	key.ipv6_isvalid = 0;
+	key.ipv6_isvalid_mask = 0x1;
 	key.vxlan_isvalid = 0; //must be invalid
 	key.vxlan_isvalid_mask = 0x1;
 	key.ethertype = ETHERTYPE_IPV4;
@@ -182,11 +202,14 @@ static void hostif_copy_to_cpu_nos_init() {
 	switch_hostif_t *hostif;
 	int index;
 	
+	memset(&key, 0, sizeof(protocolPacketKey));
 	for (index = 0; index < g_hostif_info_array.hostif_num; index++) {
 		hostif = &g_hostif_info_array.hostifs[index].hostif;
 		key.priority = LOWEST_PRI;
 		key.ipv4_isvalid = 1;
-		key.ipv4_isvalid_mask = 0x1;		
+		key.ipv4_isvalid_mask = 0x1;	
+		key.ipv6_isvalid = 0;
+		key.ipv6_isvalid_mask = 0x1;
 		key.vxlan_isvalid = 0;
 		key.vxlan_isvalid_mask = 0;
 		key.ethertype = ETHERTYPE_IPV4;

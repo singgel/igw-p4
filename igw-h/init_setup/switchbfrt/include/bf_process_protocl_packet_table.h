@@ -22,6 +22,10 @@ typedef struct protocolPacketKey_s {
   uint64_t dip_mask;
   uint64_t ingress_port;
   uint64_t ingress_port_mask;
+  uint64_t ipv6_isvalid;
+  uint64_t ipv6_isvalid_mask;
+  uint8_t dip6[16];
+  uint8_t dip6_mask[16];
 } protocolPacketKey;
 
 typedef struct copy_tocpuData_s {

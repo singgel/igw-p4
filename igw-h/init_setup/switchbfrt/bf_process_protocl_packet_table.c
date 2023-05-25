@@ -29,6 +29,8 @@ static bf_rt_id_t vxlan_is_valid_field_id = 0;
 static bf_rt_id_t ethernet_type_field_id = 0;
 static bf_rt_id_t ipv4_dstaddr_field_id = 0;
 static bf_rt_id_t ingress_port_field_id = 0;
+static bf_rt_id_t ipv6_is_valid_field_id = 0;
+static bf_rt_id_t ipv6_dstaddr_field_id = 0;
 
 // Action Ids
 static bf_rt_id_t receive_from_lldp_action_id = 0;
@@ -80,6 +82,11 @@ void protocol_packet_table_setup()
   	assert(bf_status == BF_SUCCESS);
 	
 	bf_status = bf_rt_key_field_id_get(protoclPacketTable, 
+		"hdr.ipv6.$valid", 
+		&ipv6_is_valid_field_id);
+  	assert(bf_status == BF_SUCCESS);	
+	
+	bf_status = bf_rt_key_field_id_get(protoclPacketTable, 
 		"hdr.vxlan.$valid", 
 		&vxlan_is_valid_field_id);
   	assert(bf_status == BF_SUCCESS);
@@ -92,6 +99,11 @@ void protocol_packet_table_setup()
 	bf_status = bf_rt_key_field_id_get(protoclPacketTable, 
 		"hdr.ipv4.dstAddr", 
 		&ipv4_dstaddr_field_id);
+  	assert(bf_status == BF_SUCCESS);
+	
+	bf_status = bf_rt_key_field_id_get(protoclPacketTable, 
+		"hdr.ipv6.dstAddr", 
+		&ipv6_dstaddr_field_id);
   	assert(bf_status == BF_SUCCESS);
 	
 	bf_status = bf_rt_key_field_id_get(protoclPacketTable, 
@@ -144,6 +156,14 @@ static int protoclPacket_key_setup(const protocolPacketKey *key,
   	if (bf_status != BF_SUCCESS) {
 		return -1;
   	}
+
+	bf_status = bf_rt_key_field_set_value_and_mask(table_key, 
+			ipv6_is_valid_field_id, 
+			key->ipv6_isvalid,
+			key->ipv6_isvalid_mask);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
 	
   	bf_status = bf_rt_key_field_set_value_and_mask(table_key, 
 			vxlan_is_valid_field_id, 
@@ -165,6 +185,15 @@ static int protoclPacket_key_setup(const protocolPacketKey *key,
 			ipv4_dstaddr_field_id, 
 			key->dip,
 			key->dip_mask);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+	
+	bf_status = bf_rt_key_field_set_value_and_mask_ptr(table_key, 
+			ipv6_dstaddr_field_id, 
+			key->dip6,
+			key->dip6_mask,
+			16);
   	if (bf_status != BF_SUCCESS) {
 		return -1;
   	}
