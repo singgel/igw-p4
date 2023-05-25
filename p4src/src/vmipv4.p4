@@ -18,7 +18,8 @@ control VmLocationMapping(inout headers_t hdr,
     }
     
     action vm_hostroute_not_hit(){
-         meta.tunnel.route_idx = 0;
+        hdr.bg_md.need_drop = 1;
+        meta.tunnel.route_idx = 0;
     }
 
     table vm_loc_mapping {
@@ -33,12 +34,33 @@ control VmLocationMapping(inout headers_t hdr,
         const default_action = vm_hostroute_not_hit();
         size = EIP_SIZE;
     }
+    
+    action ipv6_vm_hostroute_nexthop(bit<16> nexthop){
+        hdr.bg_md.tunnel_nexthop = nexthop;
+    }
+
+    table ipv6_vm_loc_mapping {
+        key = {
+            hdr.inner_ipv6.dstAddr  : exact;
+        }
+        
+        actions = {
+            ipv6_vm_hostroute_nexthop;
+            vm_hostroute_not_hit;
+        }
+        const default_action = vm_hostroute_not_hit();
+        size = EIP6_SIZE;
+    }
 
     apply {
-        if (vm_loc_mapping.apply().hit) {
+        if (hdr.inner_ipv4.isValid()) {
+            vm_loc_mapping.apply();
             hdr.inner_ipv4.dstAddr = meta.tunnel.fip_dip;
-        } else { 
-            hdr.bg_md.need_drop = 1;
+        } else if (hdr.inner_ipv6.isValid()) { 
+            ipv6_vm_loc_mapping.apply();
+        }
+
+        if (hdr.bg_md.need_drop == 1) {
             vm_host_drop_stats.count(1);
         }
     }

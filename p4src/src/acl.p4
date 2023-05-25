@@ -40,6 +40,7 @@ control IngressSystemAcl(inout headers_t hdr,
 
     table ingress_system_acl {
         key = {
+            hdr.ipv6.isValid()          : ternary;
             hdr.ipv4.isValid()          : ternary;
             hdr.ipv4.dstAddr            : ternary;
             hdr.ipv4.srcAddr            : ternary;
