@@ -67,6 +67,8 @@ control ProcessLocal(inout headers_t hdr,
             hdr.ethernet.etherType : ternary;
             hdr.ipv4.dstAddr : ternary;
             ig_intr_md.ingress_port : ternary;
+            hdr.ipv6.isValid() : ternary;
+            hdr.ipv6.dstAddr: ternary;
         }
 
         actions = {
