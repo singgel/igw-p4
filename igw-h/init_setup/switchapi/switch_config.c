@@ -21,6 +21,8 @@
 const char *hostif_json_file = "/etc/hostif.json";
 switch_config_t switch_cfg;
 
+static int ipv6_enable = 0;
+	
 static int get_field_of_string(json_t *section, const char *fieldName, const char **value, int required)
 {
 	json_t *field;
@@ -101,7 +103,26 @@ static int switch_config_set_hostif(switch_cfg_hostif_t *hostif, json_t *section
 		printf("[msg: ip_addr required and must be string]\n");
 		return -1;
 	}
-		
+
+	res = get_field_of_string(section, "ip6", &string_val, 0);
+	if (res == 0) {
+		strncpy(hostif->ip6_addr, string_val, CONST_IPV6_ADDR_LEN);
+		//if ip6 is configured, ip6_prefix_len must be config
+		res = get_field_of_int(section, "ip6_prefix_len", (int *)&hostif->ip6_prefix_len, 1);
+		if (res != 0) {
+			printf("[msg: ip6_prefix_len required and must be int]\n");
+			return -1;
+		}
+	} else if (res == 1) {
+		if (ipv6_enable) {
+			printf("[msg: ip6_addr is not configured]\n");
+			return -1;
+		}
+	} else {
+		printf("[msg: ip6_addr must be string]\n");
+		return -1;
+	}
+	
 	res = get_field_of_string(section, "mac", &string_val, 1);
 	if (res != 0) {
 		printf("[msg: mac required and must be string]\n");
@@ -155,20 +176,20 @@ static int switch_config_set_hostifs(switch_config_t *cfg, json_t *json_root)
 	return 0;
 }
 
-static int switch_config_set_hbgw(switch_config_t *cfg, json_t *json_root)
+static int switch_config_set_higw(switch_config_t *cfg, json_t *json_root)
 {
 	json_t *section = NULL;
 	const char *string_val = NULL;
 	int res;
 	
-	section = json_object_get(json_root, "hbgw");
+	section = json_object_get(json_root, "higw");
 	if (section == NULL) {
-		printf("[msg: section hbgw not exist in config file]\n");
+		printf("[msg: section higw not exist in config file]\n");
 		return -1;
 	}
 	
 	if (!json_is_object(section)) {
-		printf("[msg: section hbgw type must be object]\n");
+		printf("[msg: section higw type must be object]\n");
 		return -1;
 	}
 
@@ -190,6 +211,7 @@ static int switch_config_set_hbgw(switch_config_t *cfg, json_t *json_root)
 	}
 	cfg->vip = ip_atoi(cfg->vip_addr);
 
+	#if 0
 	res = get_field_of_string(section, "backup_vip", &string_val, 1);
 	if (res == 0) {
 		strncpy(cfg->backup_vip_addr, string_val, CONST_IPV4_ADDR_LEN);
@@ -198,6 +220,8 @@ static int switch_config_set_hbgw(switch_config_t *cfg, json_t *json_root)
 		//if not exist or not string
 		cfg->backup_vip = 0;
 	}
+	#endif
+	cfg->backup_vip = 0;
 
 	if (cfg->vip == 0 || cfg->mgt_ip == 0) {
 		printf("vip or mgt_ip not exist in config file\n");
@@ -226,7 +250,20 @@ static int switch_config_set_hbgw(switch_config_t *cfg, json_t *json_root)
 		printf("Hardware must be 1 or 2\n");
 		return -1;
 	}
+
+	res = get_field_of_int(section, "ipv6_enable", (int *)&cfg->ipv6_enable, 1);
+	if (res != 0) {
+		printf("[msg: ipv6_enable required and must be int]\n");
+		return -1;
+	}
+
+	if (cfg->ipv6_enable != IPV6_ENBALE && 
+		cfg->ipv6_enable != IPV6_DISABLE) {
+		printf("ipv6_enable must be 1 or 0\n");
+		return -1;
+	}
 	
+	ipv6_enable = cfg->ipv6_enable;
 	return 0;
 }
 
@@ -248,15 +285,15 @@ int switch_config_init(void){
 	}
 
 	memset(&switch_cfg, 0, sizeof(switch_config_t));
+	res = switch_config_set_higw(&switch_cfg, json_root);
+	if (res != 0) {
+		printf("[msg: switch_config_set_higw failed]\n");
+ 		return -1;
+	}
+	
 	res = switch_config_set_hostifs(&switch_cfg, json_root);
 	if (res != 0) {
 		printf("[msg: switch_config_set_hostifs failed]\n");
- 		return -1;
-	}
-
-	res = switch_config_set_hbgw(&switch_cfg, json_root);
-	if (res != 0) {
-		printf("[msg: switch_config_set_hbgw failed]\n");
  		return -1;
 	}
 	

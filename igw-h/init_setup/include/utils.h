@@ -49,6 +49,34 @@ static inline uint32_t ip_atoi(const char *str)
 	return ntohl(ipaddr);
 }
 
+static inline int ip6_atoi(const char *str, struct in6_addr *ip6_addr)
+{
+
+	if (inet_pton(AF_INET6, str, ip6_addr) != 1) {
+		return -1;
+	}
+	return 0;
+}
+
+static inline void ipv6_addr_set(struct in6_addr *addr,
+                                 uint32_t w1, uint32_t w2,
+                                 uint32_t w3, uint32_t w4)
+{
+        addr->s6_addr32[0] = w1;
+        addr->s6_addr32[1] = w2;
+        addr->s6_addr32[2] = w3;
+        addr->s6_addr32[3] = w4;
+}
+
+static inline void ipv6_addr_solict_mult_set(struct in6_addr *addr,
+                                                    struct in6_addr *solicited)
+{
+        ipv6_addr_set(solicited,
+                      htonl(0xFF020000), 0,
+                      htonl(0x1),
+                      htonl(0xFF000000) | addr->s6_addr32[3]);
+}
+
 static inline void reverse_mac(char *rmac, char *mac) {
 	rmac[0] = mac[5];	
 	rmac[1] = mac[4];

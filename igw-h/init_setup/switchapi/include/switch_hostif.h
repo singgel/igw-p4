@@ -54,7 +54,9 @@ typedef struct switch_hostif_s {
   	char intf_name[IFNAMSIZ];		/** netdev interface name */
   	unsigned char mac[ETH_LEN];		/** hostif mac address */
   	switch_ip_prefix_t v4addr;		/** hostif v4 ip address */
-  	switch_ip_address_t v6addr;		/** hostif v6 ip address */
+	struct in6_addr ip6;
+	struct in6_addr ip6_mc;
+	uint8_t ip6_prefix_len;
   	char operstatus;	 			/** oper status */
   	uint8_t admin_state;			/** admin state */
 	uint32_t fake_fp_port;		    /**user view*/		

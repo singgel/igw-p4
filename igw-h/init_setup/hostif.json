@@ -1,13 +1,14 @@
 {
-    "hbgw":
+    "higw":
     {
-        "mgt_ip": "10.226.190.237",
-	"vip": "10.226.190.250",
-	"backup_vip":"10.226.190.99",
+        "mgt_ip": "10.226.190.238",
+	"vip": "10.226.190.102",
 	"port_speed": 40,
 	"port_speed_comment": "40 for 40G, 100 for 100G",
 	"Hardware":1,
-	"Hardware_comment": "1 for WedgeBF-65X, 2 for WedgeBF-32X "
+	"Hardware_comment": "1 for WedgeBF-65X, 2 for WedgeBF-32X ",
+	"ipv6_enable":1,
+	"ipv6_enable_comment": "1 for enable, 0 for disable"
     },
     "BGP":
     {
@@ -18,34 +19,46 @@
     [
         {
             "intf_name": "Ethernet17",
-            "ip": "100.125.50.0",
+            "ip": "100.125.50.8",
             "net_mask_len": 31,
-	    "gw_ip": "100.125.50.1",
-            "mac":"00:0c:0c:0c:84:01",
+	    "gw_ip": "100.125.50.9",
+	    "ip6":"fc00:000a:2554:4000:c802:01c8:0b01:0101",
+	    "ip6_prefix_len":127,
+	    "gw6_ip":"fc00:000a:2554:4000:c802:01c8:0b01:0100",
+            "mac":"00:0c:0c:0c:82:01",
             "fp_port": 17
         },
         {
             "intf_name": "Ethernet18",
-            "ip": "100.125.50.2",
+            "ip": "100.125.50.10",
             "net_mask_len": 31,
-	    "gw_ip": "100.125.50.3",
-            "mac":"00:0c:0c:0c:84:02",
+	    "gw_ip": "100.125.50.11",
+	    "ip6":"fc00:000a:2554:4000:c802:01c8:0b01:0201",
+	    "ip6_prefix_len":127,
+	    "gw6_ip":"fc00:000a:2554:4000:c802:01c8:0b01:0200",
+            "mac":"00:0c:0c:0c:82:02",
             "fp_port": 18
         },
         {
             "intf_name": "Ethernet21",
-            "ip": "100.125.51.0",
+            "ip": "100.125.51.8",
             "net_mask_len": 31,
-	    "gw_ip": "100.125.51.1",
-            "mac":"00:0c:0c:0c:84:03",
+	    "gw_ip": "100.125.51.9",
+	    "ip6":"fc00:000a:2554:4000:c802:02c8:0b01:0101",
+	    "ip6_prefix_len":127,
+	    "gw6_ip":"fc00:000a:2554:4000:c802:02c8:0b01:0100",
+            "mac":"00:0c:0c:0c:82:03",
             "fp_port": 21
         },
         {
             "intf_name": "Ethernet22",
-            "ip": "100.125.51.2",
+            "ip": "100.125.51.10",
             "net_mask_len": 31,
-	    "gw_ip": "100.125.51.3",
-            "mac":"00:0c:0c:0c:84:04",
+	    "gw_ip": "100.125.51.11",
+	    "ip6":"fc00:000a:2554:4000:c802:02c8:0b01:0201",
+	    "ip6_prefix_len":127,
+	    "gw6_ip":"fc00:000a:2554:4000:c802:02c8:0b01:0200",
+            "mac":"00:0c:0c:0c:82:04",
             "fp_port": 22
         }
     ]

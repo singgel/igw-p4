@@ -23,6 +23,12 @@ switch_hosif_info_array g_hostif_info_array;
 
 static struct jd_hlist_head *hostif_hash_table = NULL;
 
+struct in6_ifreq {
+    struct in6_addr ifr6_addr;
+    unsigned int ifr6_prefixlen;
+    unsigned int ifr6_ifindex;
+};
+
 /*
 * After this operation succeeds the user should be able to see 
 * an interface with intf_name in the list of interfaces 
@@ -77,6 +83,34 @@ int switch_pkt_hostif_create(uint16_t device,
     	}
   	}
 
+  	if (flags & SWITCH_PKT_HOSTIF_ATTR_IPV6_ADDRESS) {
+		int sockfd6; 
+		struct in6_ifreq ifreq6;
+		 
+		sockfd6 = socket(AF_INET6, SOCK_DGRAM, 0); 
+		if (sockfd6 < 0) {
+      		goto cleanup;
+		}
+		
+    	memset(&ifr, 0x0, sizeof(ifr));
+    	strncpy(ifr.ifr_name, intf_name, IFNAMSIZ);
+		if (ioctl(sockfd6, SIOCGIFINDEX, &ifr) < 0){
+      		printf("ioctl SIOCGIFINDEX failed\n");
+			close(sockfd6); 
+      		goto cleanup;
+		}
+		
+		memcpy((void *)&ifreq6.ifr6_addr,(void *)&hostif->ip6,sizeof(struct in6_addr));
+		ifreq6.ifr6_prefixlen = hostif->ip6_prefix_len; 
+		ifreq6.ifr6_ifindex = ifr.ifr_ifindex;
+		if(ioctl(sockfd6, SIOCSIFADDR, &ifreq6) < 0) {
+			printf("ioctl SIOCSIFADDR ipv6 addr failed\n");
+			close(sockfd6); 
+			goto cleanup;
+		}
+		close(sockfd6); 
+	}
+	
   	if (flags & SWITCH_PKT_HOSTIF_ATTR_MAC_ADDRESS) {
     	memset(&ifr, 0x0, sizeof(ifr));
     	memcpy(ifr.ifr_hwaddr.sa_data, hostif->mac, ETH_LEN);
@@ -199,6 +233,13 @@ void parser_switch_config_to_hostif(void)
 		hostif->v4addr.addr.addr_family = SWITCH_IP_ADDR_FAMILY_IPV4;
 		hostif->v4addr.addr.ip4 = ip_atoi(cfg_hostif->ip_addr);
 		hostif->gw_ip = ip_atoi(cfg_hostif->gw_ip_addr);
+
+		//ipv6 config
+		if (switch_cfg.ipv6_enable) {
+			assert(ip6_atoi(cfg_hostif->ip6_addr, &hostif->ip6) == 0);
+			hostif->ip6_prefix_len = cfg_hostif->ip6_prefix_len;
+			ipv6_addr_solict_mult_set(&hostif->ip6, &hostif->ip6_mc);
+		}
 	}	
 }
 
@@ -338,6 +379,10 @@ void create_hostif(uint16_t device){
 	for (index = 0; index < g_hostif_info_array.hostif_num; index++) {
 		switch_hostif_info_t *hostif_info = &g_hostif_info_array.hostifs[index];
 		flags = SWITCH_PKT_HOSTIF_ATTR_IPV4_ADDRESS | SWITCH_PKT_HOSTIF_ATTR_MAC_ADDRESS;
+
+		if (switch_cfg.ipv6_enable == IPV6_ENBALE) {
+			flags |= SWITCH_PKT_HOSTIF_ATTR_IPV6_ADDRESS;
+		}
 		ret = switch_api_hostif_create(device, hostif_info, flags);
 		if (ret < 0 ) {
 			SETUP_PANIC("switch_api_hostif_create failed! index =%d\n", index);

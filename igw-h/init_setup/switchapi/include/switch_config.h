@@ -11,8 +11,12 @@
 #include <jansson.h>
 #include <stdint.h>
 
+#define IPV6_ENBALE  1
+#define IPV6_DISABLE 0
+
 #define CONST_MAX_PORT_NAME_LEN 15
 #define CONST_IPV4_ADDR_LEN 16
+#define CONST_IPV6_ADDR_LEN 128
 #define CONST_MAC_ADDR_LEN 32
 
 typedef struct switch_cfg_hostif_s {
@@ -20,6 +24,8 @@ typedef struct switch_cfg_hostif_s {
 	char ip_addr[CONST_IPV4_ADDR_LEN + 1];		
 	char gw_ip_addr[CONST_IPV4_ADDR_LEN + 1];	
 	uint16_t net_mask_len;
+	char ip6_addr[CONST_IPV6_ADDR_LEN + 1];
+	uint8_t ip6_prefix_len;
 	char mac_str[CONST_MAC_ADDR_LEN + 1];	
 	uint8_t mac[6];
 	uint16_t fp_port;
@@ -37,6 +43,7 @@ typedef struct switch_config_s {
 	uint32_t backup_vip;
 	uint16_t  port_speed;	
 	uint16_t  hardware_model;
+	uint16_t   ipv6_enable;
 } switch_config_t;
 
 extern 	switch_config_t switch_cfg;
