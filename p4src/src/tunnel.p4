@@ -193,6 +193,7 @@ control InternetInProcess(
     }
 
     action rewrite6_std_vxlan() {
+        hdr.ethernet.etherType = ETHERTYPE_IPV4;
         hdr.udp.srcPort = hdr.bg_md.l3_ecmp_entry_idx;
         hdr.udp.dstPort = UDP_PORT_VXLAN;
         hdr.udp.checksum = 0;
