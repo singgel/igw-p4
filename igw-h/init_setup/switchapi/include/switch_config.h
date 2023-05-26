@@ -26,6 +26,7 @@ typedef struct switch_cfg_hostif_s {
 	uint16_t net_mask_len;
 	char ip6_addr[CONST_IPV6_ADDR_LEN + 1];
 	uint8_t ip6_prefix_len;
+	uint8_t ipv6_enable;
 	char mac_str[CONST_MAC_ADDR_LEN + 1];	
 	uint8_t mac[6];
 	uint16_t fp_port;
@@ -43,7 +44,6 @@ typedef struct switch_config_s {
 	uint32_t backup_vip;
 	uint16_t  port_speed;	
 	uint16_t  hardware_model;
-	uint16_t   ipv6_enable;
 } switch_config_t;
 
 extern 	switch_config_t switch_cfg;

@@ -20,8 +20,6 @@
 
 const char *hostif_json_file = "/etc/hostif.json";
 switch_config_t switch_cfg;
-
-static int ipv6_enable = 0;
 	
 static int get_field_of_string(json_t *section, const char *fieldName, const char **value, int required)
 {
@@ -113,11 +111,9 @@ static int switch_config_set_hostif(switch_cfg_hostif_t *hostif, json_t *section
 			printf("[msg: ip6_prefix_len required and must be int]\n");
 			return -1;
 		}
+		hostif->ipv6_enable = 1;
 	} else if (res == 1) {
-		if (ipv6_enable) {
-			printf("[msg: ip6_addr is not configured]\n");
-			return -1;
-		}
+		//printf("[msg: ip6_addr is not configured]\n");
 	} else {
 		printf("[msg: ip6_addr must be string]\n");
 		return -1;
@@ -251,19 +247,6 @@ static int switch_config_set_higw(switch_config_t *cfg, json_t *json_root)
 		return -1;
 	}
 
-	res = get_field_of_int(section, "ipv6_enable", (int *)&cfg->ipv6_enable, 1);
-	if (res != 0) {
-		printf("[msg: ipv6_enable required and must be int]\n");
-		return -1;
-	}
-
-	if (cfg->ipv6_enable != IPV6_ENBALE && 
-		cfg->ipv6_enable != IPV6_DISABLE) {
-		printf("ipv6_enable must be 1 or 0\n");
-		return -1;
-	}
-	
-	ipv6_enable = cfg->ipv6_enable;
 	return 0;
 }
 

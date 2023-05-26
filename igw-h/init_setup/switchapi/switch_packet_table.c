@@ -201,6 +201,87 @@ static void hostif_copy_to_cpu_nos_init() {
 	copy_tocpuData data;
 	switch_hostif_t *hostif;
 	int index;
+	uint8_t *ip6_ptr;
+		
+	for (index = 0; index < g_hostif_info_array.hostif_num; index++) {
+		hostif = &g_hostif_info_array.hostifs[index].hostif;
+		
+		memset(&key, 0, sizeof(protocolPacketKey));
+		key.priority = LOWEST_PRI;
+		key.ipv4_isvalid = 1;
+		key.ipv4_isvalid_mask = 0x1;	
+		key.ipv6_isvalid = 0;
+		key.ipv6_isvalid_mask = 0x1;
+		key.vxlan_isvalid = 0;
+		key.vxlan_isvalid_mask = 0;
+		key.ethertype = ETHERTYPE_IPV4;
+		key.ethertype_mask = 0xFFFF;
+		key.dip = hostif->v4addr.addr.ip4;
+		key.dip_mask = 0xFFFFFFFF;
+		key.ingress_port = hostif->dev_port;
+		key.ingress_port_mask = 0x1FF;
+		data.egress_port = g_cpu_pcie_port;
+		if (entry_add_with_copy_to_cpu_nos(&key, &data) != 0) {
+			SETUP_PANIC("entry_add_with_copy_to_cpu_nos fail\n");
+		}
+
+		if (!hostif->ipv6_enable) {
+			continue;
+		}
+		
+		memset(&key, 0, sizeof(protocolPacketKey));
+		key.priority = LOWEST_PRI;
+		key.ipv4_isvalid = 0;
+		key.ipv4_isvalid_mask = 0x1;	
+		key.ipv6_isvalid = 1;
+		key.ipv6_isvalid_mask = 0x1;
+		key.vxlan_isvalid = 0;
+		key.vxlan_isvalid_mask = 0;
+		key.ethertype = ETHERTYPE_IPV6;
+		key.ethertype_mask = 0xFFFF;
+		key.dip = 0;
+		key.dip_mask = 0;
+
+		ip6_ptr = (uint8_t *)&hostif->ip6.s6_addr;
+		memcpy(key.dip6, ip6_ptr, 16);
+		memset(key.dip6_mask, 0xFF, 16);
+		key.ingress_port = hostif->dev_port;
+		key.ingress_port_mask = 0x1FF;
+		data.egress_port = g_cpu_pcie_port;
+		if (entry_add_with_copy_to_cpu_nos(&key, &data) != 0) {
+			SETUP_PANIC("entry_add_with_copy_to_cpu_nos fail\n");
+		}
+
+		memset(&key, 0, sizeof(protocolPacketKey));
+		key.priority = LOWEST_PRI;
+		key.ipv4_isvalid = 0;
+		key.ipv4_isvalid_mask = 0x1;	
+		key.ipv6_isvalid = 1;
+		key.ipv6_isvalid_mask = 0x1;
+		key.vxlan_isvalid = 0;
+		key.vxlan_isvalid_mask = 0;
+		key.ethertype = ETHERTYPE_IPV6;
+		key.ethertype_mask = 0xFFFF;
+		key.dip = 0;
+		key.dip_mask = 0;
+
+		ip6_ptr = (uint8_t *)&hostif->ip6_mc.s6_addr;
+		memcpy(key.dip6, ip6_ptr, 16);
+		memset(key.dip6_mask, 0xFF, 16);
+		key.ingress_port = hostif->dev_port;
+		key.ingress_port_mask = 0x1FF;
+		data.egress_port = g_cpu_pcie_port;
+		if (entry_add_with_copy_to_cpu_nos(&key, &data) != 0) {
+			SETUP_PANIC("entry_add_with_copy_to_cpu_nos fail\n");
+		}
+	}
+}
+
+static void hostif_ipv6_copy_to_cpu_nos_init() {
+	protocolPacketKey key;
+	copy_tocpuData data;
+	switch_hostif_t *hostif;
+	int index;
 	
 	memset(&key, 0, sizeof(protocolPacketKey));
 	for (index = 0; index < g_hostif_info_array.hostif_num; index++) {
@@ -259,5 +340,5 @@ void process_protocol_packet_table_init() {
 	mgt_ip_copy_to_cpu_nos_init();
 	vip_copy_to_cpu_nos_init();
 	backup_vip_copy_to_cpu_nos_init();
-	hostif_copy_to_cpu_nos_init();
+	hostif_copy_to_cpu_nos_init();	
 }

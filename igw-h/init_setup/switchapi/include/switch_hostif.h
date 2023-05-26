@@ -63,6 +63,7 @@ typedef struct switch_hostif_s {
 	uint32_t fp_port;	
 	uint32_t dev_port;
 	uint32_t gw_ip;
+	uint8_t ipv6_enable;
 } switch_hostif_t;
 
 typedef struct switch_hostif_info_s {

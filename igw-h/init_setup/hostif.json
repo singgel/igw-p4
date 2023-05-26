@@ -6,9 +6,7 @@
 	"port_speed": 40,
 	"port_speed_comment": "40 for 40G, 100 for 100G",
 	"Hardware":1,
-	"Hardware_comment": "1 for WedgeBF-65X, 2 for WedgeBF-32X ",
-	"ipv6_enable":1,
-	"ipv6_enable_comment": "1 for enable, 0 for disable"
+	"Hardware_comment": "1 for WedgeBF-65X, 2 for WedgeBF-32X "
     },
     "BGP":
     {

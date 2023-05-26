@@ -83,7 +83,7 @@ int switch_pkt_hostif_create(uint16_t device,
     	}
   	}
 
-  	if (flags & SWITCH_PKT_HOSTIF_ATTR_IPV6_ADDRESS) {
+  	if (hostif->ipv6_enable) {
 		int sockfd6; 
 		struct in6_ifreq ifreq6;
 		 
@@ -233,9 +233,10 @@ void parser_switch_config_to_hostif(void)
 		hostif->v4addr.addr.addr_family = SWITCH_IP_ADDR_FAMILY_IPV4;
 		hostif->v4addr.addr.ip4 = ip_atoi(cfg_hostif->ip_addr);
 		hostif->gw_ip = ip_atoi(cfg_hostif->gw_ip_addr);
+		hostif->ipv6_enable = cfg_hostif->ipv6_enable;
 
 		//ipv6 config
-		if (switch_cfg.ipv6_enable) {
+		if (hostif->ipv6_enable) {
 			assert(ip6_atoi(cfg_hostif->ip6_addr, &hostif->ip6) == 0);
 			hostif->ip6_prefix_len = cfg_hostif->ip6_prefix_len;
 			ipv6_addr_solict_mult_set(&hostif->ip6, &hostif->ip6_mc);
@@ -379,10 +380,6 @@ void create_hostif(uint16_t device){
 	for (index = 0; index < g_hostif_info_array.hostif_num; index++) {
 		switch_hostif_info_t *hostif_info = &g_hostif_info_array.hostifs[index];
 		flags = SWITCH_PKT_HOSTIF_ATTR_IPV4_ADDRESS | SWITCH_PKT_HOSTIF_ATTR_MAC_ADDRESS;
-
-		if (switch_cfg.ipv6_enable == IPV6_ENBALE) {
-			flags |= SWITCH_PKT_HOSTIF_ATTR_IPV6_ADDRESS;
-		}
 		ret = switch_api_hostif_create(device, hostif_info, flags);
 		if (ret < 0 ) {
 			SETUP_PANIC("switch_api_hostif_create failed! index =%d\n", index);
