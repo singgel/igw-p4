@@ -169,6 +169,7 @@ control EnCapVxlan(
         encap_outer.apply();
         // Add outer L3/L4/Tunnel headers.
         add_vxlan.apply();
+        hdr.bg_md.outer_ethernet_type = ETHERTYPE_IPV4;
     }
 }
 
@@ -193,7 +194,6 @@ control InternetInProcess(
     }
 
     action rewrite6_std_vxlan() {
-        hdr.ethernet.etherType = ETHERTYPE_IPV4;
         hdr.udp.srcPort = hdr.bg_md.l3_ecmp_entry_idx;
         hdr.udp.dstPort = UDP_PORT_VXLAN;
         hdr.udp.checksum = 0;
