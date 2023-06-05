@@ -326,7 +326,8 @@ control P02_EgressDeparser(
     Checksum() inner_ipv4_checksum;
     
     apply {
-        hdr.ipv4.hdrChecksum = ipv4_checksum.update(
+        if (hdr.ipv4.isValid()) {
+            hdr.ipv4.hdrChecksum = ipv4_checksum.update(
                                 {hdr.ipv4.version,
                                 hdr.ipv4.ihl,
                                 hdr.ipv4.dscp,
@@ -339,6 +340,7 @@ control P02_EgressDeparser(
                                 hdr.ipv4.protocol,
                                 hdr.ipv4.srcAddr,
                                 hdr.ipv4.dstAddr});
+        }
 
         if (meta.tunnel.inner_ipv4_checksum_en) {
             hdr.inner_ipv4.hdrChecksum = inner_ipv4_checksum.update(
