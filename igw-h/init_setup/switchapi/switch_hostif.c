@@ -240,7 +240,11 @@ void parser_switch_config_to_hostif(void)
 			assert(ip6_atoi(cfg_hostif->ip6_addr, &hostif->ip6) == 0);
 			hostif->ip6_prefix_len = cfg_hostif->ip6_prefix_len;
 			memset(&hostif->ip6_mc, 0,sizeof(struct in6_addr));
-			ipv6_addr_solict_mult_set(&hostif->ip6, &hostif->ip6_mc);
+			ipv6_addr_solict_mult_set(&hostif->ip6, &hostif->ip6_mc);			
+			memset(&hostif->ip6_linklocal, 0,sizeof(struct in6_addr));
+			ip6_get_linklocal(hostif->mac, &hostif->ip6_linklocal);
+			memset(&hostif->ip6_linklocal_mc, 0,sizeof(struct in6_addr));
+			ipv6_addr_solict_mult_set(&hostif->ip6_linklocal, &hostif->ip6_linklocal_mc);
 		}
 	}	
 }

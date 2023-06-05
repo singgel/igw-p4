@@ -77,6 +77,20 @@ static inline void ipv6_addr_solict_mult_set(struct in6_addr *addr,
                       htonl(0xFF000000) | addr->s6_addr32[3]);
 }
 
+static inline void ip6_get_linklocal(uint8_t *mult_eth, struct in6_addr *ll_addr)
+{
+	ll_addr->s6_addr32[0] = htonl(0xFE800000);
+	ll_addr->s6_addr32[1] = htonl(0x0);
+	ll_addr->s6_addr[8] = mult_eth[0] ^ 0x02;
+	ll_addr->s6_addr[9] = mult_eth[1];
+	ll_addr->s6_addr[10] = mult_eth[2];
+	ll_addr->s6_addr[11] = 0xFF;
+	ll_addr->s6_addr[12] = 0xFE;
+	ll_addr->s6_addr[13] = mult_eth[3];
+	ll_addr->s6_addr[14] = mult_eth[4];
+	ll_addr->s6_addr[15] = mult_eth[5];
+}
+
 static inline void reverse_mac(char *rmac, char *mac) {
 	rmac[0] = mac[5];	
 	rmac[1] = mac[4];
