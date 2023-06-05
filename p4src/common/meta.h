@@ -35,7 +35,7 @@ struct dscp_metadata_t {
 }
 
 struct ratelimit_metadata_t {
-    bit<18> bandwidth_id;
+    bit<32> bandwidth_id;
     bit<1> within_cluster;
     bit<1> between_cluster;
 }

@@ -22,7 +22,7 @@ control EipInRedirect(
         hdr.bg_md.shared_bandwidth_id = 0;
     }
 
-    action set_bw_id(bit<18> bandwidth_id, bit<12> shared_bandwidth_id,
+    action set_bw_id(bit<32> bandwidth_id, bit<12> shared_bandwidth_id,
             bit<1> within_cluster, bit<1> between_cluster) {
         meta.ratelimit.bandwidth_id = bandwidth_id;
         hdr.bg_md.shared_bandwidth_id = (bit<16>) shared_bandwidth_id;
@@ -101,7 +101,7 @@ control EipInRedirect(
         eip_in_redirect.apply();
         switch (modify_jd_vxlan.apply().action_run){
             rewrite_eip_in_jd_vxlan:{
-                hash_index =  (bit<32>)meta.ratelimit.bandwidth_id;
+                hash_index =  meta.ratelimit.bandwidth_id;
                 if (hdr.bg_md.shared_bandwidth_id != 0) {
                     hash_index =  (bit<32>)hdr.bg_md.shared_bandwidth_id;
                 }
@@ -126,10 +126,10 @@ control EipOutRedirect(inout headers_t hdr,
     action nop() {
         hdr.bg_md.shared_bandwidth_id = 0;
     }
-    action set_bw_id(bit<18> bandwidth_id, bit<12> shared_bandwidth_id,
+    action set_bw_id(bit<32> bandwidth_id, bit<12> shared_bandwidth_id,
             bit<1> within_cluster, bit<1> between_cluster) {
         //meta.ratelimit.bandwidth_id = bandwidth_id;
-        hdr.bg_md.eip_or_bwid = (bit<32>)bandwidth_id;
+        hdr.bg_md.eip_or_bwid = bandwidth_id;
         hdr.bg_md.shared_bandwidth_id = (bit<16>) shared_bandwidth_id;
         meta.ratelimit.within_cluster = within_cluster;
         meta.ratelimit.between_cluster = between_cluster;
