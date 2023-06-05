@@ -68,7 +68,6 @@ parser P02_IngressParser(
         transition select(hdr.ipv6.nextHdr) {
             (IP_PROTOCOLS_TCP) : parse_tcp;
             (IP_PROTOCOLS_UDP) : parse_udp6;
-            (IP_PROTOCOLS_ICMP) : parse_icmp;
             default : accept;
         }
     }
