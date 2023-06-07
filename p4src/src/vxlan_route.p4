@@ -87,7 +87,7 @@ control IgwIpType(inout headers_t hdr,
             need_drop;
         }
         size = 32;
-        const default_action = ip_from_internet_in_hit();
+        const default_action = need_drop();
     }
 
     apply {
