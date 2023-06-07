@@ -196,6 +196,8 @@ static void backup_vip_copy_to_cpu_nos_init() {
 	}
 }
 
+static uint32_t all_ipv6_node[4] = {0xFF020000, 0, 0, 0x1};
+
 static void hostif_copy_to_cpu_nos_init() {
 	protocolPacketKey key;
 	copy_tocpuData data;
@@ -264,6 +266,28 @@ static void hostif_copy_to_cpu_nos_init() {
 		key.dip = 0;
 		key.dip_mask = 0;
 		ip6_ptr = (uint8_t *)&hostif->ip6_mc.s6_addr;
+		memcpy(key.dip6, ip6_ptr, 16);
+		memset(key.dip6_mask, 0xFF, 16);
+		key.ingress_port = hostif->dev_port;
+		key.ingress_port_mask = 0x1FF;
+		data.egress_port = g_cpu_pcie_port;
+		if (entry_add_with_copy_to_cpu_nos(&key, &data) != 0) {
+			SETUP_PANIC("entry_add_with_copy_to_cpu_nos fail\n");
+		}
+
+		memset(&key, 0, sizeof(protocolPacketKey));
+		key.priority = LOWEST_PRI;
+		key.ipv4_isvalid = 0;
+		key.ipv4_isvalid_mask = 0x1;	
+		key.ipv6_isvalid = 1;
+		key.ipv6_isvalid_mask = 0x1;
+		key.vxlan_isvalid = 0;
+		key.vxlan_isvalid_mask = 0;
+		key.ethertype = ETHERTYPE_IPV6;
+		key.ethertype_mask = 0xFFFF;
+		key.dip = 0;
+		key.dip_mask = 0;
+		ip6_ptr = (uint8_t *)all_ipv6_node;
 		memcpy(key.dip6, ip6_ptr, 16);
 		memset(key.dip6_mask, 0xFF, 16);
 		key.ingress_port = hostif->dev_port;
