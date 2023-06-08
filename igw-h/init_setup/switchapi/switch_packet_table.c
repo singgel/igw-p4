@@ -297,6 +297,7 @@ static void hostif_copy_to_cpu_nos_init() {
 		if (entry_add_with_copy_to_cpu_nos(&key, &data) != 0) {
 			SETUP_PANIC("entry_add_with_copy_to_cpu_nos fail\n");
 		}
+		#endif
 
 		memset(&key, 0, sizeof(protocolPacketKey));
 		key.priority = LOWEST_PRI;
@@ -341,7 +342,6 @@ static void hostif_copy_to_cpu_nos_init() {
 		if (entry_add_with_copy_to_cpu_nos(&key, &data) != 0) {
 			SETUP_PANIC("entry_add_with_copy_to_cpu_nos fail\n");
 		}
-		#endif
 	}
 }
 

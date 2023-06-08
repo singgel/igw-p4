@@ -77,6 +77,8 @@ control IgwIpType(inout headers_t hdr,
             hdr.inner_ipv6.isValid()    : ternary;
             meta.tunnel.vxlan_type      : ternary;
             hdr.vxlan.tof               : ternary;
+            hdr.ipv6.isValid()          : ternary;
+            hdr.ipv6.dstAddr            : ternary;
         }
 
         actions = {
@@ -86,7 +88,7 @@ control IgwIpType(inout headers_t hdr,
             ip_from_internet_out_dl_hit;
             need_drop;
         }
-        size = 32;
+        size = 64;
         const default_action = need_drop();
     }
 
