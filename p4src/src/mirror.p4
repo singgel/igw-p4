@@ -34,9 +34,8 @@ control ProcessMirror(
     }
     
     action clone_to_cpu() {
-        hdr.ethernet.dstAddr[47:40] = 0xc5;
-        hdr.ethernet.dstAddr[39:32] = meta.mirror.res;
-        hdr.ethernet.dstAddr[15:7] = meta.mirror.port;
+        hdr.ethernet.dstAddr[47:40] = meta.mirror.res;
+        hdr.ethernet.dstAddr[32:24] = meta.mirror.port;
         hdr.ethernet.srcAddr[47:00] = meta.mirror.timestamp;
         add_cpu_header();
         mirror_stats.count();
