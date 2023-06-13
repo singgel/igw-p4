@@ -43,7 +43,21 @@ control EipInRedirect(
         size = EIP_SIZE;
         const default_action = nop();
     }
-    
+
+    table eip6_in_redirect {
+        key = {
+            hdr.inner_ipv6.dstAddr  : exact;
+        }
+
+        actions = {
+            set_bw_id;
+            nop;
+        }
+
+        size = EIP6_SIZE;
+        const default_action = nop();
+    }
+
     action nop2() {}
 
     action rewrite_az_in_jd_vxlan(bit<32> shared_bw_vip) {
@@ -98,7 +112,12 @@ control EipInRedirect(
     }
 
     apply {
-        eip_in_redirect.apply();
+        if (hdr.inner_ipv4.isValid()) {
+            eip_in_redirect.apply();
+        } else if(hdr.inner_ipv6.isValid()) {
+            eip6_in_redirect.apply();
+        }
+
         switch (modify_jd_vxlan.apply().action_run){
             rewrite_eip_in_jd_vxlan:{
                 hash_index =  meta.ratelimit.bandwidth_id;
@@ -149,6 +168,20 @@ control EipOutRedirect(inout headers_t hdr,
         const default_action = nop();
     }
     
+    table eip6_out_redirect {
+        key = {
+            hdr.inner_ipv6.srcAddr  : exact;
+        }
+
+        actions = {
+            set_bw_id;
+            nop;
+        }
+
+        size = EIP6_SIZE;
+        const default_action = nop();
+    }
+
     action nop2() {}
 
     action rewrite_az_out_jd_vxlan(bit<32> shared_bw_vip) {
@@ -201,7 +234,12 @@ control EipOutRedirect(inout headers_t hdr,
     }
 
     apply {
-        eip_out_redirect.apply();
+        if (hdr.inner_ipv4.isValid()) {
+            eip_out_redirect.apply();
+        } else if(hdr.inner_ipv6.isValid()) {
+            eip6_out_redirect.apply();
+        }
+
         switch (modify_jd_vxlan.apply().action_run){
             rewrite_eip_out_jd_vxlan:{
                 hash_index =  hdr.bg_md.eip_or_bwid;
