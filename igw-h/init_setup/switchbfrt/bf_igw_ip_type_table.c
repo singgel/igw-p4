@@ -147,3 +147,223 @@ void igw_ip_type_table_teardown() {
   	assert(bf_status == BF_SUCCESS);
 }
 
+static int igwIpType_key_setup(const igwIpTypeKey *key,
+                       bf_rt_table_key_hdl *table_key) {
+	bf_status_t bf_status;
+	
+	bf_status = bf_rt_key_field_set_value(table_key, 
+			priority_field_id, 
+			key->priority);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+
+	bf_status = bf_rt_key_field_set_value_and_mask(table_key, 
+			ipv4_is_valid_field_id, 
+			key->ipv4_isvalid,
+			key->ipv4_isvalid_mask);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+
+	bf_status = bf_rt_key_field_set_value_and_mask(table_key, 
+			ipv4_dstaddr_field_id, 
+			key->ipv4_dstaddr,
+			key->ipv4_dstaddr_mask);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+
+	bf_status = bf_rt_key_field_set_value_and_mask(table_key, 
+			vxlan_is_valid_field_id, 
+			key->vxlan_isvalid,
+			key->vxlan_isvalid_mask);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+	
+	bf_status = bf_rt_key_field_set_value_and_mask(table_key, 
+			inner_ipv4_is_valid_field_id, 
+			key->inner_ipv4_isvalid,
+			key->inner_ipv4_isvalid_mask);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+
+	bf_status = bf_rt_key_field_set_value_and_mask(table_key, 
+			inner_ipv6_is_valid_field_id, 
+			key->inner_ipv6_isvalid,
+			key->inner_ipv6_isvalid_mask);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+
+	bf_status = bf_rt_key_field_set_value_and_mask(table_key, 
+			vxlan_type_field_id, 
+			key->vxlan_type,
+			key->vxlan_type_mask);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+	
+	bf_status = bf_rt_key_field_set_value_and_mask(table_key, 
+			vxlan_tof_field_id, 
+			key->vxlan_tof,
+			key->vxlan_tof_mask);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+
+	bf_status = bf_rt_key_field_set_value_and_mask(table_key, 
+			ipv6_is_valid_field_id, 
+			key->ipv6_isvalid,
+			key->ipv6_isvalid_mask);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+
+	bf_status = bf_rt_key_field_set_value_and_mask_ptr(table_key, 
+			ipv6_dstaddr_field_id, 
+			key->ipv6_dstaddr,
+			key->ipv6_dstaddr_mask,
+			16);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+}
+
+int entry_add_with_ip_from_internet_in_hit(const igwIpTypeKey *key) {
+	bf_status_t status;
+	jd_bf_rt_t *jd_bf_p = &jd_bfrt;
+
+  	bf_rt_table_key_reset(igwIpTypeTable, &bfKey);
+  	bf_rt_table_action_data_reset(igwIpTypeTable, ip_from_internet_in_hit_action_id, &bfData);
+
+  	// Fill in the Key and Data object
+  	if (igwIpType_key_setup(key, bfKey) < 0)
+		return -1;
+
+    status = bf_rt_table_entry_add(igwIpTypeTable, 
+				jd_bf_p->session, 
+    			&jd_bf_p->dev_tgt, 
+	#ifdef BFRT_GENERIC_FLAGS
+							   0,
+	#endif
+				bfKey, 
+    			bfData);
+	
+  	if (status == BF_SUCCESS) {
+  		bf_rt_session_complete_operations(jd_bf_p->session);
+		return 0;
+  	}
+	return -1;
+}
+
+int entry_add_with_ip_from_internet_in_dl_hit(const igwIpTypeKey *key) {
+	bf_status_t status;
+	jd_bf_rt_t *jd_bf_p = &jd_bfrt;
+
+  	bf_rt_table_key_reset(igwIpTypeTable, &bfKey);
+  	bf_rt_table_action_data_reset(igwIpTypeTable, ip_from_internet_in_dl_hit_action_id, &bfData);
+
+  	// Fill in the Key and Data object
+  	if (igwIpType_key_setup(key, bfKey) < 0)
+		return -1;
+
+    status = bf_rt_table_entry_add(igwIpTypeTable, 
+				jd_bf_p->session, 
+    			&jd_bf_p->dev_tgt, 
+	#ifdef BFRT_GENERIC_FLAGS
+							   0,
+	#endif
+				bfKey, 
+    			bfData);
+	
+  	if (status == BF_SUCCESS) {
+  		bf_rt_session_complete_operations(jd_bf_p->session);
+		return 0;
+  	}
+	return -1;
+}
+
+int entry_add_with_ip_from_internet_out_hit(const igwIpTypeKey *key) {
+	bf_status_t status;
+	jd_bf_rt_t *jd_bf_p = &jd_bfrt;
+
+  	bf_rt_table_key_reset(igwIpTypeTable, &bfKey);
+  	bf_rt_table_action_data_reset(igwIpTypeTable, ip_from_internet_out_hit_action_id, &bfData);
+
+  	// Fill in the Key and Data object
+  	if (igwIpType_key_setup(key, bfKey) < 0)
+		return -1;
+
+    status = bf_rt_table_entry_add(igwIpTypeTable, 
+				jd_bf_p->session, 
+    			&jd_bf_p->dev_tgt, 
+	#ifdef BFRT_GENERIC_FLAGS
+							   0,
+	#endif
+				bfKey, 
+    			bfData);
+	
+  	if (status == BF_SUCCESS) {
+  		bf_rt_session_complete_operations(jd_bf_p->session);
+		return 0;
+  	}
+	return -1;
+}
+
+int entry_add_with_ip_from_internet_out_dl_hit(const igwIpTypeKey *key) {
+	bf_status_t status;
+	jd_bf_rt_t *jd_bf_p = &jd_bfrt;
+
+  	bf_rt_table_key_reset(igwIpTypeTable, &bfKey);
+  	bf_rt_table_action_data_reset(igwIpTypeTable, ip_from_internet_out_dl_hit_action_id, &bfData);
+
+  	// Fill in the Key and Data object
+  	if (igwIpType_key_setup(key, bfKey) < 0)
+		return -1;
+
+    status = bf_rt_table_entry_add(igwIpTypeTable, 
+				jd_bf_p->session, 
+    			&jd_bf_p->dev_tgt, 
+	#ifdef BFRT_GENERIC_FLAGS
+							   0,
+	#endif
+				bfKey, 
+    			bfData);
+	
+  	if (status == BF_SUCCESS) {
+  		bf_rt_session_complete_operations(jd_bf_p->session);
+		return 0;
+  	}
+	return -1;
+}
+
+int entry_add_with_need_drop(const igwIpTypeKey *key) {
+	bf_status_t status;
+	jd_bf_rt_t *jd_bf_p = &jd_bfrt;
+
+  	bf_rt_table_key_reset(igwIpTypeTable, &bfKey);
+  	bf_rt_table_action_data_reset(igwIpTypeTable, need_drop_action_id, &bfData);
+
+  	// Fill in the Key and Data object
+  	if (igwIpType_key_setup(key, bfKey) < 0)
+		return -1;
+
+    status = bf_rt_table_entry_add(igwIpTypeTable, 
+				jd_bf_p->session, 
+    			&jd_bf_p->dev_tgt, 
+	#ifdef BFRT_GENERIC_FLAGS
+							   0,
+	#endif
+				bfKey, 
+    			bfData);
+	
+  	if (status == BF_SUCCESS) {
+  		bf_rt_session_complete_operations(jd_bf_p->session);
+		return 0;
+  	}
+	return -1;
+}
+

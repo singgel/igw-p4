@@ -25,5 +25,18 @@
 
 
 void igw_ip_type_table_init() {
+	igwIpTypeKey key;
+	struct in_addr addr;
+
 	igw_ip_type_table_setup();
+
+	key.priority = 0;
+	key.ipv4_isvalid = 1;
+	key.ipv4_isvalid_mask = 0x1;
+	inet_aton("0.0.0.0",&addr);	
+	key.ipv4_dstaddr = addr.s_addr;
+	key.ipv4_dstaddr_mask = 0;
+	key.vxlan_type = VXLAN_TYPE_STD;
+	key.vxlan_type_mask = 0x3;
+	assert(entry_add_with_ip_from_internet_in_hit(&key) == 0);
 }
