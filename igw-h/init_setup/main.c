@@ -19,6 +19,7 @@
 #include "utils.h"
 #include "switch_device.h"
 #include "switch_packet_table.h"
+#include "switch_igw_ip_type_table.h"
 
 const char *g_init_setup_filename = "/var/run/init_setup.file";
 
@@ -588,6 +589,7 @@ int main(int argc, char **argv) {
 	switch_device_create();
 	bf_rt_setup(P4_NAME);
 	process_protocol_packet_table_init();
+	igw_ip_type_table_init();
 	switchlink_init();
 	switch_monitor_init();
 
