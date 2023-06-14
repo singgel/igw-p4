@@ -30,6 +30,7 @@ void igw_ip_type_table_init() {
 
 	igw_ip_type_table_setup();
 
+	memset(&key, 0, sizeof(igwIpTypeKey));
 	key.priority = 0;
 	key.ipv4_isvalid = 1;
 	key.ipv4_isvalid_mask = 0x1;
