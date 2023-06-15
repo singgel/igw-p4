@@ -79,7 +79,7 @@ static int switch_mirror_hostif_create() {
 	int ret;
 	uint8_t fake_mac[6] = {0x00,0x0c,0x29,0x71,0x17,0x8e};
 
-	strncpy(mirror_hostif.hostif.intf_name, "hbgw-dump", IFNAMSIZ);
+	strncpy(mirror_hostif.hostif.intf_name, "higw-dump", IFNAMSIZ);
 	memcpy(mirror_hostif.hostif.mac, fake_mac, 6);
 	mirror_hostif.hostif.admin_state = 1;
 		
