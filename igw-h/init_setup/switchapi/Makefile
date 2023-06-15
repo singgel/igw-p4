@@ -1,7 +1,7 @@
 VPATH += $(RTE_SRCDIR)/switchapi
 
 SRCS-y += switch_port.c switch_packet.c switch_device.c switch_hostif.c switch_config.c switch_packet_table.c switch_monitor.c 
-SRCS-y += switch_igw_ip_type_table.c
+SRCS-y += switch_igw_ip_type_table.c switch_eip_in_jd_vxlan_table.c
 
 CFLAGS += -I$(RTE_SRCDIR)/switchapi/include/ -I$(SDE_INSTALL)/include 
 LDFLAGS += -L$(SDE_INSTALL)/lib -lbfsys -lbfutils -ldriver -lavago

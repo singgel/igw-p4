@@ -46,7 +46,7 @@ static void internet_out_entry_init() {
 	key.vxlan_type = VXLAN_TYPE_STD;
 	key.vxlan_type_mask = 0x3;
 	key.vxlan_tof = 0;
-	key.vxlan_tof_mask = 0x3;
+	key.vxlan_tof_mask = 0xF;
 	key.ipv6_isvalid = 0;
 	key.ipv6_isvalid_mask = 0x1;
 	assert(entry_add_with_ip_from_internet_out_hit(&key) == 0);
@@ -67,7 +67,7 @@ static void internet_out_entry_init() {
 	key.vxlan_type = VXLAN_TYPE_STD;
 	key.vxlan_type_mask = 0x3;
 	key.vxlan_tof = 0;
-	key.vxlan_tof_mask = 0x3;
+	key.vxlan_tof_mask = 0xF;
 	key.ipv6_isvalid = 0;
 	key.ipv6_isvalid_mask = 0x1;
 	assert(entry_add_with_ip_from_internet_out_hit(&key) == 0);
@@ -92,7 +92,7 @@ static void internet_out_between_cluster_dl_entry_init() {
 	key.vxlan_type = VXLAN_TYPE_JD;
 	key.vxlan_type_mask = 0x3;
 	key.vxlan_tof = TOF_AZ_OUT;
-	key.vxlan_tof_mask = 0x3;
+	key.vxlan_tof_mask = 0xF;
 	key.ipv6_isvalid = 0;
 	key.ipv6_isvalid_mask = 0x1;
 	assert(entry_add_with_ip_from_internet_out_dl_hit(&key) == 0);
@@ -113,7 +113,7 @@ static void internet_out_between_cluster_dl_entry_init() {
 	key.vxlan_type = VXLAN_TYPE_JD;
 	key.vxlan_type_mask = 0x3;
 	key.vxlan_tof = TOF_AZ_OUT;
-	key.vxlan_tof_mask = 0x3;
+	key.vxlan_tof_mask = 0xF;
 	key.ipv6_isvalid = 0;
 	key.ipv6_isvalid_mask = 0x1;
 	assert(entry_add_with_ip_from_internet_out_dl_hit(&key) == 0);
@@ -138,7 +138,7 @@ static void internet_out_within_cluster_dl_entry_init() {
 	key.vxlan_type = VXLAN_TYPE_JD;
 	key.vxlan_type_mask = 0x3;
 	key.vxlan_tof = TOF_EIP_OUT;
-	key.vxlan_tof_mask = 0x3;
+	key.vxlan_tof_mask = 0xF;
 	key.ipv6_isvalid = 0;
 	key.ipv6_isvalid_mask = 0x1;
 	assert(entry_add_with_ip_from_internet_out_dl_hit(&key) == 0);
@@ -201,7 +201,7 @@ static void internet_in_between_cluster_dl_entry_init() {
 	key.vxlan_type = VXLAN_TYPE_JD;
 	key.vxlan_type_mask = 0x3;
 	key.vxlan_tof = TOF_AZ_IN;
-	key.vxlan_tof_mask = 0x3;
+	key.vxlan_tof_mask = 0xF;
 	key.ipv6_isvalid = 0;
 	key.ipv6_isvalid_mask = 0x1;
 	assert(entry_add_with_ip_from_internet_in_dl_hit(&key) == 0);
@@ -222,7 +222,7 @@ static void internet_in_between_cluster_dl_entry_init() {
 	key.vxlan_type = VXLAN_TYPE_JD;
 	key.vxlan_type_mask = 0x3;
 	key.vxlan_tof = TOF_AZ_IN;
-	key.vxlan_tof_mask = 0x3;
+	key.vxlan_tof_mask = 0xF;
 	key.ipv6_isvalid = 0;
 	key.ipv6_isvalid_mask = 0x1;
 	assert(entry_add_with_ip_from_internet_in_dl_hit(&key) == 0);
@@ -247,7 +247,7 @@ static void internet_in_within_cluster_dl_entry_init() {
 	key.vxlan_type = VXLAN_TYPE_JD;
 	key.vxlan_type_mask = 0x3;
 	key.vxlan_tof = TOF_EIP_IN;
-	key.vxlan_tof_mask = 0x3;
+	key.vxlan_tof_mask = 0xF;
 	key.ipv6_isvalid = 0;
 	key.ipv6_isvalid_mask = 0x1;
 	assert(entry_add_with_ip_from_internet_in_dl_hit(&key) == 0);	
