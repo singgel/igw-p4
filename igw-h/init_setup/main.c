@@ -21,6 +21,7 @@
 #include "switch_packet_table.h"
 #include "switch_igw_ip_type_table.h"
 #include "switch_eip_in_jd_vxlan_table.h"
+#include "switch_eip_out_jd_vxlan_table.h"
 
 const char *g_init_setup_filename = "/var/run/init_setup.file";
 
@@ -592,6 +593,7 @@ int main(int argc, char **argv) {
 	process_protocol_packet_table_init();
 	igw_ip_type_table_init();
 	eip_in_jd_vxlan_table_init();
+	eip_out_jd_vxlan_table_init();
 	switchlink_init();
 	switch_monitor_init();
 
