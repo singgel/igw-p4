@@ -23,8 +23,9 @@
 #include "bf_igw_ip_type_table.h"
 #include "switch_config.h"
 
-static uint32_t ipv6_multicast[4] = {0xFF000000, 0, 0, 0};
-static uint32_t ipv6_multicast_mask[4] = {0xFF000000, 0, 0, 0};
+//FF::0
+static uint32_t ipv6_multicast[4] = {0x000000FF, 0, 0, 0};
+static uint32_t ipv6_multicast_mask[4] = {0x000000FF, 0, 0, 0};
 
 static void internet_out_entry_init() {
 	igwIpTypeKey key;
