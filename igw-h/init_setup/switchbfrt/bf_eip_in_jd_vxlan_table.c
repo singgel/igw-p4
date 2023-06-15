@@ -49,12 +49,12 @@ void eip_in_jd_vxlan_table_setup() {
   	// Get action Ids
 	/*****************************************************/
 	bf_status = bf_rt_action_name_to_id(eipInJdVxlanTable, 
-		"P13_Egress.eip_in_redirect.modify_jd_vxlan.rewrite_az_in_jd_vxlan", 
+		"P13_Egress.eip_in_redirect.rewrite_az_in_jd_vxlan", 
 		&rewrite_az_in_jd_vxlan_action_id);
   	assert(bf_status == BF_SUCCESS);
 	
 	bf_status = bf_rt_action_name_to_id(eipInJdVxlanTable, 
-		"P13_Egress.eip_in_redirect.modify_jd_vxlan.rewrite_eip_in_jd_vxlan", 
+		"P13_Egress.eip_in_redirect.rewrite_eip_in_jd_vxlan", 
 		&rewrite_eip_in_jd_vxlan_action_id);
   	assert(bf_status == BF_SUCCESS);	
 
@@ -115,4 +115,140 @@ void eip_in_jd_vxlan_table_setup() {
   	assert(bf_status == BF_SUCCESS);
 }
 
+static int eipInJdVxlan_key_setup(const eipInJdVxlanKey *key,
+                       bf_rt_table_key_hdl *table_key) {
+  	bf_status_t bf_status;
+	bf_status = bf_rt_key_field_set_value(table_key, 
+			priority_field_id, 
+			key->priority);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+
+	bf_status = bf_rt_key_field_set_value_and_mask(table_key, 
+			vxlan_is_valid_field_id, 
+			key->vxlan_isvalid,
+			key->vxlan_isvalid_mask);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+	
+	bf_status = bf_rt_key_field_set_value_and_mask(table_key, 
+			vxlan_tof_field_id, 
+			key->vxlan_tof,
+			key->vxlan_tof_mask);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+	
+	bf_status = bf_rt_key_field_set_value_and_mask(table_key, 
+			between_cluster_field_id, 
+			key->between_cluster,
+			key->between_cluster_mask);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+	
+	bf_status = bf_rt_key_field_set_value_and_mask(table_key, 
+			within_cluster_field_id, 
+			key->within_cluster,
+			key->within_cluster_mask);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+}
+
+static int data_setup_for_rewrite_az_in(uint32_t shared_bw_vip,
+                                  bf_rt_table_data_hdl *table_data) {
+	bf_status_t bf_status;
+
+  	bf_status = bf_rt_data_field_set_value(
+      	table_data, 
+      	action_shared_bw_vip_field_id, 
+      	shared_bw_vip);
+  	if(bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+  	return 0;
+}
+
+static int data_setup_for_rewrite_eip_in(uint32_t srcip,
+                                  bf_rt_table_data_hdl *table_data) {
+	bf_status_t bf_status;
+
+  	bf_status = bf_rt_data_field_set_value(
+      	table_data, 
+      	action_srcip_field_id, 
+      	srcip);
+  	if(bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+  	return 0;
+}
+
+int entry_add_with_rewrite_az_in_jd_vxlan(const eipInJdVxlanKey *key,
+                                         uint32_t shared_bw_vip) {
+	bf_status_t status;
+	jd_bf_rt_t *jd_bf_p = &jd_bfrt;
+
+  	bf_rt_table_key_reset(eipInJdVxlanTable, &bfKey);
+  	bf_rt_table_action_data_reset(eipInJdVxlanTable, rewrite_az_in_jd_vxlan_action_id, &bfData);
+
+  	// Fill in the Key and Data object
+  	if (eipInJdVxlan_key_setup(key, bfKey) < 0)
+		return -1;
+  	if(data_setup_for_rewrite_az_in(shared_bw_vip, bfData) < 0)
+		return -1;
+
+  	if (1) {
+    	status = bf_rt_table_entry_add(eipInJdVxlanTable, 
+					jd_bf_p->session, 
+    				&jd_bf_p->dev_tgt,
+    			#ifdef BFRT_GENERIC_FLAGS
+							       0,
+				#endif
+    				bfKey, 
+    				bfData);
+  	} 
+	
+  	if (status == BF_SUCCESS) {
+  		bf_rt_session_complete_operations(jd_bf_p->session);
+		return 0;
+  	}
+	
+	return -1;
+}
+
+int entry_add_with_rewrite_eip_in_jd_vxlan(const eipInJdVxlanKey *key,
+                                         uint32_t srcip) {
+	bf_status_t status;
+	jd_bf_rt_t *jd_bf_p = &jd_bfrt;
+
+  	bf_rt_table_key_reset(eipInJdVxlanTable, &bfKey);
+  	bf_rt_table_action_data_reset(eipInJdVxlanTable, rewrite_eip_in_jd_vxlan_action_id, &bfData);
+
+  	// Fill in the Key and Data object
+  	if (eipInJdVxlan_key_setup(key, bfKey) < 0)
+		return -1;
+  	if(data_setup_for_rewrite_eip_in(srcip, bfData) < 0)
+		return -1;
+
+  	if (1) {
+    	status = bf_rt_table_entry_add(eipInJdVxlanTable, 
+					jd_bf_p->session, 
+    				&jd_bf_p->dev_tgt,
+    			#ifdef BFRT_GENERIC_FLAGS
+							       0,
+				#endif
+    				bfKey, 
+    				bfData);
+  	} 
+	
+  	if (status == BF_SUCCESS) {
+  		bf_rt_session_complete_operations(jd_bf_p->session);
+		return 0;
+  	}
+	
+	return -1;
+}
 
