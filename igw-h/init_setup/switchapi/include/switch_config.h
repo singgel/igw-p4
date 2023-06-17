@@ -39,6 +39,7 @@ typedef struct switch_config_s {
 	char mgt_ip_addr[CONST_IPV4_ADDR_LEN + 1];
 	char vip_addr[CONST_IPV4_ADDR_LEN + 1];	
 	char backup_vip_addr[CONST_IPV4_ADDR_LEN + 1];	
+	char shared_bw_vip_addr[CONST_IPV4_ADDR_LEN + 1];	
 	uint32_t mgt_ip;
 	uint32_t vip;		
 	uint32_t shared_bw_vip;	

@@ -3,6 +3,7 @@
     {
         "mgt_ip": "10.226.190.238",
 	"vip": "10.226.190.102",
+	"shared_bw_vip": "10.226.190.103",
 	"port_speed": 40,
 	"port_speed_comment": "40 for 40G, 100 for 100G",
 	"Hardware":1,

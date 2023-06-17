@@ -207,6 +207,15 @@ static int switch_config_set_higw(switch_config_t *cfg, json_t *json_root)
 	}
 	cfg->vip = ip_atoi(cfg->vip_addr);
 
+	res = get_field_of_string(section, "shared_bw_vip", &string_val, 1);
+	if (res == 0) {
+		strncpy(cfg->shared_bw_vip_addr, string_val, CONST_IPV4_ADDR_LEN);
+	} else {
+		printf("[msg: shared_bw_vip_addr required and must be string]\n");
+		return -1;
+	}
+	cfg->shared_bw_vip = ip_atoi(cfg->shared_bw_vip_addr);
+
 	#if 0
 	res = get_field_of_string(section, "backup_vip", &string_val, 1);
 	if (res == 0) {
@@ -219,8 +228,8 @@ static int switch_config_set_higw(switch_config_t *cfg, json_t *json_root)
 	#endif
 	cfg->backup_vip = 0;
 
-	if (cfg->vip == 0 || cfg->mgt_ip == 0) {
-		printf("vip or mgt_ip not exist in config file\n");
+	if (cfg->vip == 0 || cfg->mgt_ip == 0 || cfg->shared_bw_vip == 0) {
+		printf("vip or mgt_ip or shared_bw_vip not exist in config file\n");
 		return -1;
 	}
 	
