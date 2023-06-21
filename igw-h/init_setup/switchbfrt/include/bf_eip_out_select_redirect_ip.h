@@ -1,0 +1,17 @@
+/**********************************************************************
+* 
+* Copyright (c) 2022 jd.com, Inc. All Rights Reserved
+* @author       liweiwei118@jd.com
+* 
+***********************************************************************/
+
+#ifndef __EIP_OUT_SELECT_IP_H__
+#define __EIP_OUT_SELECT_IP_H__
+
+#include "jd_bfrt.h"
+
+extern void eip_out_select_redirect_ip_table_setup();
+extern int eip_out_select_redirect_ip_entry_add(uint16_t vxlan_valid,
+                                      uint16_t selector_group_id);
+#endif
+
