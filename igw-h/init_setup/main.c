@@ -23,6 +23,7 @@
 #include "switch_eip_in_jd_vxlan_table.h"
 #include "switch_eip_out_jd_vxlan_table.h"
 #include "switch_eip_dl.h"
+#include "switch_meter_drop_table.h"
 
 const char *g_init_setup_filename = "/var/run/init_setup.file";
 
@@ -596,6 +597,7 @@ int main(int argc, char **argv) {
 	eip_in_jd_vxlan_table_init();
 	eip_out_jd_vxlan_table_init();
 	eip_ecmp_dl_table_init();
+	meter_drop_table_init();
 	switchlink_init();
 	switch_monitor_init();
 

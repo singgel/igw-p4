@@ -6,6 +6,7 @@ SRCS-y += bf_eip_in_jd_vxlan_table.c bf_eip_out_jd_vxlan_table.c
 SRCS-y += bf_eip_in_action_profile.c bf_eip_in_selector.c 
 SRCS-y += bf_eip_in_select_redirect_ip.c bf_eip_out_action_profile.c
 SRCS-y += bf_eip_out_selector.c bf_eip_out_select_redirect_ip.c
+SRCS-y += bf_eip_in_meter_drop.c
 
 CFLAGS += -I$(RTE_SRCDIR)/switchbfrt/include/ -I$(SDE_INSTALL)/include 
 LDFLAGS += 
