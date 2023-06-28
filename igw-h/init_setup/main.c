@@ -26,6 +26,7 @@
 #include "switch_meter_drop_table.h"
 #include "switch_mirror_table.h"
 #include "switch_acl_table_init.h"
+#include "switch_ecmp_group2.h"
 
 const char *g_init_setup_filename = "/var/run/init_setup.file";
 
@@ -602,6 +603,7 @@ int main(int argc, char **argv) {
 	eip_ecmp_dl_table_init();
 	meter_drop_table_init();
 	acl_table_init();
+	ecmp_group02_init();
 	switchlink_init();
 	switch_monitor_init();
 
