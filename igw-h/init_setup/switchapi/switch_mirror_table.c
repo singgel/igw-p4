@@ -23,7 +23,12 @@
 
 #include "switch_mirror_table.h"
 #include "bf_mirror_cfg.h"
+#include "bf_mirror_drop.h"
 
+static void mirror_drop_init(){
+	mirror_drop_table_setup();
+	assert(entry_add_with_mirror_drop(MIRROR_RED) == 0);
+}
 
 static void mirror_cfg_init(){
 	normalData data;
@@ -44,6 +49,7 @@ static void mirror_cfg_init(){
 }
 
 void mirror_table_init() {
+	mirror_drop_init();
 	mirror_cfg_init();	
 }
 

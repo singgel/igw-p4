@@ -113,6 +113,8 @@ static int mirror_cfg_key_setup(uint16_t sid,
   	if (bf_status != BF_SUCCESS) {
 		return -1;
   	}
+	
+	return 0;
 }
 
 static int data_setup_for_normal(normalData *data,
