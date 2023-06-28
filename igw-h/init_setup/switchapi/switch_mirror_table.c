@@ -20,10 +20,23 @@
 #include "switch_device.h"
 #include "switch_packet_table.h"
 #include "switch_config.h"
-
 #include "switch_mirror_table.h"
 #include "bf_mirror_cfg.h"
 #include "bf_mirror_drop.h"
+#include "bf_mirror_meter.h"
+
+static void mirror_meter_init() {
+	uint8_t flag;
+	mirror_copy_tocpuData data;
+
+	mirror_meter_table_setup();
+	flag = 1;
+	data.cir_pps = MIRROR_PPS;
+	data.pir_pps = MIRROR_PPS;
+	data.cbs_pkts = MIRROR_PPS;
+	data.pbs_pkts = MIRROR_PPS;
+	assert(entry_add_with_mirror_clone_to_cpu(flag,&data) == 0);
+}
 
 static void mirror_drop_init(){
 	mirror_drop_table_setup();
@@ -50,6 +63,7 @@ static void mirror_cfg_init(){
 
 void mirror_table_init() {
 	mirror_drop_init();
+	mirror_meter_init();
 	mirror_cfg_init();	
 }
 
