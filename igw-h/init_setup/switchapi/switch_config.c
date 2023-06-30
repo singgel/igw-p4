@@ -259,6 +259,51 @@ static int switch_config_set_higw(switch_config_t *cfg, json_t *json_root)
 	return 0;
 }
 
+static int switch_config_set_redirectip(switch_config_t *cfg, json_t *json_root)
+{
+	json_t *section = NULL;
+	const char *string_val = NULL;
+	int res;
+	
+	section = json_object_get(json_root, "RedirectIP");
+	if (section == NULL) {
+		printf("[msg: section RedirectIP not exist in config file]\n");
+		return -1;
+	}
+	
+	if (!json_is_object(section)) {
+		printf("[msg: section RedirectIP type must be object]\n");
+		return -1;
+	}
+
+	res = get_field_of_string(section, "addr_prefix", &string_val, 1);
+	if (res == 0) {
+		strncpy(cfg->dl_ip_addr, string_val, CONST_IPV4_ADDR_LEN);
+	} else {
+		printf("[msg: addr_prefix required and must be string]\n");
+		return -1;
+	}
+	cfg->dl_ip = ip_atoi(cfg->dl_ip_addr);
+
+	if (cfg->dl_ip == 0 ) {
+		printf("addr_prefix not exist in config file or is 0\n");
+		return -1;
+	}
+	
+	res = get_field_of_int(section, "prefix_len", (int *)&cfg->dl_ip_prefix_len, 1);
+	if (res != 0) {
+		printf("[msg: prefix_len required and must be int]\n");
+		return -1;
+	}
+
+	if (cfg->dl_ip_prefix_len < 24 || cfg->dl_ip_prefix_len > 32) {
+		printf("dl_ip_prefix_len must be 24 ~ 32\n");
+		return -1;
+	}
+
+	return 0;
+}
+
 int switch_config_init(void){
 	json_error_t json_err;
 	json_t *json_root = NULL;
@@ -280,6 +325,12 @@ int switch_config_init(void){
 	res = switch_config_set_higw(&switch_cfg, json_root);
 	if (res != 0) {
 		printf("[msg: switch_config_set_higw failed]\n");
+ 		return -1;
+	}
+
+	res = switch_config_set_redirectip(&switch_cfg, json_root);
+	if (res != 0) {
+		printf("[msg: switch_config_set_redirectip failed]\n");
  		return -1;
 	}
 	

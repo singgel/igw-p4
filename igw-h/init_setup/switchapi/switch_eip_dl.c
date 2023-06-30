@@ -116,3 +116,46 @@ void eip_ecmp_dl_table_init() {
 	eip_out_ecmp_dl_table_init();
 }
 
+#if 0
+#include <stdio.h>
+#include <stdint.h>
+#include <arpa/inet.h>
+
+#define CONST_MAX_MASK_LEN 32
+
+uint32_t get_mask_by_prefix_len(int prefix_len)
+{
+	uint32_t mask = 0;
+	int i = 1;
+	for (; i <= prefix_len; ++i) {
+		mask |= 1<<(CONST_MAX_MASK_LEN - i);
+	}
+	return mask;
+}
+
+void test(uint32_t ipaddress, uint32_t subnetmask){
+	uint32_t dl_ip, first_ip,last_ip;
+	struct in_addr inaddr;
+
+	first_ip = ntohl(ipaddress & subnetmask);
+	last_ip = ntohl(ipaddress | ~(subnetmask));
+
+	for (dl_ip = first_ip; dl_ip <= last_ip; ++dl_ip) {
+		inaddr.s_addr = htonl(dl_ip);
+		printf("dl_ip: %s\n", inet_ntoa(inaddr));
+	}
+}
+
+int main(){
+
+   uint32_t mask1;
+
+   mask1 = get_mask_by_prefix_len(24);
+
+   test("192.168.20.0",htonl(mask1));
+
+  return 0;
+}
+
+
+#endif

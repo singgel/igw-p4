@@ -39,6 +39,18 @@ static inline int ether_aton(const char *a, uint8_t mac_addr[6])
 	return 0;
 }
 
+#define CONST_MAX_MASK_LEN 32
+
+static inline uint32_t get_mask_by_prefix_len(int prefix_len)
+{
+	uint32_t mask = 0;
+	int i = 1;
+	for (; i <= prefix_len; ++i) {
+		mask |= 1<<(CONST_MAX_MASK_LEN - i);
+	}
+	return mask;
+}
+
 static inline uint32_t ip_atoi(const char *str)
 {
 	uint32_t ipaddr = 0;

@@ -121,14 +121,16 @@ static void internet_out_between_cluster_dl_entry_init() {
 
 static void internet_out_within_cluster_dl_entry_init() {
 	igwIpTypeKey key;
+	uint32_t mask;
 
 	//dst ip is dl ip, jd vxlan, tof=TOF_EIP_OUT
 	memset(&key, 0, sizeof(igwIpTypeKey));
 	key.priority = HIGHEST_PRI;
 	key.ipv4_isvalid = 1;
 	key.ipv4_isvalid_mask = 0x1;
-	key.ipv4_dstaddr = 0;		//need to modify
-	key.ipv4_dstaddr_mask = 0;  //need to modify
+	key.ipv4_dstaddr = switch_cfg.dl_ip;		
+	mask = get_mask_by_prefix_len(switch_cfg.dl_ip_prefix_len);
+	key.ipv4_dstaddr_mask = mask;  
 	key.vxlan_isvalid = 1; 
 	key.vxlan_isvalid_mask = 0x1;
 	key.inner_ipv4_isvalid = 0; 
@@ -230,14 +232,16 @@ static void internet_in_between_cluster_dl_entry_init() {
 
 static void internet_in_within_cluster_dl_entry_init() {
 	igwIpTypeKey key;
-
+	uint32_t mask;
+		
 	//dst ip is dl ip, jd vxlan, tof=TOF_EIP_IN
 	memset(&key, 0, sizeof(igwIpTypeKey));
 	key.priority = HIGHEST_PRI;
 	key.ipv4_isvalid = 1;
 	key.ipv4_isvalid_mask = 0x1;
-	key.ipv4_dstaddr = 0;		//need to modify
-	key.ipv4_dstaddr_mask = 0;  //need to modify
+	key.ipv4_dstaddr = switch_cfg.dl_ip;		
+	mask = get_mask_by_prefix_len(switch_cfg.dl_ip_prefix_len);
+	key.ipv4_dstaddr_mask = mask;  
 	key.vxlan_isvalid = 1; 
 	key.vxlan_isvalid_mask = 0x1;
 	key.inner_ipv4_isvalid = 0; 

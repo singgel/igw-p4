@@ -3,7 +3,7 @@
     {
         "mgt_ip": "10.226.190.238",
 	"vip": "10.226.190.102",
-	"shared_bw_vip": "10.226.190.103",
+	"shared_bw_vip": "10.226.190.102",
 	"port_speed": 40,
 	"port_speed_comment": "40 for 40G, 100 for 100G",
 	"Hardware":1,
@@ -13,6 +13,11 @@
     {
 	"local_as_num":"65002",
 	"remote_as_num":"65303"
+    },
+    "RedirectIP":
+    {
+	"addr_prefix":"10.226.190.0",
+	"prefix_len":24
     },
     "hostifs":
     [
