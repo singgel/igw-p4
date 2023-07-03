@@ -5,6 +5,7 @@ SRCS-y += switch_igw_ip_type_table.c switch_eip_in_jd_vxlan_table.c
 SRCS-y += switch_eip_out_jd_vxlan_table.c switch_eip_dl.c
 SRCS-y += switch_meter_drop_table.c switch_mirror_table.c
 SRCS-y += switch_acl_table_init.c switch_ecmp_group2.c
+SRCS-y += switch_meter_adjust.c
 
 CFLAGS += -I$(RTE_SRCDIR)/switchapi/include/ -I$(SDE_INSTALL)/include 
 LDFLAGS += -L$(SDE_INSTALL)/lib -lbfsys -lbfutils -ldriver -lavago

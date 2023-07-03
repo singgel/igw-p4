@@ -36,12 +36,12 @@ control EipInMeter(
 
     table ipv6_bw_ratelimit {
         key = {
-            hdr.vxlan.vni : exact;
+            hdr.inner_ipv6.dstAddr : exact;
         }
         actions = {
             execute_ipv6_ratelimit;
         }
-        size = 2000;
+        size = EIP6_SIZE;
         meters = ipv6_rl_meter;
     }
     
@@ -140,12 +140,12 @@ control EipOutMeter(
 
     table ipv6_bw_ratelimit {
         key = {
-            hdr.vxlan.vni : exact;
+            hdr.inner_ipv6.srcAddr : exact;
         }
         actions = {
             execute_ipv6_ratelimit;
         }
-        size = 2000;
+        size = EIP6_SIZE;
         meters = ipv6_rl_meter;
     }
     

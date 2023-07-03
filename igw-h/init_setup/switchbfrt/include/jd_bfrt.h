@@ -17,6 +17,7 @@ extern "C" {
 #include <bf_rt/bf_rt_table_key.h>
 #include <bf_rt/bf_rt_table_data.h>
 #include <bf_rt/bf_rt_table.h>
+#include <bf_rt/bf_rt_table_attributes.h>
 #if defined (USE_SDE_9_7)
 	#include <bf_rt/bf_rt_info.h>
 #endif
