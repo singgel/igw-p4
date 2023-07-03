@@ -36,7 +36,7 @@ control EipInMeter(
 
     table ipv6_bw_ratelimit {
         key = {
-            hdr.inner_ipv6.dstAddr : exact;
+            meta.ratelimit.bandwidth_id : exact;
         }
         actions = {
             execute_ipv6_ratelimit;
@@ -140,7 +140,7 @@ control EipOutMeter(
 
     table ipv6_bw_ratelimit {
         key = {
-            hdr.inner_ipv6.srcAddr : exact;
+            meta.ratelimit.bandwidth_id : exact;
         }
         actions = {
             execute_ipv6_ratelimit;

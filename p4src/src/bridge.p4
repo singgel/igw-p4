@@ -180,6 +180,7 @@ control DecapMetaData_I2E02(
     action eg_decap_md02_v6() {
         meta.l3.lkp_sip = hdr.inner_ipv6.srcAddr;
         meta.l3.lkp_dip = hdr.inner_ipv6.dstAddr;
+        meta.ratelimit.bandwidth_id = hdr.bg_md.eip_or_bwid;
     #ifdef __SDE_9_7_SUPPORT__
         meta.l3.lkp_l4_sport = hdr.bg_md.lkp_l4_sport;
         meta.l3.lkp_l4_dport = hdr.bg_md.lkp_l4_dport;
