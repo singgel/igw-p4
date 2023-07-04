@@ -40,7 +40,7 @@ control EipInRedirect(
             nop;
         }
 
-        size = EIP_SIZE;
+        size = EIP_SIZE_DOUBLE;
         const default_action = nop();
     }
 
@@ -164,7 +164,7 @@ control EipOutRedirect(inout headers_t hdr,
             nop;
         }
 
-        size = EIP_SIZE;
+        size = EIP_SIZE_DOUBLE;
         const default_action = nop();
     }
     

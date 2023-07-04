@@ -200,52 +200,6 @@ control EipInEgressPktStats(
     }
 }
 
-control EipOutIngressPktStats(inout headers_t hdr,
-            inout common_metadata_t meta,
-            in ingress_intrinsic_metadata_t ig_intr_md,
-            in ingress_intrinsic_metadata_from_parser_t ig_intr_from_prsr,
-            inout ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
-            inout ingress_intrinsic_metadata_for_tm_t  ig_tm_md) {
-    DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats;
-    DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats6;
-
-    action count() { stats.count(BR_ADJUST_BYTES); }
-    table eip_out_ingress_pkt_stats  {
-        key = {
-            hdr.inner_ipv4.srcAddr : exact;
-        }
-
-        actions = {
-            count;
-        }
-
-        size = EIP_SIZE;
-        counters = stats;
-    }
-
-    action count6() { stats6.count(BR_ADJUST_BYTES); }
-    table eip6_out_ingress_pkt_stats  {
-        key = {
-            hdr.inner_ipv6.srcAddr : exact;
-        }
-
-        actions = {
-            count6;
-        }
-
-        size = EIP6_SIZE;
-        counters = stats6;
-    }
-
-    apply {
-        if (hdr.inner_ipv4.isValid()) {
-            eip_out_ingress_pkt_stats.apply();
-        } else if (hdr.inner_ipv6.isValid()) {
-            eip6_out_ingress_pkt_stats.apply();
-        }
-    }
-}
-
 control EipOutEgressPktStats(
         inout headers_t hdr,
         inout common_metadata_t meta,
@@ -289,6 +243,53 @@ control EipOutEgressPktStats(
             eip_out_egress_pkt_stats.apply();
         } else if (hdr.inner_ipv6.isValid() &&(hdr.bg_md.meter_packet_color != COLOR_RED)) {
             eip6_out_egress_pkt_stats.apply();
+        }
+    }
+}
+
+control EipOutIngressPktStats(
+        inout headers_t hdr,
+        inout common_metadata_t meta,
+        in egress_intrinsic_metadata_t eg_intr_md,
+        in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
+        inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
+        inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
+    DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats;
+    DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats6;
+
+    action count() { stats.count(BR_ADJUST_BYTES); }
+    table eip_out_ingress_pkt_stats  {
+        key = {
+            hdr.inner_ipv4.srcAddr : exact;
+        }
+
+        actions = {
+            count;
+        }
+
+        size = EIP_SIZE;
+        counters = stats;
+    }
+
+    action count6() { stats6.count(BR_ADJUST_BYTES); }
+    table eip6_out_ingress_pkt_stats  {
+        key = {
+            hdr.inner_ipv6.srcAddr : exact;
+        }
+
+        actions = {
+            count6;
+        }
+
+        size = EIP6_SIZE;
+        counters = stats6;
+    }
+
+    apply {
+        if (hdr.inner_ipv4.isValid()) {
+            eip_out_ingress_pkt_stats.apply();
+        } else if (hdr.inner_ipv6.isValid()) {
+            eip6_out_ingress_pkt_stats.apply();
         }
     }
 }

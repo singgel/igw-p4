@@ -41,7 +41,8 @@ const bit<32> VMLOCATION_ECMP_NH_SIZE = 64;
 
 const bit<32> VIF_STATS_SIZE = 2048;
 
-const bit<32> EIP_SIZE = 100000;
+const bit<32> EIP_SIZE = 80000;
+const bit<32> EIP_SIZE_DOUBLE = 160000;
 
 const bit<32> SHARED_BW_SIZE = 8192;
 
