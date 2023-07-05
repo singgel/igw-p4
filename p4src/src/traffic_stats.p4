@@ -26,7 +26,7 @@ control EipInMeterDropStats(inout headers_t hdr,
         actions = {
             drop_stats;
         }
-        size = 80000;
+        size = 20000;
         counters = meter_drop_stats;
     }
 
@@ -42,7 +42,7 @@ control EipInMeterDropStats(inout headers_t hdr,
         actions = {
             ipv6_drop_stats;
         }
-        size = 3000;
+        size = 2000;
         counters = ipv6_meter_drop_stats;
     }
 
@@ -77,7 +77,7 @@ control EipOutMeterDropStats(
         actions = {
             drop_stats;
         }
-        size = 80000;
+        size = 20000;
         counters = meter_drop_stats;
     }
 
@@ -93,7 +93,7 @@ control EipOutMeterDropStats(
         actions = {
             ipv6_drop_stats;
         }
-        size = 3000;
+        size = 2000;
         counters = ipv6_meter_drop_stats;
     }
     

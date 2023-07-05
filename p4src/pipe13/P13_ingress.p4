@@ -19,6 +19,7 @@ control P13_Ingress(
     EipInSharedMeter()          eip_in_shared_meter;
     EipInMeterDropStats()       eip_in_drop_stats;
     NexthopProcess()            nexthop_process;
+    EcmpGroup13()               ecmp_group13;
 
     apply {
         ig_tm_md.ucast_egress_port = hdr.bg_md.igr_port;
@@ -29,7 +30,8 @@ control P13_Ingress(
             dnat.apply(IPP_META);
             vm_location_mapping.apply(IPP_META);
             ingress_route.apply(IPP_META);
-            nexthop_process.apply(IPP_META);      
+            nexthop_process.apply(IPP_META);    
+            ecmp_group13.apply(IPP_META);
         }
     }
 }
