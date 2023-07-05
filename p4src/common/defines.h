@@ -67,14 +67,13 @@
 #define MATCH_PACKET 0
 
 #define EGR_PIPELINE_02  2
+#define EGR_PIPELINE_13  1
 
 //#define __2_PIPELINE_BOX__  1
 #ifdef __2_PIPELINE_BOX__
     #define CPU_PORT 192
-    #define EGR_PIPELINE_13 1
 #else
     #define CPU_PORT 320
-    #define EGR_PIPELINE_13 1
 #endif
 
 #define TYPE_INGRESS_INTERNET_IN 1

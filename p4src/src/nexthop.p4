@@ -24,7 +24,14 @@ control EcmpGroup02(inout headers_t hdr,
 
     table ecmp_group_02_v2 {
         key = {
-            meta.l3.egr_pipeline    : exact;
+            meta.l3.egr_pipeline     : exact;
+            hdr.bg_md.dl_pkt         : ternary;
+            hdr.ipv4.isValid()       : ternary;
+            hdr.ipv4.dstAddr         : ternary;
+            hdr.vxlan.isValid()      : ternary;
+            hdr.inner_ipv4.isValid() : ternary;
+            hdr.inner_ipv4.dstAddr   : ternary;
+            hdr.inner_ipv4.srcAddr   : ternary;
             meta.l3.lkp_sip         : selector;
             meta.l3.lkp_l4_sport    : selector;
             meta.l3.lkp_dip         : selector;
