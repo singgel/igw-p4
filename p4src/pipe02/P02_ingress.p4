@@ -20,6 +20,7 @@ control P02_Ingress(
     EncapMetaData_02()          encap_md;
     FipInnerIpSnat()            fip_snat;
     EipOutRedirect()            eip_out_redirect;
+    HaveSharedBindWith()        have_shared_bd;
 
     apply {
         decap_md.apply(IPP_META);
@@ -36,6 +37,8 @@ control P02_Ingress(
                 if (hdr.vxlan.isValid() && hdr.vxlan.tof != TOF_EIP_OUT)  {
                     eip_out_redirect.apply(IPP_META); 
                 } 
+            } else {//internet in
+                have_shared_bd.apply(IPP_META); 
             }
         }
         

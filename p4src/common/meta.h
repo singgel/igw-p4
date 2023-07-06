@@ -38,6 +38,7 @@ struct ratelimit_metadata_t {
     bit<32> bandwidth_id;
     bit<1> within_cluster;
     bit<1> between_cluster;
+    bit<1> have_shared_bd;
 }
 
 @pa_auto_init_metadata

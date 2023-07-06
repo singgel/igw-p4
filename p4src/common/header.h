@@ -190,7 +190,7 @@ header bridge_metadata_t {
     
     bit<3> tunnel_direct_send;
     bit<3> egr_tunnel_type;
-    bit<2>  meter_packet_color;
+    bit<2> meter_packet_color;
 }
 #endif
 

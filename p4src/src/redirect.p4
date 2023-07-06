@@ -40,7 +40,7 @@ control EipInRedirect(
             nop;
         }
 
-        size = EIP_SIZE_DOUBLE;
+        size = EIP_SIZE;
         const default_action = nop();
     }
 
@@ -146,12 +146,13 @@ control EipOutRedirect(inout headers_t hdr,
         hdr.bg_md.shared_bandwidth_id = 0;
     }
     action set_bw_id(bit<32> bandwidth_id, bit<12> shared_bandwidth_id,
-            bit<1> within_cluster, bit<1> between_cluster) {
+            bit<1> within_cluster, bit<1> between_cluster, bit<1> have_shared_bd) {
         //meta.ratelimit.bandwidth_id = bandwidth_id;
         hdr.bg_md.eip_or_bwid = bandwidth_id;
         hdr.bg_md.shared_bandwidth_id = (bit<16>) shared_bandwidth_id;
         meta.ratelimit.within_cluster = within_cluster;
         meta.ratelimit.between_cluster = between_cluster;
+        meta.ratelimit.have_shared_bd = have_shared_bd;
     }
 
     table eip_out_redirect {
@@ -248,6 +249,55 @@ control EipOutRedirect(inout headers_t hdr,
                 }
                 select_redirect_ip.apply();
             }
+        }
+    }
+}
+
+control HaveSharedBindWith(inout headers_t hdr,
+            inout common_metadata_t meta,
+            in ingress_intrinsic_metadata_t ig_intr_md,
+            in ingress_intrinsic_metadata_from_parser_t ig_intr_from_prsr,
+            inout ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
+            inout ingress_intrinsic_metadata_for_tm_t  ig_tm_md) {
+    action set_have_flag() {
+         meta.ratelimit.have_shared_bd = 1;
+    }
+
+    action nop() { }
+
+    table have_shared_bd {
+        key = {
+            hdr.ipv4.dstAddr  : exact;
+        }
+
+        actions = {
+            set_have_flag;
+            nop;
+        }
+
+        size = 15000;
+        const default_action = nop();
+    }
+    
+    table inner_have_shared_bd {
+        key = {
+            hdr.inner_ipv4.dstAddr  : exact;
+        }
+
+        actions = {
+            set_have_flag;
+            nop;
+        }
+
+        size = 15000;
+        const default_action = nop();
+    }
+
+    apply {
+        if ((hdr.bg_md.dl_pkt == 0) && hdr.ipv4.isValid()) { 
+            have_shared_bd.apply();
+        } else if((hdr.bg_md.dl_pkt == 1) && hdr.inner_ipv4.isValid()) {
+            inner_have_shared_bd.apply();
         }
     }
 }

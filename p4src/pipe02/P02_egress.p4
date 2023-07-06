@@ -19,12 +19,10 @@ control ProcessGwEgress(
     EipOutMeterDropStats()      eip_out_drop_stats;
     EipOutIngressPktStats()   eip_out_ingress_pkt_stats;
     EipOutEgressPktStats()      eip_out_egress_pkt_stats;
-    EipInEgressPktStats()       eip_in_egress_pkt_stats;
 
     apply {
         if (hdr.bg_md.igr_tunnel_type == TYPE_INGRESS_INTERNET_IN) { 
             internet_in.apply(EPP_META);      //internet in
-            eip_in_egress_pkt_stats.apply(EPP_META);
         } else { //internet out
             eip_out_ingress_pkt_stats.apply(EPP_META);
             eip_out_meter.apply(EPP_META);
