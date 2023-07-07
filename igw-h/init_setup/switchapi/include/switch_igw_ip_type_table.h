@@ -8,6 +8,10 @@
 #ifndef _SWITCH_IGW_IP_TYPE_TABLE_H__
 #define _SWITCH_IGW_IP_TYPE_TABLE_H__
 
+#define EGR_PIPELINE_0  1
+#define EGR_PIPELINE_1  2
+#define EGR_PIPELINE_2  3
+#define EGR_PIPELINE_3  4
 
 #define VXLAN_TYPE_STD  1
 #define VXLAN_TYPE_JD   2

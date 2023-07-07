@@ -20,6 +20,8 @@ typedef struct igwIpTypeKey_s {
   uint64_t vxlan_isvalid_mask;
   uint64_t inner_ipv4_isvalid;
   uint64_t inner_ipv4_isvalid_mask;
+  uint64_t inner_ipv4_dstaddr;
+  uint64_t inner_ipv4_dstaddr_mask;
   uint64_t inner_ipv6_isvalid;
   uint64_t inner_ipv6_isvalid_mask;
   uint64_t vxlan_type;
@@ -35,10 +37,10 @@ typedef struct igwIpTypeKey_s {
 extern void igw_ip_type_table_setup(void);
 extern void igw_ip_type_table_teardown();
 
-extern int entry_add_with_ip_from_internet_in_hit(const igwIpTypeKey *key);
-extern int entry_add_with_ip_from_internet_in_dl_hit(const igwIpTypeKey *key);
-extern int entry_add_with_ip_from_internet_out_hit(const igwIpTypeKey *key);
-extern int entry_add_with_ip_from_internet_out_dl_hit(const igwIpTypeKey *key);
+extern int entry_add_with_ip_from_internet_in_hit(const igwIpTypeKey *key, uint16_t egr_pipeline);
+extern int entry_add_with_ip_from_internet_in_dl_hit(const igwIpTypeKey *key, uint16_t egr_pipeline);
+extern int entry_add_with_ip_from_internet_out_hit(const igwIpTypeKey *key, uint16_t egr_pipeline);
+extern int entry_add_with_ip_from_internet_out_dl_hit(const igwIpTypeKey *key, uint16_t egr_pipeline);
 extern int entry_add_with_need_drop(const igwIpTypeKey *key);
 
 #endif

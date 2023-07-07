@@ -66,8 +66,10 @@
 #define DL_PACKET 1
 #define MATCH_PACKET 0
 
-#define EGR_PIPELINE_02  2
-#define EGR_PIPELINE_13  1
+#define EGR_PIPELINE_0  1
+#define EGR_PIPELINE_1  2
+#define EGR_PIPELINE_2  3
+#define EGR_PIPELINE_3  4
 
 //#define __2_PIPELINE_BOX__  1
 #ifdef __2_PIPELINE_BOX__

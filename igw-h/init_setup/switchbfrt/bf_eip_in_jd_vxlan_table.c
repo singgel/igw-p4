@@ -156,6 +156,8 @@ static int eipInJdVxlan_key_setup(const eipInJdVxlanKey *key,
   	if (bf_status != BF_SUCCESS) {
 		return -1;
   	}
+	
+	return 0;
 }
 
 static int data_setup_for_rewrite_az_in(uint32_t shared_bw_vip,

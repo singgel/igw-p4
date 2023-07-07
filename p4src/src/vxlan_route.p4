@@ -40,27 +40,27 @@ control IgwIpType(inout headers_t hdr,
             inout ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
             inout ingress_intrinsic_metadata_for_tm_t  ig_tm_md) {
 
-    action ip_from_internet_in_hit() {
+    action ip_from_internet_in_hit(bit<3> egr_pipeline) {
         hdr.bg_md.igr_tunnel_type = TYPE_INGRESS_INTERNET_IN;
-        meta.l3.egr_pipeline = EGR_PIPELINE_13;
+        meta.l3.egr_pipeline = egr_pipeline;
         hdr.bg_md.dl_pkt = 0;
-    }    
+    }   
 
-    action ip_from_internet_in_dl_hit() {
+    action ip_from_internet_in_dl_hit(bit<3> egr_pipeline) {
         hdr.bg_md.igr_tunnel_type = TYPE_INGRESS_INTERNET_IN;
-        meta.l3.egr_pipeline = EGR_PIPELINE_13;
+        meta.l3.egr_pipeline = egr_pipeline;
         hdr.bg_md.dl_pkt = 1;
     }    
 
-    action ip_from_internet_out_hit() {
+    action ip_from_internet_out_hit(bit<3> egr_pipeline) {
         hdr.bg_md.igr_tunnel_type = TYPE_INGRESS_INTERNET_OUT;
-        meta.l3.egr_pipeline = EGR_PIPELINE_02;
+        meta.l3.egr_pipeline = egr_pipeline;
         hdr.bg_md.dl_pkt = 0;
     }
 
-    action ip_from_internet_out_dl_hit() {
+    action ip_from_internet_out_dl_hit(bit<3> egr_pipeline) {
         hdr.bg_md.igr_tunnel_type = TYPE_INGRESS_INTERNET_OUT;
-        meta.l3.egr_pipeline = EGR_PIPELINE_02;
+        meta.l3.egr_pipeline = egr_pipeline;
         hdr.bg_md.dl_pkt = 1;
     }
 
@@ -74,8 +74,7 @@ control IgwIpType(inout headers_t hdr,
             hdr.ipv4.dstAddr            : ternary;
             hdr.vxlan.isValid()         : ternary;
             hdr.inner_ipv4.isValid()    : ternary;
-            hdr.inner_ipv4.dstAddr    : ternary;
-            hdr.inner_ipv4.srcAddr    : ternary;
+            hdr.inner_ipv4.dstAddr      : ternary;
             hdr.inner_ipv6.isValid()    : ternary;
             meta.tunnel.vxlan_type      : ternary;
             hdr.vxlan.tof               : ternary;
