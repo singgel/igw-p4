@@ -14,10 +14,13 @@
 #define MONITOR_CYCLE  (60)
 
 typedef struct monitor_devport_s {
-	uint32_t fp_port;	
+	uint32_t fp_port;		
+	uint8_t  pipe;	
 	uint32_t dev_port;
 	uint64_t crcError;	
 	uint64_t FCSError;
+	uint64_t ig_tm_count;	
+	uint64_t eg_tm_count;
 } monitor_devport_t;
 
 typedef struct monitor_devport_array_s {

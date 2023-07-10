@@ -13,6 +13,7 @@
 #include <tofino/bf_pal/dev_intf.h>
 #include <knet_mgr/bf_knet_if.h>
 #include <bf_switchd/bf_switchd.h>
+#include <traffic_mgr/traffic_mgr_counters.h>
 
 #define DEVICE_ID 0
 
