@@ -21,6 +21,7 @@ control P02_Ingress(
     FipInnerIpSnat()            fip_snat;
     EipOutRedirect()            eip_out_redirect;
     HaveSharedBindWith()        have_shared_bd;
+    PipeLineFix()               pipelinefix;
 
     apply {
         decap_md.apply(IPP_META);
@@ -34,6 +35,7 @@ control P02_Ingress(
         if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
             if (hdr.bg_md.igr_tunnel_type == TYPE_INGRESS_INTERNET_OUT) {//internet out
                 fip_snat.apply(IPP_META);
+                pipelinefix.apply(IPP_META);
                 if (hdr.vxlan.isValid() && hdr.vxlan.tof != TOF_EIP_OUT)  {
                     eip_out_redirect.apply(IPP_META); 
                 } 

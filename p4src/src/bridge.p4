@@ -22,7 +22,7 @@ control DecapMetaData_02(inout headers_t hdr,
         hdr.bg_md.outer_ethernet_invalid = 0;
     }
 
-    action ig_decap_md02_v4() {
+    action ig_decap_md02_overlay_v4() {
         hdr.bg_md.setValid();
         hdr.bg_md.lkp_vni = hdr.vxlan.vni;
     #ifdef __SDE_9_7_SUPPORT__
@@ -34,7 +34,7 @@ control DecapMetaData_02(inout headers_t hdr,
         ig_init_bridge();
     }   
 
-    action ig_decap_md02_v6() {
+    action ig_decap_md02_overlay_v6() {
         hdr.bg_md.setValid();
         hdr.bg_md.lkp_vni = hdr.vxlan.vni;
     #ifdef __SDE_9_7_SUPPORT__
@@ -52,23 +52,49 @@ control DecapMetaData_02(inout headers_t hdr,
         ig_init_bridge();
     }   
 
+   action ig_decap_md02_v4() {
+        hdr.bg_md.setValid();
+        meta.l3.lkp_ip_proto = meta.l3.lkp_outer_ip_proto;
+        meta.l3.lkp_l4_sport = meta.l3.lkp_outer_l4_sport;
+        meta.l3.lkp_l4_dport = meta.l3.lkp_outer_l4_dport;
+        meta.l3.lkp_sip = (bit<128>)hdr.ipv4.srcAddr;
+        meta.l3.lkp_dip = (bit<128>)hdr.ipv4.dstAddr;
+        ig_init_bridge();
+    }   
+
+    action ig_decap_md02_v6() {
+        hdr.bg_md.setValid();
+        meta.l3.lkp_ip_proto = meta.l3.lkp_outer_ip_proto;
+        meta.l3.lkp_l4_sport = meta.l3.lkp_outer_l4_sport;
+        meta.l3.lkp_l4_dport = meta.l3.lkp_outer_l4_dport;
+        meta.l3.lkp_sip = hdr.ipv6.srcAddr;
+        meta.l3.lkp_dip = hdr.ipv6.dstAddr;
+        ig_init_bridge();
+    }  
+
     table ig_decap_md02 {
         key = {
+            hdr.ipv4.isValid() : exact;
+            hdr.ipv6.isValid() : exact;
             hdr.inner_ipv4.isValid() : exact;           
             hdr.inner_ipv6.isValid() : exact;
         }
 
         actions = {
+            ig_decap_md02_overlay_v4;
+            ig_decap_md02_overlay_v6;
             ig_decap_md02_v4;
             ig_decap_md02_v6;
             ig_decap_md02_nop;
         }
 
-        size = 4;
+        size = 6;
         const entries = {
-            {true,false}   : ig_decap_md02_v4;
-            {false,true}   : ig_decap_md02_v6;
-            {false,false}   : ig_decap_md02_nop;
+            {true, false, true, false}   : ig_decap_md02_overlay_v4;
+            {true, false, false, true}   : ig_decap_md02_overlay_v6;
+            {true, false, false, false}   : ig_decap_md02_v4;
+            {false, true, false, false}   : ig_decap_md02_v6;
+            {false, false ,false, false}   : ig_decap_md02_nop;
         }
     }
 

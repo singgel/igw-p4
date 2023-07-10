@@ -33,6 +33,34 @@ control IngressRoute(inout headers_t hdr,
     } 
 }
 
+control PipeLineFix(inout headers_t hdr,
+            inout common_metadata_t meta,
+            in ingress_intrinsic_metadata_t ig_intr_md,
+            in ingress_intrinsic_metadata_from_parser_t ig_intr_from_prsr,
+            inout ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
+            inout ingress_intrinsic_metadata_for_tm_t  ig_tm_md) {
+
+    action set_pipeline(bit<3> egr_pipeline) {
+        meta.l3.egr_pipeline = egr_pipeline;
+    }   
+
+    table pipeline_fix {
+        key = {
+            hdr.inner_ipv4.isValid()    : ternary;
+            hdr.inner_ipv4.srcAddr      : ternary;
+        }
+
+        actions = {
+            set_pipeline;
+        }
+        size = 4;
+    }
+
+    apply {
+        pipeline_fix.apply();
+    }
+}
+
 control IgwIpType(inout headers_t hdr,
             inout common_metadata_t meta,
             in ingress_intrinsic_metadata_t ig_intr_md,
