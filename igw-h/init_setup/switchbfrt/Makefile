@@ -9,7 +9,7 @@ SRCS-y += bf_eip_out_selector.c bf_eip_out_select_redirect_ip.c
 SRCS-y += bf_eip_in_meter_drop.c bf_mirror_cfg.c bf_mirror_drop.c
 SRCS-y += bf_mirror_meter.c bf_egress_acl_table.c
 SRCS-y += bf_ecmp_group_action_profile.c bf_ecmp_group_selector.c
-SRCS-y += bf_ecmp_group_02_v2.c bf_meter_adjust.c
+SRCS-y += bf_ecmp_group_02_v2.c bf_meter_adjust.c bf_pipeline_fix.c
 
 CFLAGS += -I$(RTE_SRCDIR)/switchbfrt/include/ -I$(SDE_INSTALL)/include 
 LDFLAGS += 

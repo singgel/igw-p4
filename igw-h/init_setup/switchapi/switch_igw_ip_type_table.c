@@ -22,6 +22,7 @@
 #include "switch_igw_ip_type_table.h"
 #include "bf_igw_ip_type_table.h"
 #include "switch_config.h"
+#include "bf_pipeline_fix.h"
 
 //FF::0
 static uint32_t ipv6_multicast[4] = {0x000000FF, 0, 0, 0};
@@ -363,6 +364,25 @@ static void internet_in_within_cluster_dl_entry_init() {
 	assert(entry_add_with_ip_from_internet_in_dl_hit(&key,EGR_PIPELINE_1) == 0);	
 }
 
+static void pipelinefix_init() {
+	setPipelineKey key;
+	pipeline_fix_table_setup();
+
+	key.priority = 0;
+	key.inner_ipv4_isvalid = 1;
+	key.inner_ipv4_isvalid_mask = 0x1;
+	key.inner_ipv4_srcaddr = 1;
+	key.inner_ipv4_srcaddr_mask = 0x1;
+	assert(entry_add_with_setpipeline(&key, EGR_PIPELINE_0) == 0);
+	
+	key.priority = 0;
+	key.inner_ipv4_isvalid = 1;
+	key.inner_ipv4_isvalid_mask = 0x1;
+	key.inner_ipv4_srcaddr = 0;
+	key.inner_ipv4_srcaddr_mask = 0x1;
+	assert(entry_add_with_setpipeline(&key, EGR_PIPELINE_2) == 0);
+}
+
 void igw_ip_type_table_init() {
 
 	igw_ip_type_table_setup();
@@ -376,4 +396,7 @@ void igw_ip_type_table_init() {
 	internet_in_entry_init();
 	internet_in_between_cluster_dl_entry_init();
 	internet_in_within_cluster_dl_entry_init();
+
+	//pipelinefix init
+	pipelinefix_init();
 }

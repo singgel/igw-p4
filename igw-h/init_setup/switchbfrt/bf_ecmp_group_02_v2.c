@@ -24,6 +24,9 @@ static bf_rt_table_key_hdl *bfrtTableKey;
 static bf_rt_table_data_hdl *bfrtTableData;
 // Key field ids
 static bf_rt_id_t ecmp_group_key_field_id = 0;
+static bf_rt_id_t priority_field_id = 0;
+static bf_rt_id_t have_shared_bd_key_field_id = 0;
+
 // Action Ids
 // Data field Ids 
 static bf_rt_id_t selector_groupid_field_id = 0;
@@ -41,7 +44,17 @@ void p02_ecmp_group_table_setup() {
   	assert(bf_status == BF_SUCCESS);
 
   	// Get key Ids 
-  	bf_status = bf_rt_key_field_id_get(p02_ecmp_group_Table, "meta.l3.egr_pipeline", &ecmp_group_key_field_id);
+  	bf_status = bf_rt_key_field_id_get(p02_ecmp_group_Table, 
+		"$MATCH_PRIORITY", 
+		&priority_field_id);
+  	assert(bf_status == BF_SUCCESS);
+	
+  	bf_status = bf_rt_key_field_id_get(p02_ecmp_group_Table, "meta.l3.egr_pipeline", 
+						&ecmp_group_key_field_id);
+  	assert(bf_status == BF_SUCCESS);
+	
+  	bf_status = bf_rt_key_field_id_get(p02_ecmp_group_Table, "meta.ratelimit.have_shared_bd", 
+						&have_shared_bd_key_field_id);
   	assert(bf_status == BF_SUCCESS);
 
   	/***********************************************************************
@@ -60,12 +73,30 @@ void p02_ecmp_group_table_setup() {
   	assert(bf_status == BF_SUCCESS);
 }
 
-static int p02_ecmp_group_key_setup(uint16_t egr_pipeline,
+static int p02_ecmp_group_key_setup(ecmpGroupKey *key,
                        bf_rt_table_key_hdl *table_key) {
   	bf_status_t bf_status;
-  	bf_status = bf_rt_key_field_set_value(table_key, ecmp_group_key_field_id, egr_pipeline);
+
+	bf_status = bf_rt_key_field_set_value(table_key, 
+			priority_field_id, 
+			key->priority);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+	
+  	bf_status = bf_rt_key_field_set_value(table_key, 
+		ecmp_group_key_field_id, 
+		key->egr_pipeline);
   	if (bf_status != BF_SUCCESS)
 		return -1;
+	
+  	bf_status = bf_rt_key_field_set_value_and_mask(table_key, 
+			have_shared_bd_key_field_id, 
+			key->have_shared_bd,
+			key->have_shared_bd_mask);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
 
 	return 0;
 }
@@ -80,7 +111,7 @@ static int p02_ecmp_group_data_setup(bf_rt_table_data_hdl *table_data,
   	return 0;
 }
 
-int p02_ecmp_group_entry_add(uint16_t egr_pipeline,
+int p02_ecmp_group_entry_add(ecmpGroupKey *key,
                                       uint16_t selector_group_id) {
 	bf_status_t status;
 	jd_bf_rt_t *jd_bf_p = &jd_bfrt;
@@ -89,7 +120,7 @@ int p02_ecmp_group_entry_add(uint16_t egr_pipeline,
   	bf_rt_table_data_reset(p02_ecmp_group_Table, &bfrtTableData);
 
   	// Fill in the Key and Data object
-  	if (p02_ecmp_group_key_setup(egr_pipeline, bfrtTableKey) < 0)
+  	if (p02_ecmp_group_key_setup(key, bfrtTableKey) < 0)
 		return -1;
   	if(p02_ecmp_group_data_setup(bfrtTableData, selector_group_id) < 0)
 		return -1;

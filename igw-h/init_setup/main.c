@@ -604,7 +604,7 @@ int main(int argc, char **argv) {
 	eip_ecmp_dl_table_init();
 	meter_drop_table_init();
 	acl_table_init();
-	//ecmp_group02_init();
+	ecmp_group02_init();
 	meter_adjust_init();
 	switchlink_init();
 	switch_monitor_init();

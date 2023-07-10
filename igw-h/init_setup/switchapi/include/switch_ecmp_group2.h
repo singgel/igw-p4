@@ -8,6 +8,10 @@
 #ifndef _SWITCH_ECMP_GROUP2_H__
 #define _SWITCH_ECMP_GROUP2_H__
 
+#define PIPE0_SELECTORCID 1
+#define PIPE1_SELECTORCID 2
+#define PIPE2_SELECTORCID 3
+#define PIPE3_SELECTORCID 4
 
 extern void ecmp_group02_init(void);
 
