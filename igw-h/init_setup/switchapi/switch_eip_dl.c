@@ -106,7 +106,7 @@ static void eip_out_ecmp_dl_table_init() {
 		assert(eip_out_action_profile_entry_add(&key1, &data) == 0);
 		member_nums++;
 		inaddr.s_addr = htonl(dl_ip);
-		SETUP_LOG("BGW_LOG: dl_ip %d: %s\n", i, inet_ntoa(inaddr));
+		SETUP_LOG("IGW_LOG: dl_ip %d: %s\n", i, inet_ntoa(inaddr));
 	}
 
 	eip_out_selector_table_setup();

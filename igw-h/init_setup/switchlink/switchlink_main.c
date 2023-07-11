@@ -19,6 +19,7 @@
 
 #include "switchlink.h"
 #include "switchlink_neigh.h"
+#include "switchlink_route.h"
 
 static pthread_t netlink_thread;
 static int g_nl_fd = -1;
@@ -28,6 +29,10 @@ static void process_netlink_message(struct nlmsghdr *nlmsg) {
     case RTM_NEWNEIGH:
     case RTM_DELNEIGH:		
       	process_neigh_msg(nlmsg, nlmsg->nlmsg_type);
+      	break;
+	case RTM_NEWROUTE:
+    case RTM_DELROUTE:		
+      	process_route_msg(nlmsg, nlmsg->nlmsg_type);
       	break;
     default:
       break;
@@ -110,6 +115,7 @@ static void switchlink_sock_init() {
 	unsigned subscriptions = 0;
 
 	subscriptions |= nl_mgrp(RTNLGRP_NEIGH);
+	subscriptions |= nl_mgrp(RTNLGRP_IPV4_ROUTE);
 	
 	fd = socket(AF_NETLINK, SOCK_RAW | SOCK_CLOEXEC, NETLINK_ROUTE);
 	if (fd < 0) {
@@ -157,8 +163,8 @@ err:
 }
 
 static void *switchlink_main(void *args) {
-
 	neigh_system_init();
+	route_system_init();
 	
 	while (1) {		
 		g_nl_fd = -1;
