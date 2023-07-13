@@ -24,6 +24,7 @@
 #include "switch_config.h"
 #include "switch_device.h"
 #include "switch_ecmp_group2.h"
+#include "bf_ecmp_group_selector.h"
 
 bool pipe0_memberstatus_val[PER_PIPE_PORT_NUMS];
 bool pipe2_memberstatus_val[PER_PIPE_PORT_NUMS];
@@ -165,6 +166,15 @@ static int process_ecmp(struct nlattr *attr, gateway_list_t *gw_list) {
 	return 1;
 }
 
+static void init_members_state(void)
+{	
+	int i;
+	for (i = 0; i < PER_PIPE_PORT_NUMS; i++) {
+		pipe0_memberstatus_val[i] = false;
+		pipe2_memberstatus_val[i] = false;
+	}
+}
+
 void process_route_msg(struct nlmsghdr *nlmsg, int type) 
 { 
 	int hdrlen, attrlen;
@@ -178,9 +188,11 @@ void process_route_msg(struct nlmsghdr *nlmsg, int type)
 	uint32_t gw_ip = 0;
 	gateway_entry_t *gw_entry;	
 	struct in_addr	tmpaddr;
-	bool memberstatus_val[MAX_GATEWAY];
-	int i, ret, need_change = 0;
+	int i, ret, p0_need_change , p2_need_change;
+	ecmpGroupSelectorKey selector_key;
 
+	p0_need_change = 0;
+	p2_need_change = 0;
 	rmsg = nlmsg_data(nlmsg);
   	hdrlen = sizeof(struct rtmsg);
 
@@ -236,11 +248,54 @@ void process_route_msg(struct nlmsghdr *nlmsg, int type)
 		return ;
 	}
 
-	//init_gateways_state();
+	init_members_state();
 
 	if (!ecmp_valid && (gateway_valid == 1)) {
 		gw_list.gw_ip[0] = gateway_addr.ip;
 		gw_list.nums = 1;
+	}
+
+	SETUP_LOG("IGW: default route nexthop changed!\n");
+	for (i == 0; i < gw_list.nums; i++) {
+		gw_ip = gw_list.gw_ip[i];
+		gw_entry = gw_entry_get(gw_ip);
+		if (gw_entry) {
+			if (gw_entry->pipe == 0) {
+				p0_need_change = 1;
+				pipe0_memberstatus_val[gw_entry->member_index] = true;
+			} else {
+				p2_need_change = 1;
+				pipe2_memberstatus_val[gw_entry->member_index] = true;
+			}
+			tmpaddr.s_addr = htonl(gw_entry->gw_ip);
+			SETUP_LOG("IGW: oif: Ethernet%d devport:%d gateway_ip: %s pipe:%d\n", 
+						(gw_entry->fp_port/4) + 1,
+						 gw_entry->dev_port,inet_ntoa(tmpaddr),
+						 gw_entry->pipe);
+		}
+	}
+
+	if (!p0_need_change && !p2_need_change)
+		return ;
+
+	if (p0_need_change) {
+		selector_key.selector_groupid = PIPE0_SELECTORCID;
+		ret = ecmp_group_selector_entry_add(&selector_key, PER_PIPE_PORT_NUMS,
+			pipe0_memberid_val, PER_PIPE_PORT_NUMS,
+			pipe0_memberstatus_val, PER_PIPE_PORT_NUMS, false);
+		if (ret < 0) {
+			SETUP_LOG("IGW_ERROR: igw set pipe0 ecmp state error!\n");
+		}
+	}
+
+	if (p2_need_change) {
+		selector_key.selector_groupid = PIPE2_SELECTORCID;
+		ret = ecmp_group_selector_entry_add(&selector_key, PER_PIPE_PORT_NUMS,
+			pipe2_memberid_val, PER_PIPE_PORT_NUMS,
+			pipe2_memberstatus_val, PER_PIPE_PORT_NUMS, false);
+		if (ret < 0) {
+			SETUP_LOG("IGW_ERROR: igw set pipe2 ecmp state error!\n");
+		}
 	}
 }
 

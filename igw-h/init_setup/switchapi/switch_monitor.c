@@ -16,43 +16,6 @@
 static pthread_t monitor_thread;
 static monitor_devport_array_t g_monitor_devports;
 
-#if 0
-static uint8_t get_pipe_from_dev_port_65x(uint32_t dev_port) {
-	uint8_t pipe = 0;
-
-	if (dev_port >= 0 && dev_port <= 60) {
-		pipe = 0;
-	} else if (dev_port >= 128 && dev_port <= 188) {
-		pipe = 1;
-	} else if (dev_port >= 256 && dev_port <= 316) {
-		pipe = 2;
-	} else if (dev_port >= 384 && dev_port <= 444) {
-		pipe = 3;
-	} 
-	
-	return pipe;
-}
-
-static uint8_t get_pipe_from_dev_port_32x(uint32_t dev_port) {
-	uint8_t pipe = 0;
-
-	if (dev_port >= 0 && dev_port <= 60) {
-		pipe = 0;
-	} else if (dev_port >= 128 && dev_port <= 188) {
-		pipe = 1;
-	} 
-	
-	return pipe;
-}
-
-static uint8_t get_pipe_from_dev_port(uint32_t dev_port) {
-	if (switch_cfg.hardware_model == Wedge_100BF_65X) {
-		return get_pipe_from_dev_port_65x(dev_port);
-	} 
-	return get_pipe_from_dev_port_32x(dev_port);
-}
-#endif
-
 static void monitor_devports_init(){
 	int i;	
     switch_hostif_t *hostif;
