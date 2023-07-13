@@ -14,6 +14,7 @@
 #include <sys/sysinfo.h>
 #include <unistd.h>
 #include <sys/select.h>
+#include <semaphore.h>
 #include <errno.h>
 #include "utils.h"
 
@@ -23,6 +24,7 @@
 
 static pthread_t netlink_thread;
 static int g_nl_fd = -1;
+sem_t netlink_sem;
 
 static void process_netlink_message(struct nlmsghdr *nlmsg) {
   switch (nlmsg->nlmsg_type) {
@@ -165,6 +167,7 @@ err:
 static void *switchlink_main(void *args) {
 	neigh_system_init();
 	route_system_init();
+	sem_post(&netlink_sem);
 	
 	while (1) {		
 		g_nl_fd = -1;
@@ -181,6 +184,9 @@ static void *switchlink_main(void *args) {
 }
 
 int switchlink_init() {
+	if (sem_init(&netlink_sem, 0, 0) < 0) 		
+		SETUP_PANIC("netlink_sem intitialization failed\n");
+		
   	if (pthread_create(&netlink_thread, NULL, switchlink_main, NULL) !=0 )
 		SETUP_PANIC("switchlink_main thread create fail!\n");
 }

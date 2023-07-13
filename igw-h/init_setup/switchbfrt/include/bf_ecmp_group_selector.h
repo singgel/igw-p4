@@ -20,6 +20,7 @@ extern void ecmp_group_selector_table_setup();
 extern int ecmp_group_selector_entry_add(ecmpGroupSelectorKey *key,
                                         uint16_t max_group_size,
                                         uint32_t *memberid_val,uint16_t memberid_num,
-										bool *memberstatus_val,uint16_t memberstatus_num);
+										bool *memberstatus_val,uint16_t memberstatus_num
+										,const bool add);
 #endif
 

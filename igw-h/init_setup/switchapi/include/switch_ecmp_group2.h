@@ -13,6 +13,14 @@
 #define PIPE2_SELECTORCID 3
 #define PIPE3_SELECTORCID 4
 
+#define PER_PIPE_PORT_NUMS  16
+
+extern uint32_t pipe0_memberid_val[PER_PIPE_PORT_NUMS];
+extern uint32_t pipe2_memberid_val[PER_PIPE_PORT_NUMS];
+
+extern uint32_t pipe0_devport_val[PER_PIPE_PORT_NUMS];
+extern uint32_t pipe2_devport_val[PER_PIPE_PORT_NUMS];
+
 extern void ecmp_group02_init(void);
 
 #endif

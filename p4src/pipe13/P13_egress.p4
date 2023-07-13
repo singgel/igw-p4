@@ -34,10 +34,8 @@ control P13_Egress(
                 encap_outer_vxlan.apply(EPP_META);
             }
             
-            if (hdr.vxlan.isValid())  { 
-                eip_in_redirect.apply(EPP_META); 
-            } 
-
+            eip_in_redirect.apply(EPP_META); 
+            
             if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
                 eip_in_ingress_pkt_stats.apply(EPP_META); 
                 eip_in_meter.apply(EPP_META); 

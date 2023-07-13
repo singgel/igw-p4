@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <syslog.h>
 #include <sys/socket.h>
+#include <semaphore.h>
 #include <signal.h>
 #include "jd_bfrt.h"
 #include "utils.h"
@@ -578,6 +579,7 @@ static void init_setup_daemonize(void) {
 #define P4_NAME "igw_switch"
 
 extern void switch_monitor_init(void);
+extern sem_t netlink_sem;
 int main(int argc, char **argv) {	
 	int agent_idx = 0;
 	bf_switchd_context_t *switchd_main_ctx = NULL;
@@ -596,7 +598,6 @@ int main(int argc, char **argv) {
 
 	switch_device_create();
 	bf_rt_setup(P4_NAME);
-	process_protocol_packet_table_init();
 	mirror_table_init();
 	igw_ip_type_table_init();
 	eip_in_jd_vxlan_table_init();
@@ -606,7 +607,13 @@ int main(int argc, char **argv) {
 	acl_table_init();
 	ecmp_group02_init();
 	meter_adjust_init();
-	switchlink_init();
+	
+	/*switchlink_init must execute before 
+		process_protocol_packet_table_init*/
+	switchlink_init(); 
+	sem_wait(&netlink_sem);
+	sleep(1);
+	process_protocol_packet_table_init();
 	switch_monitor_init();
 
   	pthread_join(switchd_main_ctx->tmr_t_id, NULL);

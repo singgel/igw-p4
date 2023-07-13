@@ -27,6 +27,12 @@
 #include "bf_ecmp_group_selector.h"
 #include "bf_ecmp_group_02_v2.h"
 
+uint32_t pipe0_memberid_val[PER_PIPE_PORT_NUMS];
+uint32_t pipe2_memberid_val[PER_PIPE_PORT_NUMS];
+
+uint32_t pipe0_devport_val[PER_PIPE_PORT_NUMS];
+uint32_t pipe2_devport_val[PER_PIPE_PORT_NUMS];
+
 static void ecmp_group02_init_2p() {
 	int i;
 	ecmpGroupKey egkey;
@@ -54,7 +60,7 @@ static void ecmp_group02_init_2p() {
 	memberstatus_num= 16;
 	assert(ecmp_group_selector_entry_add(&selector_key,max_group_size,
 		memberid_val, memberid_num,
-		memberstatus_val, memberstatus_num) == 0);
+		memberstatus_val, memberstatus_num,true) == 0);
 
 	egkey.priority = 0;
 	egkey.egr_pipeline = EGR_PIPELINE_1;
@@ -99,7 +105,7 @@ static void ecmp_group02_init_4p() {
 	memberstatus_num= 16;
 	assert(ecmp_group_selector_entry_add(&selector_key,max_group_size,
 		memberid_val, memberid_num,
-		memberstatus_val, memberstatus_num) == 0);
+		memberstatus_val, memberstatus_num,true) == 0);
 
     //PIPE 3 port
 	for (i = 17; i < 33; i++) {
@@ -116,13 +122,14 @@ static void ecmp_group02_init_4p() {
 	memberstatus_num= 16;
 	assert(ecmp_group_selector_entry_add(&selector_key,max_group_size,
 		memberid_val, memberid_num,
-		memberstatus_val, memberstatus_num) == 0);
+		memberstatus_val, memberstatus_num,true) == 0);
 
 	//PIPE 0 port
 	for (i = 33; i < 49; i++) {
 		key.memberid = i;
 		data.egress_port = 0 + (i - 33) * 4;
-		memberid_val[i - 33] = i;
+		pipe0_memberid_val[i - 33] = i;
+		pipe0_devport_val[i - 33] = data.egress_port;
 		memberstatus_val[i - 33] = false;
 		assert(ecmp_group_action_profile_entry_add(&key,&data) == 0);
 	}
@@ -132,14 +139,15 @@ static void ecmp_group02_init_4p() {
 	memberid_num = 16;
 	memberstatus_num= 16;
 	assert(ecmp_group_selector_entry_add(&selector_key,max_group_size,
-		memberid_val, memberid_num,
-		memberstatus_val, memberstatus_num) == 0);
+		pipe0_memberid_val, memberid_num,
+		memberstatus_val, memberstatus_num,true) == 0);
 
 	//PIPE 2 port
 	for (i = 49; i < 65; i++) {
 		key.memberid = i;
 		data.egress_port = 256 + (i - 49) * 4;
-		memberid_val[i - 49] = i;
+		pipe2_memberid_val[i - 49] = i;
+		pipe2_devport_val[i - 49] = data.egress_port;
 		memberstatus_val[i - 49] = false;
 		assert(ecmp_group_action_profile_entry_add(&key,&data) == 0);
 	}
@@ -149,8 +157,8 @@ static void ecmp_group02_init_4p() {
 	memberid_num = 16;
 	memberstatus_num= 16;
 	assert(ecmp_group_selector_entry_add(&selector_key,max_group_size,
-		memberid_val, memberid_num,
-		memberstatus_val, memberstatus_num) == 0);
+		pipe2_memberid_val, memberid_num,
+		memberstatus_val, memberstatus_num, true) == 0);
 
 	/***************************************************************/
 	egkey.priority = 0;

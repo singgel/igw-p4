@@ -14,6 +14,10 @@
 #include <syslog.h>
 #include <stdint.h>
 
+typedef struct switchlink_ip_addr_ {
+  uint32_t ip;
+  uint8_t  prefix_len;
+} switchlink_ip_addr_t;
 
 #define NETL_POLL_TIMEOUT 1000
 

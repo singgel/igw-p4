@@ -16,6 +16,7 @@
 static pthread_t monitor_thread;
 static monitor_devport_array_t g_monitor_devports;
 
+#if 0
 static uint8_t get_pipe_from_dev_port_65x(uint32_t dev_port) {
 	uint8_t pipe = 0;
 
@@ -50,6 +51,7 @@ static uint8_t get_pipe_from_dev_port(uint32_t dev_port) {
 	} 
 	return get_pipe_from_dev_port_32x(dev_port);
 }
+#endif
 
 static void monitor_devports_init(){
 	int i;	
@@ -60,7 +62,7 @@ static void monitor_devports_init(){
 		hostif = &g_hostif_info_array.hostifs[i].hostif;
 		g_monitor_devports.devports[i].dev_port = hostif->dev_port;		
 		g_monitor_devports.devports[i].fp_port = hostif->fake_fp_port;
-		g_monitor_devports.devports[i].pipe = get_pipe_from_dev_port(hostif->dev_port);
+		g_monitor_devports.devports[i].pipe = DEV_PORT_TO_PIPE(hostif->dev_port);
 		g_monitor_devports.devports[i].crcError = 0;		
 		g_monitor_devports.devports[i].FCSError = 0;
 		g_monitor_devports.devports[i].ig_tm_count = 0;		

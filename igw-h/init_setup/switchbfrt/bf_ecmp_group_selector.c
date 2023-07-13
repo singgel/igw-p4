@@ -112,7 +112,8 @@ static int ecmp_group_selector_data_setup(bf_rt_table_data_hdl *table_data,
 int ecmp_group_selector_entry_add(ecmpGroupSelectorKey *key,
                                         uint16_t max_group_size,
                                         uint32_t *memberid_val,uint16_t memberid_num,
-										bool *memberstatus_val,uint16_t memberstatus_num) {
+										bool *memberstatus_val,uint16_t memberstatus_num
+										,const bool add) {
 	bf_status_t status;
 	jd_bf_rt_t *jd_bf_p = &jd_bfrt;
 
@@ -128,7 +129,7 @@ int ecmp_group_selector_entry_add(ecmpGroupSelectorKey *key,
 
   	// Call table entry add API, if the request is for an add, else call modify
   	status = BF_SUCCESS;
-  	if (1) {
+  	if (add) {
     	status = bf_rt_table_entry_add(ecmp_group_selector_Table, 
 					jd_bf_p->session, 
     				&jd_bf_p->dev_tgt, 
@@ -137,7 +138,16 @@ int ecmp_group_selector_entry_add(ecmpGroupSelectorKey *key,
 			#endif
 					bfrtTableKey, 
 					bfrtTableData);
-  	} 
+  	} else {
+    	status = bf_rt_table_entry_mod(ecmp_group_selector_Table, 
+					jd_bf_p->session, 
+    				&jd_bf_p->dev_tgt,
+    		#ifdef BFRT_GENERIC_FLAGS
+							       0,
+			#endif
+    				bfrtTableKey, 
+    				bfrtTableData);
+  	}
 	
   	if (status == BF_SUCCESS) {
   		bf_rt_session_complete_operations(jd_bf_p->session);
