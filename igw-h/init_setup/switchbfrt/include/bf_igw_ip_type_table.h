@@ -24,6 +24,10 @@ typedef struct igwIpTypeKey_s {
   uint64_t inner_ipv4_dstaddr_mask;
   uint64_t inner_ipv6_isvalid;
   uint64_t inner_ipv6_isvalid_mask;
+  uint64_t inner_ipv6_dstaddr;
+  uint64_t inner_ipv6_dstaddr_mask;
+  uint64_t inner_ipv6_srcaddr;
+  uint64_t inner_ipv6_srcaddr_mask;
   uint64_t vxlan_type;
   uint64_t vxlan_type_mask;
   uint64_t vxlan_tof;

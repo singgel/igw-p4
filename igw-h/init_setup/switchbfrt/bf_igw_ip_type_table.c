@@ -35,6 +35,8 @@ static bf_rt_id_t vxlan_is_valid_field_id = 0;
 static bf_rt_id_t inner_ipv4_is_valid_field_id = 0;
 static bf_rt_id_t inner_ipv4_dstaddr_field_id = 0;
 static bf_rt_id_t inner_ipv6_is_valid_field_id = 0;
+static bf_rt_id_t inner_ipv6_dstaddr_field_id = 0;
+static bf_rt_id_t inner_ipv6_srcaddr_field_id = 0;
 static bf_rt_id_t vxlan_type_field_id = 0;
 static bf_rt_id_t vxlan_tof_field_id = 0;
 static bf_rt_id_t ipv6_is_valid_field_id = 0;
@@ -121,6 +123,16 @@ void igw_ip_type_table_setup()
 			"hdr.inner_ipv6.$valid", 
 			&inner_ipv6_is_valid_field_id);
 	assert(bf_status == BF_SUCCESS);
+
+	bf_status = bf_rt_key_field_id_get(igwIpTypeTable, 
+		"inner_ipv6_dstaddr", 
+		&inner_ipv6_dstaddr_field_id);
+  	assert(bf_status == BF_SUCCESS);
+
+	bf_status = bf_rt_key_field_id_get(igwIpTypeTable, 
+		"inner_ipv6_srcaddr", 
+		&inner_ipv6_srcaddr_field_id);
+  	assert(bf_status == BF_SUCCESS);
 
 	bf_status = bf_rt_key_field_id_get(igwIpTypeTable, 
 			"meta.tunnel.vxlan_type", 
@@ -246,6 +258,22 @@ static int igwIpType_key_setup(const igwIpTypeKey *key,
 			inner_ipv6_is_valid_field_id, 
 			key->inner_ipv6_isvalid,
 			key->inner_ipv6_isvalid_mask);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+
+	bf_status = bf_rt_key_field_set_value_and_mask(table_key, 
+			inner_ipv6_dstaddr_field_id, 
+			key->inner_ipv6_dstaddr,
+			key->inner_ipv6_dstaddr_mask);
+  	if (bf_status != BF_SUCCESS) {
+		return -1;
+  	}
+
+	bf_status = bf_rt_key_field_set_value_and_mask(table_key, 
+			inner_ipv6_srcaddr_field_id, 
+			key->inner_ipv6_srcaddr,
+			key->inner_ipv6_srcaddr_mask);
   	if (bf_status != BF_SUCCESS) {
 		return -1;
   	}

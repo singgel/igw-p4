@@ -104,6 +104,8 @@ control IgwIpType(inout headers_t hdr,
             hdr.inner_ipv4.isValid()    : ternary;
             hdr.inner_ipv4.dstAddr      : ternary;
             hdr.inner_ipv6.isValid()    : ternary;
+            hdr.inner_ipv6.dstAddr[1:0] : ternary @name("inner_ipv6_dstaddr");
+            hdr.inner_ipv6.srcAddr[1:0] : ternary @name("inner_ipv6_srcaddr");
             meta.tunnel.vxlan_type      : ternary;
             hdr.vxlan.tof               : ternary;
             hdr.ipv6.isValid()          : ternary;
