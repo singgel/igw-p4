@@ -29,6 +29,7 @@
 #include "switch_acl_table_init.h"
 #include "switch_ecmp_group2.h"
 #include "switch_meter_adjust.h"
+#include "switch_symmetric_mode_set.h"
 
 const char *g_init_setup_filename = "/var/run/init_setup.file";
 
@@ -607,6 +608,7 @@ int main(int argc, char **argv) {
 	acl_table_init();
 	ecmp_group02_init();
 	meter_adjust_init();
+	symmetric_mode_set_init();
 	
 	/*switchlink_init must execute before 
 		process_protocol_packet_table_init*/
