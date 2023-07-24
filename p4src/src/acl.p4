@@ -54,7 +54,9 @@ control IngressSystemAcl(inout headers_t hdr,
             meta.l3.lkp_ip_proto        : ternary;
             hdr.vxlan.isValid()         : ternary;
             hdr.vxlan.vni               : ternary;
-            ig_intr_md.ingress_port     : ternary;
+            hdr.bg_md.dl_pkt            : ternary;
+            hdr.vxlan.tof               : ternary;
+            hdr.bg_md.igr_tunnel_type   : ternary;
         }
 
         actions = {
@@ -136,7 +138,9 @@ control EgressSystemAcl(
             meta.l3.lkp_ip_proto        : ternary;
             hdr.bg_md.lkp_vni           : ternary;
             hdr.bg_md.need_drop         : ternary;
-            eg_intr_md.egress_port      : ternary;
+            hdr.bg_md.dl_pkt            : ternary;
+            hdr.vxlan.tof               : ternary;
+            hdr.bg_md.igr_tunnel_type   : ternary;
         }
 
         actions = {

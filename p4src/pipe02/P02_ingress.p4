@@ -26,12 +26,13 @@ control P02_Ingress(
     apply {
         decap_md.apply(IPP_META);
         process_local_packet.apply(IPP_META);
-        system_acl.apply(IPP_META);
 
         if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
             igw_ip_type.apply(IPP_META);
         }
         
+        system_acl.apply(IPP_META);
+
         if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
             if (hdr.bg_md.igr_tunnel_type == TYPE_INGRESS_INTERNET_OUT) {//internet out
                 fip_snat.apply(IPP_META);
