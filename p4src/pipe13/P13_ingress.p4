@@ -20,8 +20,10 @@ control P13_Ingress(
     EipInMeterDropStats()       eip_in_drop_stats;
     NexthopProcess()            nexthop_process;
     EipInEgressPktStats()       eip_in_egress_pstats;
+    DecapMetaData_13()          decapmd13;
 
     apply {
+        decapmd13.apply(IPP_META);
         ig_tm_md.ucast_egress_port = hdr.bg_md.igr_port;
         if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
             eip_in_shared_meter.apply(IPP_META);

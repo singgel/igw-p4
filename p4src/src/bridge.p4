@@ -246,3 +246,69 @@ control DecapMetaData_I2E02(
         eg_decap_md02.apply();
     }       
 }
+
+control DecapMetaData_13(inout headers_t hdr,
+            inout common_metadata_t meta,
+            in ingress_intrinsic_metadata_t ig_intr_md,
+            in ingress_intrinsic_metadata_from_parser_t ig_intr_from_prsr,
+            inout ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
+            inout ingress_intrinsic_metadata_for_tm_t  ig_tm_md) {
+
+    action ig_decap_md13_overlay_v4() {
+        meta.l3.lkp_sip = (bit<128>)hdr.inner_ipv4.srcAddr;
+        meta.l3.lkp_dip = (bit<128>)hdr.inner_ipv4.dstAddr;
+    }   
+
+    action ig_decap_md13_overlay_v4_nlb_eip() {
+        meta.l3.lkp_sip = (bit<128>)hdr.inner_ipv4.srcAddr;
+        meta.l3.lkp_dip = (bit<128>)hdr.inner_ipv4.dstAddr;
+        meta.l3.lkp_ip_proto = 0;
+        meta.l3.lkp_l4_sport = 0;
+        meta.l3.lkp_l4_dport = 0;
+    } 
+
+    action ig_decap_md13_overlay_v6() {
+        meta.l3.lkp_sip = hdr.inner_ipv6.srcAddr;
+        meta.l3.lkp_dip = hdr.inner_ipv6.dstAddr;
+    }   
+
+    action ig_decap_md13_overlay_v6_nlb_eip() {
+        meta.l3.lkp_sip = hdr.inner_ipv6.srcAddr;
+        meta.l3.lkp_dip = hdr.inner_ipv6.dstAddr;
+        meta.l3.lkp_ip_proto = 0;
+        meta.l3.lkp_l4_sport = 0;
+        meta.l3.lkp_l4_dport = 0;
+    }  
+
+    action ig_decap_md13_nop() {
+
+    }   
+
+    table ig_decap_md13 {
+        key = {
+            hdr.inner_ipv4.isValid() : exact;           
+            hdr.inner_ipv6.isValid() : exact;
+            hdr.bg_md.nlb_eip        : exact;
+        }
+
+        actions = {
+            ig_decap_md13_overlay_v4;
+            ig_decap_md13_overlay_v4_nlb_eip;
+            ig_decap_md13_overlay_v6;
+            ig_decap_md13_overlay_v6_nlb_eip;
+            ig_decap_md13_nop;
+        }
+
+        size = 6;
+        const entries = {
+            {true, false, 0}   : ig_decap_md13_overlay_v4;
+            {true, false, 1}   : ig_decap_md13_overlay_v4_nlb_eip;
+            {false, true, 0}   : ig_decap_md13_overlay_v6;
+            {false, true ,1}   : ig_decap_md13_overlay_v6_nlb_eip;
+        }
+    }
+
+    apply {
+        ig_decap_md13.apply();
+    }
+}

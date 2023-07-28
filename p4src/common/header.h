@@ -160,7 +160,8 @@ header bridge_metadata_t {
     bit<12>  tunnel_dst_id;
 
     bit<3> tunnel_direct_send;
-    bit<3> egr_tunnel_type;
+    bit<1> nlb_eip;
+    bit<2> egr_tunnel_type;   
     bit<2>  meter_packet_color;
 
     bit<16> lkp_l4_sport;
@@ -189,7 +190,8 @@ header bridge_metadata_t {
     bit<12>  tunnel_dst_id;
     
     bit<3> tunnel_direct_send;
-    bit<3> egr_tunnel_type;
+    bit<1> nlb_eip;
+    bit<2> egr_tunnel_type;
     bit<2> meter_packet_color;
 }
 #endif

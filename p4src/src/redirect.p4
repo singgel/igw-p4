@@ -23,11 +23,12 @@ control EipInRedirect(
     }
 
     action set_bw_id(bit<32> bandwidth_id, bit<12> shared_bandwidth_id,
-            bit<1> within_cluster, bit<1> between_cluster) {
+            bit<1> within_cluster, bit<1> between_cluster, bit<1> nlb_eip) {
         meta.ratelimit.bandwidth_id = bandwidth_id;
         hdr.bg_md.shared_bandwidth_id = (bit<16>) shared_bandwidth_id;
         meta.ratelimit.within_cluster = within_cluster;
         meta.ratelimit.between_cluster = between_cluster;
+        hdr.bg_md.nlb_eip = nlb_eip;
     }
 
     table eip_in_redirect {
