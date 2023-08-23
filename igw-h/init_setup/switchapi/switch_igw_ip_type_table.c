@@ -56,6 +56,11 @@ static void internet_out_entry_init() {
 	key.ipv6_isvalid_mask = 0x1;
 	assert(entry_add_with_ip_from_internet_out_hit(&key,EGR_PIPELINE_2) == 0);
 
+	if (switch_cfg.backup_vip != 0) {
+		key.ipv4_dstaddr = switch_cfg.backup_vip;		
+		assert(entry_add_with_ip_from_internet_out_hit(&key,EGR_PIPELINE_2) == 0);
+	}
+
 	//2. dst ip is vip, std vxlan, inner_ipv6, tof=0
 	memset(&key, 0, sizeof(igwIpTypeKey));
 	key.priority = HIGHEST_PRI;
@@ -79,6 +84,11 @@ static void internet_out_entry_init() {
 	key.ipv6_isvalid_mask = 0x1;
 	assert(entry_add_with_ip_from_internet_out_hit(&key,EGR_PIPELINE_0) == 0);
 
+	if (switch_cfg.backup_vip != 0) {
+		key.ipv4_dstaddr = switch_cfg.backup_vip;
+		assert(entry_add_with_ip_from_internet_out_hit(&key,EGR_PIPELINE_0) == 0);
+	}
+	
 	//3. dst ip is vip, std vxlan, inner_ipv6, tof=0
 	memset(&key, 0, sizeof(igwIpTypeKey));
 	key.priority = HIGHEST_PRI;
@@ -101,6 +111,11 @@ static void internet_out_entry_init() {
 	key.ipv6_isvalid = 0;
 	key.ipv6_isvalid_mask = 0x1;
 	assert(entry_add_with_ip_from_internet_out_hit(&key,EGR_PIPELINE_2) == 0);
+
+	if (switch_cfg.backup_vip != 0) {
+		key.ipv4_dstaddr = switch_cfg.backup_vip;
+		assert(entry_add_with_ip_from_internet_out_hit(&key,EGR_PIPELINE_2) == 0);
+	}
 }
 
 static void internet_out_between_cluster_dl_entry_init() {
@@ -127,6 +142,11 @@ static void internet_out_between_cluster_dl_entry_init() {
 	key.ipv6_isvalid_mask = 0x1;
 	assert(entry_add_with_ip_from_internet_out_dl_hit(&key,EGR_PIPELINE_2) == 0);
 
+	if (switch_cfg.backup_vip != 0) {
+		key.ipv4_dstaddr = switch_cfg.backup_vip;
+		assert(entry_add_with_ip_from_internet_out_dl_hit(&key,EGR_PIPELINE_2) == 0);
+	}
+	
 	//2. dst ip is vip, jd vxlan, inner_ipv6, tof=TOF_AZ_OUT
 	memset(&key, 0, sizeof(igwIpTypeKey));
 	key.priority = HIGHEST_PRI;
@@ -150,6 +170,11 @@ static void internet_out_between_cluster_dl_entry_init() {
 	key.ipv6_isvalid_mask = 0x1;
 	assert(entry_add_with_ip_from_internet_out_dl_hit(&key,EGR_PIPELINE_0) == 0);
 
+	if (switch_cfg.backup_vip != 0) {
+		key.ipv4_dstaddr = switch_cfg.backup_vip;
+		assert(entry_add_with_ip_from_internet_out_dl_hit(&key,EGR_PIPELINE_0) == 0);
+	}
+
 	//2. dst ip is vip, jd vxlan, inner_ipv6, tof=TOF_AZ_OUT
 	memset(&key, 0, sizeof(igwIpTypeKey));
 	key.priority = HIGHEST_PRI;
@@ -172,6 +197,11 @@ static void internet_out_between_cluster_dl_entry_init() {
 	key.ipv6_isvalid = 0;
 	key.ipv6_isvalid_mask = 0x1;
 	assert(entry_add_with_ip_from_internet_out_dl_hit(&key,EGR_PIPELINE_2) == 0);
+
+	if (switch_cfg.backup_vip != 0) {
+		key.ipv4_dstaddr = switch_cfg.backup_vip;
+		assert(entry_add_with_ip_from_internet_out_dl_hit(&key,EGR_PIPELINE_2) == 0);
+	}
 }
 
 static void internet_out_within_cluster_dl_entry_init() {
@@ -340,6 +370,11 @@ static void internet_in_between_cluster_dl_entry_init() {
 	key.ipv6_isvalid = 0;
 	key.ipv6_isvalid_mask = 0x1;
 	assert(entry_add_with_ip_from_internet_in_dl_hit(&key,EGR_PIPELINE_1) == 0);
+	
+	if (switch_cfg.backup_vip != 0) {
+		key.ipv4_dstaddr = switch_cfg.backup_vip;
+		assert(entry_add_with_ip_from_internet_in_dl_hit(&key,EGR_PIPELINE_1) == 0);
+	}
 
 	//2. dst ip is vip, jd vxlan, inner_ipv4, tof=TOF_AZ_IN
 	memset(&key, 0, sizeof(igwIpTypeKey));
@@ -364,6 +399,11 @@ static void internet_in_between_cluster_dl_entry_init() {
 	key.ipv6_isvalid_mask = 0x1;
 	assert(entry_add_with_ip_from_internet_in_dl_hit(&key,EGR_PIPELINE_3) == 0);
 
+	if (switch_cfg.backup_vip != 0) {
+		key.ipv4_dstaddr = switch_cfg.backup_vip;
+		assert(entry_add_with_ip_from_internet_in_dl_hit(&key,EGR_PIPELINE_3) == 0);
+	}
+
 	//3. dst ip is vip, jd vxlan, inner_ipv6, tof=TOF_AZ_IN
 	memset(&key, 0, sizeof(igwIpTypeKey));
 	key.priority = HIGHEST_PRI;
@@ -387,6 +427,11 @@ static void internet_in_between_cluster_dl_entry_init() {
 	key.ipv6_isvalid_mask = 0x1;
 	assert(entry_add_with_ip_from_internet_in_dl_hit(&key, EGR_PIPELINE_1) == 0);
 
+	if (switch_cfg.backup_vip != 0) {
+		key.ipv4_dstaddr = switch_cfg.backup_vip;
+		assert(entry_add_with_ip_from_internet_in_dl_hit(&key, EGR_PIPELINE_1) == 0);
+	}
+
 	//4. dst ip is vip, jd vxlan, inner_ipv6, tof=TOF_AZ_IN
 	memset(&key, 0, sizeof(igwIpTypeKey));
 	key.priority = HIGHEST_PRI;
@@ -409,6 +454,11 @@ static void internet_in_between_cluster_dl_entry_init() {
 	key.ipv6_isvalid = 0;
 	key.ipv6_isvalid_mask = 0x1;
 	assert(entry_add_with_ip_from_internet_in_dl_hit(&key, EGR_PIPELINE_3) == 0);
+
+	if (switch_cfg.backup_vip != 0) {
+		key.ipv4_dstaddr = switch_cfg.backup_vip;		
+		assert(entry_add_with_ip_from_internet_in_dl_hit(&key, EGR_PIPELINE_3) == 0);
+	}
 }
 
 static void internet_in_within_cluster_dl_entry_init() {

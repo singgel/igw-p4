@@ -395,7 +395,7 @@ static void mgt_ip_and_vip_add() {
 	ip_addr_add_lo(switch_cfg.vip_addr);
 
 	if (switch_cfg.backup_vip != 0) {
-		ip_addr_add_dummy(switch_cfg.backup_vip_addr, "dummy-vip");
+		ip_addr_add_lo(switch_cfg.backup_vip_addr);
 	}
 }
 	
