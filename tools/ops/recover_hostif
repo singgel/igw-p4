@@ -35,78 +35,44 @@ function exit_str_null()
     fi
 }
 
-function get_ip()
+function get_gw_ip()
 {
     IP=`ifconfig -a $HOSTIF | grep inet | grep -v inet6 | awk -F ' ' '{print $2}'`
     exit_str_null "$HOSTIF is not found or no ip!" $IP
     IP_CHECK=`cat /etc/hostif.json | grep $IP`
     exit_str_null "hostif ip is not fount in /etc/hostif.json!" $IP_CHECK
-    VIP=`cat /etc/hostif.json | grep vip | grep -v backup_vip | awk -F '"' '{print $4}'`
-    exit_str_null "vip is not found!" $VIP
-    MIP=`cat /etc/hostif.json | grep mgt_ip | awk -F '"' '{print $4}'`
-    exit_str_null "mgt_ip is not found!" $MIP
-
-    #echo "IP=$IP"
-    #echo "VIP=$VIP"
-    #echo "MIP=$MIP"
+    GW_IP=`cat /etc/hostif.json | grep $HOSTIF -A3 | grep gw_ip | awk -F '"' '{print $4}'`
+    exit_str_null "gw_ip is not found !" $GW_IP
+    SHUTDOWN_BGP_PEER="no neighbor $GW_IP shutdown"
 }
 
-function get_prefix-list-name()
-{
-   PL_NAME=`cat /etc/frr/frr.conf | grep $IP/32 | grep "ip prefix-list" | awk -F " " '{print $3}'`
-   exit_str_null "prefix-listname is not found!" $PL_NAME
-   #echo "prefix-list name = $PL_NAME"
-}
-
-function get_vip_prefix-list()
-{
-    VIP_PREFIX_LIST=` cat /etc/frr/frr.conf | grep "ip prefix-list $PL_NAME" | grep $VIP`
-    exit_str_null "vip prefix-listname is not found!" $VIP_PREFIX_LIST
-    #echo "vip prefix-list is = $VIP_PREFIX_LIST"
-}
-
-function get_mip_prefix-list()
-{
-    MIP_PREFIX_LIST=` cat /etc/frr/frr.conf | grep "ip prefix-list $PL_NAME" | grep $MIP`
-    exit_str_null "mip prefix-listname is not found!" $MIP_PREFIX_LIST
-    #echo "mip prefix-list is = $MIP_PREFIX_LIST"
-}
-
-function add_vip_prefix_list()
-{
-  CMD=`vtysh  -c "configure" -c "$VIP_PREFIX_LIST" -c "exit" -c "exit"`
-  if [ "$?" != "0" ];then
-    perror "add vip prefix-list for $HOSTIF fail"
-  else
-    echo "add vip prefix-list for $HOSTIF ok"
-  fi
-}
-
-function add_mip_prefix_list()
-{
-  CMD=`vtysh  -c "configure" -c "$MIP_PREFIX_LIST" -c "exit" -c "exit"`
-  if [ "$?" != "0" ];then
-    perror "add mip prefix-list for $HOSTIF fail"
-  else
-    echo "add mip prefix-list for $HOSTIF ok"
-  fi
-}
-
-function if_up_hostif()
+function if_up_hosit()
 {
     ifconfig $HOSTIF up
     echo "ifconfig $HOSTIF up"
 }
 
+function get_router_bgp_as_num()
+{
+    ROUTE_BGP_AS=`cat /etc/frr/frr.conf  | grep "router bgp"`
+    exit_str_null "router bgp as-number is not found!" $ROUTE_BGP_AS
+}
+
+function no_shutdown_bgp_peer()
+{
+  CMD=`vtysh  -c "configure" -c "$ROUTE_BGP_AS"  -c "$SHUTDOWN_BGP_PEER"  -c "exit" -c "exit" -c "exit"`
+  if [ "$?" != "0" ];then
+        perror "no shutdown bgp peer fail"
+  fi
+  echo "no shutdown bgp peer $GW_IP ok"
+}
+
 function main()
 {
-    get_ip 
-    get_prefix-list-name
-    get_vip_prefix-list
-    get_mip_prefix-list
-    add_mip_prefix_list
-    add_vip_prefix_list
-    if_up_hostif
+    get_gw_ip 
+    get_router_bgp_as_num
+    no_shutdown_bgp_peer
+    if_up_hosit
 }
 
 if [ $# != 1 ];then
