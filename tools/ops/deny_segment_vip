@@ -1,0 +1,66 @@
+#!/bin/bash
+
+RED='\e[1;31m'
+NC='\e[0m'
+
+function perror()
+{
+    echo -e "${RED} ===============================Error=================================== ${NC}"
+    echo -e "${RED} Error: $@ ${NC}"
+    exit 1
+}
+
+function pnerror()
+{
+    echo -e "${RED} ===============================Error=================================== ${NC}"
+    echo -e "${RED} Error: $@ ${NC}"
+}
+
+function pinfo()
+{
+    echo "Info: $@"
+}
+
+function check_str_null()
+{
+    if [ "$2" == "" ];then
+        pnerror "$1"
+    fi
+}
+
+function exit_str_null()
+{
+    if [ "$2" == "" ];then
+        perror "$1"
+    fi
+}
+
+function no_all_ipv4_prefix_list()
+{
+  ALL_IPV4_PREFIX_LIST="ip prefix-list all-ipv4-route seq 5 permit 0.0.0.0/0 le 32"
+  CMD=`vtysh  -c "configure" -c "no $ALL_IPV4_PREFIX_LIST" -c "exit" -c "exit"`
+  if [ "$?" != "0" ];then
+    perror "no all-ipv4-route prefix-list fail"
+  else
+    echo "no all-ipv4-route prefix-list ok"
+  fi
+}
+
+function no_all_ipv6_prefix_list()
+{
+  ALL_IPV6_PREFIX_LIST="ipv6 prefix-list all-ipv6-route seq 5 permit ::/0 le 128"
+  CMD=`vtysh  -c "configure" -c "no $ALL_IPV6_PREFIX_LIST" -c "exit" -c "exit"`
+  if [ "$?" != "0" ];then
+    perror "no all-ipv6-route prefix-list fail"
+  else
+    echo "no all-ipv6-route prefix-list ok"
+  fi
+}
+
+function main()
+{
+    no_all_ipv4_prefix_list
+    no_all_ipv6_prefix_list
+}
+
+main

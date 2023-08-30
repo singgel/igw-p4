@@ -577,6 +577,10 @@ static void init_setup_daemonize(void) {
 	printf("\n");
 }
 
+static void init_ipv6_env() {
+	system("echo 1 > /proc/sys/net/ipv6/conf/all/keep_addr_on_down");
+}
+
 #define P4_NAME "igw_switch"
 
 extern void switch_monitor_init(void);
@@ -597,6 +601,7 @@ int main(int argc, char **argv) {
   	memset(switchd_main_ctx, 0, sizeof(bf_switchd_context_t));	
 	bf_switchd_main(switchd_main_ctx, argc, argv);
 
+	init_ipv6_env();
 	switch_device_create();
 	bf_rt_setup(P4_NAME);
 	mirror_table_init();

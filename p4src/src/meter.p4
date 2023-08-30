@@ -62,9 +62,11 @@ control EipInSharedMeter(inout headers_t hdr,
             inout ingress_intrinsic_metadata_for_tm_t  ig_tm_md) {
     DirectMeter(MeterType_t.BYTES) shared_rl_meter;
     DirectCounter<bit<32>>(CounterType_t.PACKETS) ratelimit_drop_stats;
+    DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats;
 
     action execute_shared_ratelimit() {
         hdr.bg_md.meter_packet_color = (bit<2>)shared_rl_meter.execute(); 
+        stats.count();
     }
 
     table shared_bw_ratelimit {
@@ -76,6 +78,7 @@ control EipInSharedMeter(inout headers_t hdr,
         }
         size = SHARED_BW_SIZE;
         meters = shared_rl_meter;
+        counters = stats;
     }
 
     action drop_packet() {
@@ -166,9 +169,11 @@ control EipOutSharedMeter(
         inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
     DirectMeter(MeterType_t.BYTES) shared_rl_meter;
+    DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats;
 
     action execute_shared_ratelimit() {
         hdr.bg_md.meter_packet_color = (bit<2>)shared_rl_meter.execute(); 
+        stats.count();
     }
 
     table shared_bw_ratelimit {
@@ -180,6 +185,7 @@ control EipOutSharedMeter(
         }
         size = SHARED_BW_SIZE;
         meters = shared_rl_meter;
+        counters = stats;
     }
 
     apply {
