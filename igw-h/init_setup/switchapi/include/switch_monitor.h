@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include "switch_hostif.h"
 
-#define MONITOR_CYCLE  (60)
+#define MONITOR_CYCLE  (20)
 
 typedef struct monitor_devport_s {
 	uint32_t fp_port;		
@@ -27,6 +27,10 @@ typedef struct monitor_devport_array_s {
 	int devport_num;
 	monitor_devport_t devports[HOSTIF_ARRAY_SIZE];
 } monitor_devport_array_t;
+
+#define DOWN 0
+#define UP 1
+#define MAX_DOWN_COUNT 15
 
 #endif
 

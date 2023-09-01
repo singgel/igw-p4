@@ -581,8 +581,6 @@ static void init_ipv6_env() {
 	system("echo 1 > /proc/sys/net/ipv6/conf/all/keep_addr_on_down");
 }
 
-#define P4_NAME "igw_switch"
-
 extern void switch_monitor_init(void);
 extern sem_t netlink_sem;
 int main(int argc, char **argv) {	

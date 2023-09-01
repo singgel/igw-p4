@@ -9,9 +9,11 @@
 #include <pthread.h>
 #include "utils.h"
 #include "switch_port.h"
+#include "switch_device.h"
 #include "switch_device_int.h"
 #include "switch_monitor.h"
 #include "switch_config.h"
+
 
 static pthread_t monitor_thread;
 static monitor_devport_array_t g_monitor_devports;
@@ -102,13 +104,110 @@ static void tm_port_drop_monitor() {
 	}
 }
 
+static int igw_oper_state = UP;
+
+static uint32_t pipe0_port_group_down_count = 0;	
+static uint32_t pipe2_port_group_down_count = 0;
+
+static uint32_t up_retry_count = 0;
+
+static void set_igw_down() {
+	char command1[300] = "vtysh  -c \"configure\" -c \"no ip prefix-list all-ipv4-route seq 5 permit 0.0.0.0/0 le 32\" -c \"exit\" -c \"exit\"";
+	system(command1);
+	char command2[300] = "vtysh  -c \"configure\" -c \"no ipv6 prefix-list all-ipv6-route seq 5 permit ::/0 le 128\" -c \"exit\" -c \"exit\"";
+	system(command2);
+}
+
+static void set_igw_up() {
+	char command1[300] = "vtysh  -c \"configure\" -c \"ip prefix-list all-ipv4-route seq 5 permit 0.0.0.0/0 le 32\" -c \"exit\" -c \"exit\"";
+	system(command1);
+	char command2[300] = "vtysh  -c \"configure\" -c \"ipv6 prefix-list all-ipv6-route seq 5 permit ::/0 le 128\" -c \"exit\" -c \"exit\"";
+	system(command2);
+}
+
+/*if pipe0 or pipe2 all port down, set igw down, just for igw*/
+static void igw_monitor_all_devports_oper_state() {
+	int i;	
+	int state;
+    monitor_devport_t *mdp;
+	bf_status_t status;
+	int pipe0_port_group_state = DOWN;
+	int pipe2_port_group_state = DOWN;
+
+	for (i = 0; i < g_monitor_devports.devport_num; i++) {
+		mdp = &g_monitor_devports.devports[i];
+		status = bf_pal_port_oper_state_get(DEVICE_ID, 
+			mdp->dev_port, &state);
+		if (status != 0) {
+			return ;
+		}
+
+		if (state == DOWN) {
+			SETUP_LOG("IGW_ERROR: find port down, fp port:%d pipe=%d",
+				mdp->fp_port, mdp->pipe);
+		}
+		
+		if ((mdp->pipe == 0) && (state == UP)) {
+			pipe0_port_group_state = UP;
+		} else if((mdp->pipe == 2) && (state == UP)) {	
+			pipe2_port_group_state = UP;
+		}
+	}
+
+	if (pipe0_port_group_state == DOWN) {
+		SETUP_LOG("IGW_ERROR: find pipe0 all port down!!!");
+		if (pipe0_port_group_down_count++ >= MAX_DOWN_COUNT) {
+			SETUP_LOG("IGW_ERROR: set IGW down");
+			set_igw_down();
+			igw_oper_state = DOWN;
+		}
+	} else {
+		pipe0_port_group_down_count = 0;
+	}
+	
+	if (pipe2_port_group_state == DOWN) {
+		SETUP_LOG("IGW_ERROR: find pipe2 all port down!!!");
+		if (pipe2_port_group_down_count++ >= MAX_DOWN_COUNT) {
+			SETUP_LOG("IGW_ERROR: set IGW down");			
+			set_igw_down();
+			igw_oper_state = DOWN;
+		}
+	} else {
+		pipe2_port_group_down_count = 0;
+	}
+
+	if ((pipe0_port_group_state == UP) && 
+		(pipe2_port_group_state == UP)) {
+		if (igw_oper_state == DOWN) {
+			SETUP_LOG("IGW_ERROR: set IGW UP");
+			set_igw_up();
+			up_retry_count++;
+			if (up_retry_count >= 3) {
+				igw_oper_state = UP;
+				up_retry_count = 0;
+			}
+		}
+	}
+}
+
 static void *switch_monitor_main(void *args) {
 	int time;
+	int result;
+	int igw_flag = 0;
+	
+	result = strcmp(P4_NAME,"igw_switch"); 
+	if (!result) {
+		igw_flag = 1;
+	}
 
 	monitor_devports_init();
 	while (1) {		
 		port_syncd_monitor();
 		tm_port_drop_monitor();
+
+		if ((switch_cfg.hardware_model == Wedge_100BF_65X) && (igw_flag == 1)) { 
+			igw_monitor_all_devports_oper_state();
+		} 
 		
 		time = MONITOR_CYCLE;
 		do {
