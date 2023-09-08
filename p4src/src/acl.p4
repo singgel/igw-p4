@@ -139,7 +139,7 @@ control EgressSystemAcl(
             hdr.vxlan.isValid()         : ternary;
             hdr.vxlan.vni               : ternary;
             hdr.bg_md.need_drop         : ternary;
-            hdr.bg_md.tunnel_direct_send: ternary;  //1
+            hdr.bg_md.tunnel_direct_send: ternary; 
             hdr.vxlan.tof               : ternary;
             hdr.bg_md.igr_tunnel_type   : ternary;
         }
