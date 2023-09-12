@@ -116,7 +116,7 @@ control EipInIngressPktStats(
     DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats;
     DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats6;
 
-    action count() { stats.count(BR_ADJUST_BYTES); }
+    action count() { stats.count(EIP46_IN_INGRESS_ADJUST); }
     table eip_in_ingress_pkt_stats  {
         key = {
             hdr.inner_ipv4.dstAddr : exact;
@@ -130,7 +130,7 @@ control EipInIngressPktStats(
         counters = stats;
     }
 
-    action count6() { stats6.count(BR_ADJUST_BYTES); }
+    action count6() { stats6.count(EIP46_IN_INGRESS_ADJUST); }
     table eip6_in_ingress_pkt_stats  {
         key = {
             hdr.inner_ipv6.dstAddr : exact;
@@ -163,7 +163,7 @@ control EipOutEgressPktStats(
     DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats;
     DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats6;
 
-    action count() { stats.count(BR_ADJUST_BYTES); }
+    action count() { stats.count(EIP46_OUT_EGRESS_ADJUST); }
     table eip_out_egress_pkt_stats  {
         key = {
             hdr.inner_ipv4.srcAddr : exact;
@@ -177,7 +177,7 @@ control EipOutEgressPktStats(
         counters = stats;
     }
 
-    action count6() { stats6.count(BR_ADJUST_BYTES); }
+    action count6() { stats6.count(EIP46_OUT_EGRESS_ADJUST); }
     table eip6_out_egress_pkt_stats  {
         key = {
             hdr.inner_ipv6.srcAddr : exact;
@@ -210,7 +210,7 @@ control EipOutIngressPktStats(
     DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats;
     DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats6;
 
-    action count() { stats.count(BR_ADJUST_BYTES); }
+    action count() { stats.count(EIP46_OUT_INGRESS_ADJUST); }
     table eip_out_ingress_pkt_stats  {
         key = {
             hdr.inner_ipv4.srcAddr : exact;
@@ -224,7 +224,7 @@ control EipOutIngressPktStats(
         counters = stats;
     }
 
-    action count6() { stats6.count(BR_ADJUST_BYTES); }
+    action count6() { stats6.count(EIP46_OUT_INGRESS_ADJUST); }
     table eip6_out_ingress_pkt_stats  {
         key = {
             hdr.inner_ipv6.srcAddr : exact;
@@ -256,7 +256,7 @@ control EipInEgressPktStats(inout headers_t hdr,
     DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats;
     DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats6;
 
-    action count() { stats.count(BR_ADJUST_BYTES); }
+    action count() { stats.count(EIP46_IN_EGRESS_ADJUST); }
     table eip_in_egress_pkt_stats  {
         key = {
             hdr.bg_md.eip_or_bwid    : exact;
@@ -270,7 +270,7 @@ control EipInEgressPktStats(inout headers_t hdr,
         counters = stats;
     }
 
-    action count6() { stats6.count(BR_ADJUST_BYTES); }
+    action count6() { stats6.count(EIP46_IN_EGRESS_ADJUST); }
     table eip6_in_egress_pkt_stats  {
         key = {
             hdr.inner_ipv6.dstAddr    : exact;

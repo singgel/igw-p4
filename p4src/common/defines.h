@@ -99,6 +99,11 @@
 #define CRC_ADJUST_BYTES 4
 #define BR_ADJUST_BYTES 19
 
+#define EIP46_IN_INGRESS_ADJUST  83
+#define EIP46_IN_EGRESS_ADJUST   83   
+#define EIP46_OUT_INGRESS_ADJUST 83   
+#define EIP46_OUT_EGRESS_ADJUST  83  
+
 #define  TOF_EIP_IN  1
 #define  TOF_EIP_OUT 2
 #define  TOF_AZ_IN   3

@@ -66,7 +66,7 @@ control EipInSharedMeter(inout headers_t hdr,
 
     action execute_shared_ratelimit() {
         hdr.bg_md.meter_packet_color = (bit<2>)shared_rl_meter.execute(); 
-        stats.count();
+        stats.count(EIP46_IN_EGRESS_ADJUST);
     }
 
     table shared_bw_ratelimit {
@@ -173,7 +173,7 @@ control EipOutSharedMeter(
 
     action execute_shared_ratelimit() {
         hdr.bg_md.meter_packet_color = (bit<2>)shared_rl_meter.execute(); 
-        stats.count();
+        stats.count(EIP46_OUT_EGRESS_ADJUST);
     }
 
     table shared_bw_ratelimit {
