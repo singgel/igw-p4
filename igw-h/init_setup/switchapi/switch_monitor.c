@@ -104,7 +104,7 @@ static void tm_port_drop_monitor() {
 	}
 }
 
-static int igw_oper_state = UP;
+int igw_oper_state = UP;
 
 static uint32_t pipe0_port_group_down_count = 0;	
 static uint32_t pipe2_port_group_down_count = 0;
@@ -118,7 +118,7 @@ static void set_igw_down() {
 	system(command2);
 }
 
-static void set_igw_up() {
+void set_igw_up() {
 	char command1[300] = "vtysh  -c \"configure\" -c \"ip prefix-list all-ipv4-route seq 5 permit 0.0.0.0/0 le 32\" -c \"exit\" -c \"exit\"";
 	system(command1);
 	char command2[300] = "vtysh  -c \"configure\" -c \"ipv6 prefix-list all-ipv6-route seq 5 permit ::/0 le 128\" -c \"exit\" -c \"exit\"";
