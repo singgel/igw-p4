@@ -64,10 +64,10 @@ function no_network_dl_ips
 
 function main()
 {
-    echo "--------------network dl ip from bgp---------------"
+    echo "--------------no network dl ip from bgp---------------"
     get_router_bgp_as_num
     no_network_dl_ips
-    echo "network dl ip ok!"
+    echo "no network dl ip ok!"
 }
 
 main
