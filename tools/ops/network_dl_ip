@@ -1,0 +1,73 @@
+#!/bin/bash
+
+RED='\e[1;31m'
+NC='\e[0m'
+
+function perror()
+{
+    echo -e "${RED} ===============================Error=================================== ${NC}"
+    echo -e "${RED} Error: $@ ${NC}"
+    exit 1
+}
+
+function pnerror()
+{
+    echo -e "${RED} ===============================Error=================================== ${NC}"
+    echo -e "${RED} Error: $@ ${NC}"
+}
+
+function pinfo()
+{
+    echo "Info: $@"
+}
+
+function check_str_null()
+{
+    if [ "$2" == "" ];then
+        pnerror "$1"
+    fi
+}
+
+function exit_str_null()
+{
+    if [ "$2" == "" ];then
+        perror "$1"
+    fi
+}
+
+function get_router_bgp_as_num()
+{
+    ROUTE_BGP_AS=`cat /etc/frr/frr.conf  | grep "router bgp"`
+    exit_str_null "router bgp as-number is not found!" $ROUTE_BGP_AS
+}
+
+function bgp_network_dl_ip()
+{
+  CMD=`vtysh  -c "configure" -c "$ROUTE_BGP_AS"  -c "network $DL_IP"  -c "exit" -c "exit" -c "exit"`
+  if [ "$?" != "0" ];then
+        perror "network dl ip fail"
+  fi
+}
+
+HOSTIF_CFG_FILE=/etc/hostif.json
+
+function network_dl_ips
+{   
+    nums=`cat $HOSTIF_CFG_FILE | grep dl_network | wc -l`
+    for ((i=1; i<=nums; i++))
+    do
+        DL_IP=`cat $HOSTIF_CFG_FILE | grep dl_network | awk -F '"' '{print $4}' | sed -n "${i}p"`
+        exit_str_null "dl_network is not found!" $DL_IP
+        bgp_network_dl_ip
+    done
+}
+
+function main()
+{
+    echo "--------------network dl ip from bgp---------------"
+    get_router_bgp_as_num
+    network_dl_ips
+    echo "network dl ip ok!"
+}
+
+main

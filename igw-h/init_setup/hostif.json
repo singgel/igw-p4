@@ -2,8 +2,9 @@
     "higw":
     {
         "mgt_ip": "10.226.190.238",
-	"vip": "10.226.190.102",
-	"shared_bandwith_vip": "10.226.190.102",
+	"vip": "10.226.190.241",
+	"shared_bandwith_vip": "10.226.190.241",
+	"backup_vip": "10.226.190.240",
 	"port_speed": 40,
 	"port_speed_comment": "40 for 40G, 100 for 100G",
 	"Hardware":1,
@@ -16,8 +17,11 @@
     },
     "RedirectIP":
     {
-	"addr_prefix":"10.226.190.106",
-	"prefix_len":29
+	"addr_prefix":"10.226.190.128",
+	"prefix_len":26,
+	"dl_network1":"10.226.190.128/26",
+	"dl_network2":"10.226.190.128/27",
+	"dl_network3":"10.226.190.160/27"
     },
     "hostifs":
     [
@@ -44,7 +48,7 @@
             "fp_port": 18
         },
         {
-            "intf_name": "Ethernet21",
+            "intf_name": "Ethernet33",
             "ip": "100.125.51.8",
             "net_mask_len": 31,
 	    "gw_ip": "100.125.51.9",
@@ -52,10 +56,10 @@
 	    "ip6_prefix_len":127,
 	    "gw6_ip":"fc00:000a:2554:4000:c802:02c8:0b01:0100",
             "mac":"00:0c:0c:0c:82:03",
-            "fp_port": 21
+            "fp_port": 33
         },
         {
-            "intf_name": "Ethernet22",
+            "intf_name": "Ethernet34",
             "ip": "100.125.51.10",
             "net_mask_len": 31,
 	    "gw_ip": "100.125.51.11",
@@ -63,7 +67,7 @@
 	    "ip6_prefix_len":127,
 	    "gw6_ip":"fc00:000a:2554:4000:c802:02c8:0b01:0200",
             "mac":"00:0c:0c:0c:82:04",
-            "fp_port": 22
+            "fp_port": 34
         }
     ]
 }
