@@ -54,6 +54,10 @@ HOSTIF_CFG_FILE=/etc/hostif.json
 function network_dl_ips
 {   
     nums=`cat $HOSTIF_CFG_FILE | grep dl_network | wc -l`
+    if [ $nums -eq 0 ]; then
+        perror "not found dl ip"
+    fi
+    
     for ((i=1; i<=nums; i++))
     do
         DL_IP=`cat $HOSTIF_CFG_FILE | grep dl_network | awk -F '"' '{print $4}' | sed -n "${i}p"`
