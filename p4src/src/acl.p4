@@ -47,16 +47,16 @@ control IngressSystemAcl(inout headers_t hdr,
             hdr.ipv4.protocol           : ternary;
             meta.l3.lkp_outer_l4_sport  : ternary;
             meta.l3.lkp_outer_l4_dport  : ternary;
-            meta.l3.lkp_sip             : ternary;
             meta.l3.lkp_l4_sport        : ternary;
-            meta.l3.lkp_dip             : ternary;
             meta.l3.lkp_l4_dport        : ternary;
             meta.l3.lkp_ip_proto        : ternary;
+            meta.l3.lkp_sip             : ternary;
+            meta.l3.lkp_dip             : ternary;
             hdr.vxlan.isValid()         : ternary;
             hdr.vxlan.vni               : ternary;
-            hdr.bg_md.dl_pkt            : ternary;
             hdr.vxlan.tof               : ternary;
             hdr.bg_md.igr_tunnel_type   : ternary;
+            hdr.bg_md.dl_pkt            : ternary;
         }
 
         actions = {

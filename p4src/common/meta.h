@@ -49,6 +49,7 @@ struct common_metadata_t {
     dscp_metadata_t dscp;
     mirror_metadata_t mirror;
     ratelimit_metadata_t ratelimit;
+    bit<2>  meter_packet_color;
 }
 
 #endif /* _BGW_META_ */

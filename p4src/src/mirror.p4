@@ -14,6 +14,7 @@ control ProcessMirror(
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
     DirectMeter(MeterType_t.PACKETS) mirror_meter;
     DirectCounter<bit<32>>(CounterType_t.PACKETS) mirror_stats;
+    DirectCounter<bit<32>>(CounterType_t.PACKETS) mirror_drop_stats;
 
     action add_cpu_header() {
         hdr.fabric.setValid();
@@ -39,7 +40,7 @@ control ProcessMirror(
         hdr.ethernet.srcAddr[47:00] = meta.mirror.timestamp;
         add_cpu_header();
         mirror_stats.count();
-        hdr.bg_md.meter_packet_color = (bit<2>) mirror_meter.execute();       
+        meta.meter_packet_color = (bit<2>) mirror_meter.execute();       
     }
 
     table mirror {
@@ -58,13 +59,16 @@ control ProcessMirror(
 
     action drop_packet() {
         eg_dprsr_md.drop_ctl = 0x1;
+        mirror_drop_stats.count();
     }
 
-    action nop() {}
+    action nop() {
+        mirror_drop_stats.count();
+    }
 
     table mirror_drop {
         key = {
-            hdr.bg_md.meter_packet_color : exact;
+            meta.meter_packet_color : exact;
         }
 
         actions = {
@@ -72,6 +76,7 @@ control ProcessMirror(
             nop;
         }
         size = 2;
+        counters = mirror_drop_stats;
     }
 
     apply {

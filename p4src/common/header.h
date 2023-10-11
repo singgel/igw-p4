@@ -137,6 +137,7 @@ header mirror_metadata_t {
 @pa_no_overlay("ingress", "hdr.bridged_md.tunnel_nexthop")
 @pa_no_overlay("ingress", "hdr.bridged_md.need_drop")
 @pa_no_overlay("egress", "hdr.bridged_md.need_drop")
+
 #ifdef __SDE_9_7_SUPPORT__
 header bridge_metadata_t {
     bit<8> proto;

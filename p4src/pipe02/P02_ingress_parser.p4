@@ -19,6 +19,7 @@ parser P02_IngressParser(
         transition parse_port_metadata;  
     }
 
+    @pa_no_overlay("ingress", "hdr.bridged_md.dl_pkt")
     state parse_port_metadata {
         pkt.advance(PORT_METADATA_SIZE); //tna: 64
         transition parse_ethernet;
