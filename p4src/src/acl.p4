@@ -11,7 +11,8 @@ control IngressSystemAcl(inout headers_t hdr,
             in ingress_intrinsic_metadata_from_parser_t ig_intr_from_prsr,
             inout ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
             inout ingress_intrinsic_metadata_for_tm_t  ig_tm_md) {
-                
+    DirectCounter<bit<32>>(CounterType_t.PACKETS) ingress_system_acl_stats;
+  
     action copy_ingress_to_cpu() {
         meta.tunnel.session_id = CPU_MIRROR_SESSION_ID;
         ig_intr_md_for_dprsr.mirror_type = MIRROR_TYPE_I2E;
@@ -20,6 +21,7 @@ control IngressSystemAcl(inout headers_t hdr,
         meta.mirror.res = meta.mirror.res | MIRROR_INPUT;
         meta.mirror.timestamp = ig_intr_from_prsr.global_tstamp;
         meta.mirror.port = ig_intr_md.ingress_port;
+        ingress_system_acl_stats.count();
     }
 
     action copy_ingress_to_sid(bit<10> sid) {
@@ -30,13 +32,17 @@ control IngressSystemAcl(inout headers_t hdr,
         meta.mirror.res = meta.mirror.res | MIRROR_INPUT;
         meta.mirror.timestamp = ig_intr_from_prsr.global_tstamp;
         meta.mirror.port = ig_intr_md.ingress_port;
+        ingress_system_acl_stats.count();
     }
 
     action system_acl_drop_packet() {
         ig_intr_md_for_dprsr.drop_ctl = 0x1;
+        ingress_system_acl_stats.count();
     }
 
-    action nop() {}
+    action nop() {
+        ingress_system_acl_stats.count();
+    }
 
     table ingress_system_acl {
         key = {
@@ -68,6 +74,7 @@ control IngressSystemAcl(inout headers_t hdr,
 
         size = INGRESS_SYSTEM_ACL_SIZE;
         const default_action = nop();
+        counters = ingress_system_acl_stats;
     }
     
     apply {
