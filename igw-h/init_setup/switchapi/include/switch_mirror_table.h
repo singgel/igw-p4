@@ -11,7 +11,7 @@
 #define MIRROR_RED 		3 
 #define MIRROR_GREEN 	0 
 #define MIRROR_YELLOW   1 
-#define MIRROR_PPS 2000
+#define MIRROR_PPS 5000
 
 #define  CPU_MIRROR_PORT_4P  320 
 #define  CPU_MIRROR_PORT_2P 192 
