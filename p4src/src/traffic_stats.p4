@@ -285,9 +285,11 @@ control EipInEgressPktStats(inout headers_t hdr,
     }
 
     apply {
-        if (hdr.inner_ipv4.isValid() &&(hdr.bg_md.need_drop != 1)) {
+        if (hdr.inner_ipv4.isValid() &&(hdr.bg_md.need_drop != 1) 
+            &&(hdr.bg_md.meter_packet_color!=COLOR_RED)) {
             eip_in_egress_pkt_stats.apply();
-        } else if (hdr.inner_ipv6.isValid()&&(hdr.bg_md.need_drop != 1)) {
+        } else if (hdr.inner_ipv6.isValid()&&(hdr.bg_md.need_drop != 1)
+            &&(hdr.bg_md.meter_packet_color!=COLOR_RED)) {
             eip6_in_egress_pkt_stats.apply();
         }
     }
