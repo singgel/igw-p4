@@ -16,7 +16,6 @@ control P13_Egress(
     EnCapVxlan()    encap_outer_vxlan;
     EipInRedirect()   eip_in_redirect;
     EipInMeter()      eip_in_meter;
-    EipInIngressPktStats()   eip_in_ingress_pkt_stats;
 
     #ifdef __MIRROR_ON_ETH__
         ProcessMirror()             mirror;
@@ -37,7 +36,6 @@ control P13_Egress(
             eip_in_redirect.apply(EPP_META); 
             
             if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
-                eip_in_ingress_pkt_stats.apply(EPP_META); 
                 eip_in_meter.apply(EPP_META); 
             }
         }
