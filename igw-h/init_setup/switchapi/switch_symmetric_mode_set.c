@@ -38,12 +38,6 @@ static void internet_in_symmetric_mode_set() {
 	table_symmetric_mode_set(
 		"P13_Egress.eip_in_redirect.eip6_in_redirect");
 	
-	//eip_in_ingress_pkt_stats
-	table_symmetric_mode_set(
-		"P13_Egress.eip_in_ingress_pkt_stats.eip_in_ingress_pkt_stats");
-	table_symmetric_mode_set(
-		"P13_Egress.eip_in_ingress_pkt_stats.eip6_in_ingress_pkt_stats");
-
 	//eip_in_meter
 	table_symmetric_mode_set(
 		"P13_Egress.eip_in_meter.bw_ratelimit");
@@ -54,12 +48,6 @@ static void internet_in_symmetric_mode_set() {
 	//fip_dnat
 	table_symmetric_mode_set(
 		"P13_Ingress.dnat.fip_dnat");
-
-	//eip_in_drop_stats
-	table_symmetric_mode_set(
-		"P13_Ingress.eip_in_drop_stats.meter_drop_show");
-	table_symmetric_mode_set(
-		"P13_Ingress.eip_in_drop_stats.ipv6_meter_drop_show");
 
 	//vm_loc_mapping
 	table_symmetric_mode_set(
@@ -72,15 +60,15 @@ static void internet_in_symmetric_mode_set() {
 		"P13_Ingress.eip_in_egress_pstats.eip_in_egress_pkt_stats");
 	table_symmetric_mode_set(
 		"P13_Ingress.eip_in_egress_pstats.eip6_in_egress_pkt_stats");
+	
+	table_symmetric_mode_set(
+		"P13_Ingress.eip_in_egress_pstats.eip_in_drop_pkt_stats");
+	table_symmetric_mode_set(
+		"P13_Ingress.eip_in_egress_pstats.eip6_in_drop_pkt_stats");
 }
 
 static void internet_out_symmetric_mode_set() {
 	/*************************P02 egress***************************/
-	//eip_out_ingress_pkt_stats
-	table_symmetric_mode_set(
-		"P02_Egress.process_gw_egress.eip_out_ingress_pkt_stats.eip_out_ingress_pkt_stats");
-	table_symmetric_mode_set(
-		"P02_Egress.process_gw_egress.eip_out_ingress_pkt_stats.eip6_out_ingress_pkt_stats");
 
 	//eip_out_meter
 	table_symmetric_mode_set(
@@ -88,17 +76,16 @@ static void internet_out_symmetric_mode_set() {
 	table_symmetric_mode_set(
 		"P02_Egress.process_gw_egress.eip_out_meter.ipv6_bw_ratelimit");
 
-	//eip_out_drop_stats
-	table_symmetric_mode_set(
-		"P02_Egress.process_gw_egress.eip_out_drop_stats.meter_drop_show");
-	table_symmetric_mode_set(
-		"P02_Egress.process_gw_egress.eip_out_drop_stats.ipv6_meter_drop_show");
-
 	//eip_out_egress_pkt_stats
 	table_symmetric_mode_set(
 		"P02_Egress.process_gw_egress.eip_out_egress_pkt_stats.eip_out_egress_pkt_stats");
 	table_symmetric_mode_set(
-		"P02_Egress.process_gw_egress.eip_out_egress_pkt_stats.eip6_out_egress_pkt_stats");	
+		"P02_Egress.process_gw_egress.eip_out_egress_pkt_stats.eip6_out_egress_pkt_stats");
+
+	table_symmetric_mode_set(
+		"P02_Egress.process_gw_egress.eip_out_egress_pkt_stats.eip_out_drop_pkt_stats");
+	table_symmetric_mode_set(
+		"P02_Egress.process_gw_egress.eip_out_egress_pkt_stats.eip6_out_drop_pkt_stats");	
 }
 
 void symmetric_mode_set_init(){

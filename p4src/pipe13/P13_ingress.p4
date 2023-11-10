@@ -26,7 +26,6 @@ control P13_Ingress(
         ig_tm_md.ucast_egress_port = hdr.bg_md.igr_port;
         if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
             eip_in_shared_meter.apply(IPP_META);
-            compute_ipv4_hashes.apply(IPP_META);
             dnat.apply(IPP_META);
             vm_location_mapping.apply(IPP_META);
             ingress_route.apply(IPP_META);
