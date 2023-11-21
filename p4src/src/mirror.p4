@@ -15,6 +15,7 @@ control ProcessMirror(
     DirectMeter(MeterType_t.PACKETS) mirror_meter;
     DirectCounter<bit<32>>(CounterType_t.PACKETS) mirror_stats;
     DirectCounter<bit<32>>(CounterType_t.PACKETS) mirror_drop_stats;
+    bit<2> meter_packet_color = 0;
 
     action add_cpu_header() {
         hdr.fabric.setValid();
@@ -23,14 +24,12 @@ control ProcessMirror(
         hdr.fabric.qos = 0;
         hdr.fabric.reserved2 = 0;
         hdr.fabric.dst_port_or_group = 0;
-
         hdr.cpu.setValid();
         hdr.cpu.egress_queue = 0;
         hdr.cpu.tx_bypass = 0;
         hdr.cpu.reserved = 0;
         hdr.cpu.ingress_port = MIRROR_DEV_PORT;
         hdr.cpu.ether_type = hdr.ethernet.etherType;
-
         hdr.ethernet.etherType = ETHERTYPE_BFN;
     }
     
@@ -40,20 +39,32 @@ control ProcessMirror(
         hdr.ethernet.srcAddr[47:00] = meta.mirror.timestamp;
         add_cpu_header();
         mirror_stats.count();
-        meta.meter_packet_color = (bit<2>) mirror_meter.execute();       
     }
 
     table mirror {
         key = {
             meta.mirror.flag : exact;
         }
-
         actions = {
             clone_to_cpu;
         }
-
         size = 2;
         counters = mirror_stats;
+    }
+
+    action ratelimit() {
+        meter_packet_color = (bit<2>)mirror_meter.execute();  
+    }
+
+    table mirror_rl {
+        key = {
+            meta.mirror.flag : exact;
+        }
+        actions = {
+            ratelimit;
+        }
+
+        size = 2;
         meters = mirror_meter;
     }
 
@@ -68,19 +79,20 @@ control ProcessMirror(
 
     table mirror_drop {
         key = {
-            meta.meter_packet_color : exact;
+            meter_packet_color : exact;
         }
 
         actions = {
             drop_packet;
             nop;
         }
-        size = 2;
+        size = 4;
         counters = mirror_drop_stats;
     }
 
     apply {
-        mirror.apply();
+        mirror.apply(); 
+        mirror_rl.apply();  
         mirror_drop.apply();
     }
 }

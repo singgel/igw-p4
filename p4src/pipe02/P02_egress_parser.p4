@@ -18,8 +18,7 @@ parser P02_EgressParser(
         pkt.extract(eg_intr_md);
         transition parse_header_check;
     }
-
-    @pa_no_overlay("egress","meta.meter_packet_color")
+    
     @pa_no_overlay("egress","meta.mirror.flag")
     state parse_header_check {
         bit<8> proto = pkt.lookahead<bit<8>>();

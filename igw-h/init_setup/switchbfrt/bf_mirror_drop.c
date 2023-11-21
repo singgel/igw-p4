@@ -50,7 +50,7 @@ void mirror_drop_table_setup()
   	// Get field-ids for key field
 	/*****************************************************/
 	bf_status = bf_rt_key_field_id_get(mirrorDropTable, 
-		"meta.meter_packet_color", 
+		"meter_packet_color", 
 		&packet_color_field_id);
   	assert(bf_status == BF_SUCCESS);
 

@@ -28,12 +28,6 @@ static bf_rt_id_t clone_to_cpu_action_id = 0;
 // Key field ids
 static bf_rt_id_t mirror_flag_field_id = 0;
 
-// Data field Ids for copy_to_cpu action
-static bf_rt_id_t cir_field_id = 0;
-static bf_rt_id_t pir_field_id = 0;
-static bf_rt_id_t cbs_field_id = 0;
-static bf_rt_id_t pbs_field_id = 0;
-
 void mirror_meter_table_setup() {
 	bf_status_t bf_status;
 	jd_bf_rt_t *jd_bf_p = &jd_bfrt;
@@ -51,44 +45,12 @@ void mirror_meter_table_setup() {
 		&clone_to_cpu_action_id);
   	assert(bf_status == BF_SUCCESS);
 
-	
 	/******************************************************
   	// Get field-ids for key field
 	/*****************************************************/
 	bf_status = bf_rt_key_field_id_get(mirrorMeterTable, 
 		"meta.mirror.flag", 
 		&mirror_flag_field_id);
-  	assert(bf_status == BF_SUCCESS);
-
-	/******************************************************
-   	* DATA FIELD ID GET FOR "copy_to_cpu" ACTION
-   	*******************************************************/
-  	bf_status = bf_rt_data_field_id_with_action_get(
-      mirrorMeterTable,
-      "$METER_SPEC_CIR_PPS",
-      clone_to_cpu_action_id,
-      &cir_field_id);
-  	assert(bf_status == BF_SUCCESS);
-
-	bf_status = bf_rt_data_field_id_with_action_get(
-      mirrorMeterTable,
-      "$METER_SPEC_PIR_PPS",
-      clone_to_cpu_action_id,
-      &pir_field_id);
-  	assert(bf_status == BF_SUCCESS);
-
-	bf_status = bf_rt_data_field_id_with_action_get(
-      mirrorMeterTable,
-      "$METER_SPEC_CBS_PKTS",
-      clone_to_cpu_action_id,
-      &cbs_field_id);
-  	assert(bf_status == BF_SUCCESS);
-
-	bf_status = bf_rt_data_field_id_with_action_get(
-      mirrorMeterTable,
-      "$METER_SPEC_PBS_PKTS",
-      clone_to_cpu_action_id,
-      &pbs_field_id);
   	assert(bf_status == BF_SUCCESS);
 
 	// Allocate key and data once, and use reset across different uses
@@ -110,38 +72,7 @@ static int mirror_meter_key_setup(uint8_t mirror_flag,
 	return 0;
 }
 
-static int data_setup_for_mirror_copy_to_cpu(mirror_copy_tocpuData *data,
-                                  bf_rt_table_data_hdl *table_data) {
-	bf_status_t bf_status;
-
-  	bf_status = bf_rt_data_field_set_value(
-      	table_data, cir_field_id, data->cir_pps);
-  	if(bf_status != BF_SUCCESS) {
-		return -1;
-  	}
-
-	bf_status = bf_rt_data_field_set_value(
-      	table_data, pir_field_id, data->pir_pps);
-  	if(bf_status != BF_SUCCESS) {
-		return -1;
-  	}
-
-	bf_status = bf_rt_data_field_set_value(
-      	table_data, cbs_field_id, data->cbs_pkts);
-  	if(bf_status != BF_SUCCESS) {
-		return -1;
-  	}
-
-	bf_status = bf_rt_data_field_set_value(
-      	table_data, pbs_field_id, data->pbs_pkts);
-  	if(bf_status != BF_SUCCESS) {
-		return -1;
-  	}
-	
-  	return 0;
-}
-
-int entry_add_with_mirror_clone_to_cpu(uint8_t flag, mirror_copy_tocpuData *data) {
+int entry_add_with_mirror_clone_to_cpu(uint8_t flag) {
 	bf_status_t status;
 	jd_bf_rt_t *jd_bf_p = &jd_bfrt;
 
@@ -150,8 +81,6 @@ int entry_add_with_mirror_clone_to_cpu(uint8_t flag, mirror_copy_tocpuData *data
 
   	// Fill in the Key and Data object
   	if (mirror_meter_key_setup(flag, bfKey) < 0)
-		return -1;
-  	if(data_setup_for_mirror_copy_to_cpu(data, bfData) < 0)
 		return -1;
 
   	if (1) {

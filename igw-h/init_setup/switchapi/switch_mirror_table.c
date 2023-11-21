@@ -24,18 +24,27 @@
 #include "bf_mirror_cfg.h"
 #include "bf_mirror_drop.h"
 #include "bf_mirror_meter.h"
+#include "bf_mirror_ratelimit.h"
 
-static void mirror_meter_init() {
+static void mirror_copytocpu_init() {
 	uint8_t flag;
-	mirror_copy_tocpuData data;
 
 	mirror_meter_table_setup();
+	flag = 1;
+	assert(entry_add_with_mirror_clone_to_cpu(flag) == 0);
+}
+
+static void mirror_rl_init() {
+	uint8_t flag;
+	mirror_rl_Data data;
+
+	mirror_rl_table_setup();
 	flag = 1;
 	data.cir_pps = MIRROR_PPS;
 	data.pir_pps = MIRROR_PPS;
 	data.cbs_pkts = MIRROR_PPS;
 	data.pbs_pkts = MIRROR_PPS;
-	assert(entry_add_with_mirror_clone_to_cpu(flag,&data) == 0);
+	assert(entry_add_with_mirror_rl(flag,&data) == 0);
 }
 
 static void mirror_drop_init(){
@@ -63,7 +72,8 @@ static void mirror_cfg_init(){
 
 void mirror_table_init() {
 	mirror_drop_init();
-	mirror_meter_init();
+	mirror_copytocpu_init();
+	mirror_rl_init();
 	mirror_cfg_init();	
 }
 

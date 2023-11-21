@@ -30,15 +30,15 @@ struct l3_metadata_t {
     bit<3>  egr_pipeline;
 }
 
-struct dscp_metadata_t {
-    bit<6> val;
+struct color_metadata_t {
+    bit<2> meter_packet_color;
 }
 
 struct ratelimit_metadata_t {
-    bit<32> bandwidth_id;
     bit<1> within_cluster;
     bit<1> between_cluster;
     bit<1> have_shared_bd;
+    bit<32> bandwidth_id;
 }
 
 @pa_auto_init_metadata
@@ -46,10 +46,9 @@ struct ratelimit_metadata_t {
 struct common_metadata_t {
     tunnel_metadata_t tunnel;
     l3_metadata_t l3;
-    dscp_metadata_t dscp;
+    color_metadata_t tocpu;
     mirror_metadata_t mirror;
     ratelimit_metadata_t ratelimit;
-    bit<2>  meter_packet_color;
 }
 
 #endif /* _BGW_META_ */

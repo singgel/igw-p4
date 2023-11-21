@@ -32,7 +32,6 @@ control EnCapVxlan(
         hdr.inner_ipv4.srcAddr = hdr.ipv4.srcAddr;
         hdr.inner_ipv4.dstAddr = hdr.ipv4.dstAddr;
         hdr.ipv4.setInvalid();
-        meta.tunnel.inner_ipv4_checksum_en = true;
     }
 
     action rewrite_inner_ipv4_udp() {
