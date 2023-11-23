@@ -22,10 +22,10 @@ control EipInRedirect(
         hdr.bg_md.shared_bandwidth_id = 0;
     }
 
-    action set_bw_id(bit<32> bandwidth_id, bit<12> shared_bandwidth_id,
+    action set_bw_id(bit<32> bandwidth_id, bit<16> shared_bandwidth_id,
             bit<1> within_cluster, bit<1> between_cluster, bit<1> nlb_eip) {
         meta.ratelimit.bandwidth_id = bandwidth_id;
-        hdr.bg_md.shared_bandwidth_id = (bit<16>) shared_bandwidth_id;
+        hdr.bg_md.shared_bandwidth_id = shared_bandwidth_id;
         meta.ratelimit.within_cluster = within_cluster;
         meta.ratelimit.between_cluster = between_cluster;
         hdr.bg_md.nlb_eip = nlb_eip;
@@ -146,11 +146,11 @@ control EipOutRedirect(inout headers_t hdr,
     action nop() {
         hdr.bg_md.shared_bandwidth_id = 0;
     }
-    action set_bw_id(bit<32> bandwidth_id, bit<12> shared_bandwidth_id,
+    action set_bw_id(bit<32> bandwidth_id, bit<16> shared_bandwidth_id,
             bit<1> within_cluster, bit<1> between_cluster, bit<1> have_shared_bd) {
         //meta.ratelimit.bandwidth_id = bandwidth_id;
         hdr.bg_md.eip_or_bwid = bandwidth_id;
-        hdr.bg_md.shared_bandwidth_id = (bit<16>) shared_bandwidth_id;
+        hdr.bg_md.shared_bandwidth_id = shared_bandwidth_id;
         meta.ratelimit.within_cluster = within_cluster;
         meta.ratelimit.between_cluster = between_cluster;
         meta.ratelimit.have_shared_bd = have_shared_bd;
