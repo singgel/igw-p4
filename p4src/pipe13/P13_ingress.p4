@@ -20,6 +20,7 @@ control P13_Ingress(
     NexthopProcess()            nexthop_process;
     EipInEgressPktStats()       eip_in_egress_pstats;
     DecapMetaData_13()          decapmd13;
+    AzSelector()                az_selector;
 
     apply {
         decapmd13.apply(IPP_META);
@@ -29,7 +30,8 @@ control P13_Ingress(
             compute_ipv4_hashes.apply(IPP_META);
             dnat.apply(IPP_META);
             vm_location_mapping.apply(IPP_META);
-            ingress_route.apply(IPP_META);
+            //ingress_route.apply(IPP_META);
+            az_selector.apply(IPP_META);
             nexthop_process.apply(IPP_META);    
             eip_in_egress_pstats.apply(IPP_META);
         }

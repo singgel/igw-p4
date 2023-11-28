@@ -132,3 +132,35 @@ control NexthopProcess(inout headers_t hdr,
         }
     }
 }
+
+control AzSelector(inout headers_t hdr,
+            inout common_metadata_t meta,
+            in ingress_intrinsic_metadata_t ig_intr_md,
+            in ingress_intrinsic_metadata_from_parser_t ig_intr_from_prsr,
+            inout ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
+            inout ingress_intrinsic_metadata_for_tm_t  ig_tm_md) {               
+  
+    action set_ecmp_az(bit<16> nexthop) {
+        hdr.bg_md.tunnel_nexthop = nexthop;
+    }
+
+    table az_ecmp {
+        key = {
+            hdr.bg_md.tunnel_nexthop        : exact;
+            hdr.bg_md.l3_ecmp_entry_idx     : ternary;
+        }
+
+        actions = {
+            set_ecmp_az; 
+            NoAction;
+        }
+        const default_action = NoAction();
+        size = 1024;
+    }
+
+    apply {
+        if (hdr.bg_md.nlb_eip == 1) {
+            az_ecmp.apply();
+        }
+    }
+}
