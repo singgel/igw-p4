@@ -63,6 +63,7 @@ control EipInSharedMeter(inout headers_t hdr,
     DirectMeter(MeterType_t.BYTES) shared_rl_meter;
     DirectCounter<bit<32>>(CounterType_t.PACKETS) ratelimit_drop_stats;
     DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats;
+    DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) shard_bd_stats;
 
     action execute_shared_ratelimit() {
         hdr.bg_md.meter_packet_color = (bit<2>)shared_rl_meter.execute(); 
@@ -79,6 +80,21 @@ control EipInSharedMeter(inout headers_t hdr,
         size = SHARED_BW_SIZE;
         meters = shared_rl_meter;
         counters = stats;
+    }
+
+    action shared_bd_stats() {
+        shard_bd_stats.count(EIP46_IN_EGRESS_ADJUST);
+    }
+
+    table shared_bw_valid_stats {
+        key = {
+            hdr.bg_md.shared_bandwidth_id : exact;
+        }
+        actions = {
+            shared_bd_stats;
+        }
+        size = SHARED_BW_SIZE;
+        counters = shard_bd_stats;
     }
 
     action drop_packet() {
@@ -107,6 +123,9 @@ control EipInSharedMeter(inout headers_t hdr,
     apply {
         if ((hdr.bg_md.meter_packet_color != COLOR_RED) && hdr.inner_ipv4.isValid()) {
             shared_bw_ratelimit.apply();
+            if (hdr.bg_md.meter_packet_color != COLOR_RED) {
+                shared_bw_valid_stats.apply();
+            }
         }
         ratelimit_drop.apply();
     }
@@ -170,6 +189,7 @@ control EipOutSharedMeter(
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
     DirectMeter(MeterType_t.BYTES) shared_rl_meter;
     DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats;
+    DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) shard_bd_stats;
 
     action execute_shared_ratelimit() {
         hdr.bg_md.meter_packet_color = (bit<2>)shared_rl_meter.execute(); 
@@ -188,9 +208,27 @@ control EipOutSharedMeter(
         counters = stats;
     }
 
+    action shared_bd_stats() {
+        shard_bd_stats.count(EIP46_OUT_EGRESS_ADJUST);
+    }
+
+    table shared_bw_valid_stats {
+        key = {
+            hdr.bg_md.shared_bandwidth_id : exact;
+        }
+        actions = {
+            shared_bd_stats;
+        }
+        size = SHARED_BW_SIZE;
+        counters = shard_bd_stats;
+    }
+
     apply {
         if ((hdr.bg_md.meter_packet_color != COLOR_RED) && hdr.inner_ipv4.isValid()) {
             shared_bw_ratelimit.apply();
+            if (hdr.bg_md.meter_packet_color != COLOR_RED) {
+                shared_bw_valid_stats.apply();
+            }
         }
     }
 }
