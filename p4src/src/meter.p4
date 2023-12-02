@@ -62,12 +62,11 @@ control EipInSharedMeter(inout headers_t hdr,
             inout ingress_intrinsic_metadata_for_tm_t  ig_tm_md) {
     DirectMeter(MeterType_t.BYTES) shared_rl_meter;
     DirectCounter<bit<32>>(CounterType_t.PACKETS) ratelimit_drop_stats;
-    DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats;
     DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) shard_bd_stats;
+    DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) shard_bd_drop_stats;
 
     action execute_shared_ratelimit() {
         hdr.bg_md.meter_packet_color = (bit<2>)shared_rl_meter.execute(); 
-        stats.count(EIP46_IN_EGRESS_ADJUST);
     }
 
     table shared_bw_ratelimit {
@@ -79,10 +78,9 @@ control EipInSharedMeter(inout headers_t hdr,
         }
         size = SHARED_BW_SIZE;
         meters = shared_rl_meter;
-        counters = stats;
     }
 
-    action shared_bd_stats() {
+    action shared_bd_stat() {
         shard_bd_stats.count(EIP46_IN_EGRESS_ADJUST);
     }
 
@@ -91,10 +89,25 @@ control EipInSharedMeter(inout headers_t hdr,
             hdr.bg_md.shared_bandwidth_id : exact;
         }
         actions = {
-            shared_bd_stats;
+            shared_bd_stat;
         }
         size = SHARED_BW_SIZE;
         counters = shard_bd_stats;
+    }
+
+    action shared_bd_drop_stat() {
+        shard_bd_drop_stats.count(EIP46_IN_EGRESS_ADJUST);
+    }
+
+    table shared_bw_drop_stats {
+        key = {
+            hdr.bg_md.shared_bandwidth_id : exact;
+        }
+        actions = {
+            shared_bd_drop_stat;
+        }
+        size = SHARED_BW_SIZE;
+        counters = shard_bd_drop_stats;
     }
 
     action drop_packet() {
@@ -125,6 +138,8 @@ control EipInSharedMeter(inout headers_t hdr,
             shared_bw_ratelimit.apply();
             if (hdr.bg_md.meter_packet_color != COLOR_RED) {
                 shared_bw_valid_stats.apply();
+            } else {
+                shared_bw_drop_stats.apply();
             }
         }
         ratelimit_drop.apply();
@@ -188,12 +203,11 @@ control EipOutSharedMeter(
         inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
     DirectMeter(MeterType_t.BYTES) shared_rl_meter;
-    DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) stats;
     DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) shard_bd_stats;
+    DirectCounter<bit<32>>(CounterType_t.PACKETS_AND_BYTES) shard_bd_drop_stats;
 
     action execute_shared_ratelimit() {
         hdr.bg_md.meter_packet_color = (bit<2>)shared_rl_meter.execute(); 
-        stats.count(EIP46_OUT_EGRESS_ADJUST);
     }
 
     table shared_bw_ratelimit {
@@ -205,10 +219,9 @@ control EipOutSharedMeter(
         }
         size = SHARED_BW_SIZE;
         meters = shared_rl_meter;
-        counters = stats;
     }
 
-    action shared_bd_stats() {
+    action shared_bd_stat() {
         shard_bd_stats.count(EIP46_OUT_EGRESS_ADJUST);
     }
 
@@ -217,10 +230,25 @@ control EipOutSharedMeter(
             hdr.bg_md.shared_bandwidth_id : exact;
         }
         actions = {
-            shared_bd_stats;
+            shared_bd_stat;
         }
         size = SHARED_BW_SIZE;
         counters = shard_bd_stats;
+    }
+
+    action shared_bd_drop_stat() {
+        shard_bd_drop_stats.count(EIP46_OUT_EGRESS_ADJUST);
+    }
+
+    table shared_bw_drop_stats {
+        key = {
+            hdr.bg_md.shared_bandwidth_id : exact;
+        }
+        actions = {
+            shared_bd_drop_stat;
+        }
+        size = SHARED_BW_SIZE;
+        counters = shard_bd_drop_stats;
     }
 
     apply {
@@ -228,6 +256,8 @@ control EipOutSharedMeter(
             shared_bw_ratelimit.apply();
             if (hdr.bg_md.meter_packet_color != COLOR_RED) {
                 shared_bw_valid_stats.apply();
+            } else {
+                shared_bw_drop_stats.apply();
             }
         }
     }
