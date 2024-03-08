@@ -22,10 +22,12 @@ control P02_Ingress(
     EipOutRedirect()            eip_out_redirect;
     HaveSharedBindWith()        have_shared_bd;
     PipeLineFix()               pipelinefix;
+    IngressPortStats()          ingress_port_stats;
 
     apply {
         decap_md.apply(IPP_META);
         process_local_packet.apply(IPP_META);
+        ingress_port_stats.apply(IPP_META);
 
         if (hdr.bg_md.tunnel_direct_send == MATCH_PACKET) {
             igw_ip_type.apply(IPP_META);

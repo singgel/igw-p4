@@ -44,6 +44,7 @@ control P02_Egress(
         ProcessMirror()             mirror;
     #endif
     DecapMetaData_I2E02()           decap_md;
+    EgressPortStats()               egress_port_stats;
 
     apply {
         if (hdr.bg_md.isValid()) {
@@ -64,6 +65,7 @@ control P02_Egress(
             }
             
             egress_system_acl.apply(EPP_META);
+            egress_port_stats.apply(EPP_META);
 
             if ((hdr.bg_md.tunnel_direct_send == MATCH_PACKET) || 
                (hdr.bg_md.tunnel_direct_send == DL_PACKET)) {
