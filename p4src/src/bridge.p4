@@ -262,9 +262,6 @@ control DecapMetaData_13(inout headers_t hdr,
     action ig_decap_md13_overlay_v4_nlb_eip() {
         meta.l3.lkp_sip = (bit<128>)hdr.inner_ipv4.srcAddr;
         meta.l3.lkp_dip = (bit<128>)hdr.inner_ipv4.dstAddr;
-        meta.l3.lkp_ip_proto = 0;
-        meta.l3.lkp_l4_sport = 0;
-        meta.l3.lkp_l4_dport = 0;
     } 
 
     action ig_decap_md13_overlay_v6() {
@@ -275,9 +272,6 @@ control DecapMetaData_13(inout headers_t hdr,
     action ig_decap_md13_overlay_v6_nlb_eip() {
         meta.l3.lkp_sip = hdr.inner_ipv6.srcAddr;
         meta.l3.lkp_dip = hdr.inner_ipv6.dstAddr;
-        meta.l3.lkp_ip_proto = 0;
-        meta.l3.lkp_l4_sport = 0;
-        meta.l3.lkp_l4_dport = 0;
     }  
 
     action ig_decap_md13_nop() {

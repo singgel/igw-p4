@@ -276,7 +276,7 @@ control HaveSharedBindWith(inout headers_t hdr,
             nop;
         }
 
-        size = 15000;
+        size = 40960;
         const default_action = nop();
     }
     
@@ -290,7 +290,7 @@ control HaveSharedBindWith(inout headers_t hdr,
             nop;
         }
 
-        size = 15000;
+        size = 40960;
         const default_action = nop();
     }
 
