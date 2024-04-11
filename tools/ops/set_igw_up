@@ -1,0 +1,6 @@
+#!/bin/bash
+
+/usr/local/bin/allow_segment_vip
+/usr/local/bin/ccc p4-frr-notFip-sync true
+/usr/local/bin/network_dl_ip
+

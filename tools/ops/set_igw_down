@@ -1,0 +1,6 @@
+#!/bin/bash
+
+/usr/local/bin/deny_segment_vip
+/usr/local/bin/ccc p4-frr-notFip-sync false
+/usr/local/bin/no_network_dl_ip
+
