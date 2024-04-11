@@ -14,7 +14,6 @@
 #include "switch_monitor.h"
 #include "switch_config.h"
 
-
 static pthread_t monitor_thread;
 static monitor_devport_array_t g_monitor_devports;
 
@@ -112,17 +111,11 @@ static uint32_t pipe2_port_group_down_count = 0;
 static uint32_t up_retry_count = 0;
 
 static void set_igw_down() {
-	char command1[300] = "vtysh  -c \"configure\" -c \"no ip prefix-list all-ipv4-route seq 5 permit 0.0.0.0/0 le 32\" -c \"exit\" -c \"exit\"";
-	system(command1);
-	char command2[300] = "vtysh  -c \"configure\" -c \"no ipv6 prefix-list all-ipv6-route seq 5 permit ::/0 le 128\" -c \"exit\" -c \"exit\"";
-	system(command2);
+	system("/usr/local/bin/set_igw_down");
 }
 
 void set_igw_up() {
-	char command1[300] = "vtysh  -c \"configure\" -c \"ip prefix-list all-ipv4-route seq 5 permit 0.0.0.0/0 le 32\" -c \"exit\" -c \"exit\"";
-	system(command1);
-	char command2[300] = "vtysh  -c \"configure\" -c \"ipv6 prefix-list all-ipv6-route seq 5 permit ::/0 le 128\" -c \"exit\" -c \"exit\"";
-	system(command2);
+	system("/usr/local/bin/set_igw_up");
 }
 
 /*if pipe0 or pipe2 all port down, set igw down, just for igw*/

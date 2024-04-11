@@ -12,10 +12,10 @@ control EipInRedirect(
         in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
         inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
-    Hash<bit<16>>(HashAlgorithm_t.CRC16) selector_hash;
-    ActionProfile(256) dl_ip_group_action_profile;
+    Hash<bit<32>>(HashAlgorithm_t.CRC32) selector_hash;
+    ActionProfile(120) dl_ip_group_action_profile; // must be <=120 because of tofino bug
     ActionSelector(dl_ip_group_action_profile, selector_hash, SelectorMode_t.FAIR,
-                   256,2) dl_ip_group_selector;
+                   120,2) dl_ip_group_selector;
     bit<32> hash_index;
 
     action nop() {
@@ -137,10 +137,10 @@ control EipOutRedirect(inout headers_t hdr,
             in ingress_intrinsic_metadata_from_parser_t ig_intr_from_prsr,
             inout ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
             inout ingress_intrinsic_metadata_for_tm_t  ig_tm_md) {
-    Hash<bit<16>>(HashAlgorithm_t.CRC16) selector_hash;
-    ActionProfile(256) dl_ip_group_action_profile;
+    Hash<bit<32>>(HashAlgorithm_t.CRC32) selector_hash;
+    ActionProfile(120) dl_ip_group_action_profile;
     ActionSelector(dl_ip_group_action_profile, selector_hash, SelectorMode_t.FAIR,
-                   256,2) dl_ip_group_selector;
+                   120,2) dl_ip_group_selector;
     bit<32> hash_index;
 
     action nop() {

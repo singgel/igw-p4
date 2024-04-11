@@ -52,11 +52,13 @@ static void eip_in_ecmp_dl_table_init() {
 	last_ip = ntohl(ipaddress | ~(subnetmask));
 
 	for (dl_ip = first_ip, i = 0; dl_ip <= last_ip; ++dl_ip, i++) {
-		assert(i < MAX_DL_IP_NUM);
 		key1.memberid = i + 1;
 		data.dl_ip = dl_ip;
 		assert(eip_in_action_profile_entry_add(&key1, &data) == 0);
 		member_nums++;
+		if (member_nums == MAX_DL_IP_NUM) {
+			break;
+		}
 	}
 
 	eip_in_selector_table_setup();
@@ -100,13 +102,15 @@ static void eip_out_ecmp_dl_table_init() {
 	last_ip = ntohl(ipaddress | ~(subnetmask));
 
 	for (dl_ip = first_ip, i = 0; dl_ip <= last_ip; ++dl_ip, i++) {
-		assert(i < MAX_DL_IP_NUM);
 		key1.memberid = i + 1;
 		data.dl_ip = dl_ip;
 		assert(eip_out_action_profile_entry_add(&key1, &data) == 0);
 		member_nums++;
 		inaddr.s_addr = htonl(dl_ip);
 		SETUP_LOG("IGW_LOG: dl_ip %d: %s\n", i, inet_ntoa(inaddr));
+		if (member_nums == MAX_DL_IP_NUM) {
+			break;
+		}
 	}
 
 	eip_out_selector_table_setup();
