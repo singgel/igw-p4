@@ -47,6 +47,11 @@ typedef enum switch_device_hardware_modle_s {
   Wedge_100BF_32X = 2,
 } switch_device_hardware_modle_t;
 
+typedef enum switch_device_fec_modle_s {
+  FEC_NONE = 1,
+  FEC_RS = 2,
+} switch_device_fec_modle_t;
+
 extern switch_device_context_t *device_ctx;
 extern int switch_device_recirc_port(uint32_t port);
 

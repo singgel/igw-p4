@@ -17,6 +17,7 @@
 #include "utils.h"
 #include "switch_config.h"
 #include "switch_device_int.h"
+#include "switch_port.h"
 
 const char *hostif_json_file = "/etc/hostif.json";
 switch_config_t switch_cfg;
@@ -250,6 +251,19 @@ static int switch_config_set_higw(switch_config_t *cfg, json_t *json_root)
 	if (cfg->hardware_model != Wedge_100BF_65X && 
 		cfg->hardware_model != Wedge_100BF_32X) {
 		printf("Hardware must be 1 or 2\n");
+		return -1;
+	}
+	
+	res = get_field_of_int(section, "FEC", (int *)&cfg->fec_model, 1);
+	if (res != 0) {
+		printf("[msg: FEC required and must be int]\n");
+		return -1;
+	}
+
+	if (cfg->fec_model != SWITCH_PORT_FEC_MODE_NONE && 
+		cfg->fec_model != SWITCH_PORT_FEC_MODE_FC &&
+		cfg->fec_model != SWITCH_PORT_FEC_MODE_RS) {
+		printf("FEC must be 0 ,1 , 2\n");
 		return -1;
 	}
 

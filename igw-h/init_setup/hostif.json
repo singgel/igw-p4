@@ -8,7 +8,9 @@
 	"port_speed": 40,
 	"port_speed_comment": "40 for 40G, 100 for 100G",
 	"Hardware":1,
-	"Hardware_comment": "1 for WedgeBF-65X, 2 for WedgeBF-32X "
+	"Hardware_comment": "1 for WedgeBF-65X, 2 for WedgeBF-32X ",
+	"FEC":2,
+	"FEC_mode": "0 NONE, 1 FC, 2 RS "
     },
     "BGP":
     {

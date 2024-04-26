@@ -49,6 +49,7 @@ typedef struct switch_config_s {
 	uint32_t  backup_vip;
 	uint16_t  port_speed;	
 	uint16_t  hardware_model;
+	uint16_t  fec_model;
 } switch_config_t;
 
 extern 	switch_config_t switch_cfg;

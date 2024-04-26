@@ -47,8 +47,8 @@ static int switch_device_init(bf_dev_id_t device) {
 		}
 		api_port_info.initial_admin_state = true;
 		api_port_info.rx_mtu = SWITCH_PORT_RX_MTU_DEFAULT;
-      	api_port_info.tx_mtu = SWITCH_PORT_TX_MTU_DEFAULT;
-		api_port_info.fec_mode = SWITCH_PORT_FEC_MODE_NONE;
+      	api_port_info.tx_mtu = SWITCH_PORT_TX_MTU_DEFAULT;		
+		api_port_info.fec_mode = switch_cfg.fec_model;
 		if (switch_api_port_add(device, &api_port_info, 0) < 0) {
 			SETUP_PANIC("switch_api_port_add fail!\n");
 			return -1;
