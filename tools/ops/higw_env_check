@@ -35,21 +35,40 @@ function exit_str_null()
     fi
 }
 
-function get_all_hbgw_gw_ip()
+function get_all_higw_ipv4gw_ip()
 {
     cat /etc/hostif.json | grep gw_ip | awk -F '"' '{print $4}' > tmpgwip.file
-    mapfile HBGW_GW_IPS < tmpgwip.file
+    mapfile HIGW_V4GW_IPS < tmpgwip.file
 }
 
-function ping_hbgw_gwip()
+function get_all_higw_ipv6gw_ip()
 {
-    for key in ${!HBGW_GW_IPS[@]}
+    cat /etc/hostif.json | grep gw6_ip | awk -F '"' '{print $4}' > tmpv6gwip.file
+    mapfile HIGW_V6GW_IPS < tmpv6gwip.file
+}
+
+function ping_higw_ipv4gwip()
+{
+    for key in ${!HIGW_V4GW_IPS[@]}
     do
-        ping -c 1 ${HBGW_GW_IPS[$key]} > /dev/null
+        ping -c 1 ${HIGW_V4GW_IPS[$key]} > /dev/null
         if [ $?  -eq 0 ]; then
-            pinfo "ping ${HBGW_GW_IPS[$key]} success!"
+            pinfo "ping ${HIGW_V4GW_IPS[$key]} success!"
         else
-            pnerror "ping ${HBGW_GW_IPS[$key]} fail!"   
+            pnerror "ping ${HIGW_V4GW_IPS[$key]} fail!"   
+        fi
+    done
+}
+
+function ping_higw_ipv6gwip()
+{
+    for key in ${!HIGW_V6GW_IPS[@]}
+    do
+        ping -c 1 ${HIGW_V6GW_IPS[$key]} > /dev/null
+        if [ $?  -eq 0 ]; then
+            pinfo "ping ${HIGW_V6GW_IPS[$key]} success!"
+        else
+            pnerror "ping ${HIGW_V6GW_IPS[$key]} fail!"   
         fi
     done
 }
@@ -82,49 +101,97 @@ function check_default_route()
 
 function check_bgp_cfg()
 {
-    bgp_peer_num=`vtysh -c "show run" | grep neighbor | grep remote-as | wc -l`
-    echo "bgp_peer_num is $bgp_peer_num"
+    bgp_peer_num=`vtysh -c "show run" | grep  peer-group | grep ipv6-lsw  | wc -l`
+    bgp_peer_num=$((bgp_peer_num - 1))
+    echo "ipv4 bgp_peer_num is $bgp_peer_num"
     host_if_num=`cat /etc/hostif.json  | grep Ethernet | wc -l`
     echo "host_if_num is $host_if_num"
     if [ "$bgp_peer_num" != "$host_if_num" ];then
         perror "bgp_peer_num is neq host_if_num"
     fi
-    
-    network_num=` vtysh -c "show run" | grep network | wc -l`
-    tmp_num0=`expr $network_num - 1`
- 
-    match_prefixlist_num=`vtysh -c "show run" | grep "prefix-list" | grep match | wc -l`
-    if [ "$bgp_peer_num" != "$match_prefixlist_num" ];then
-        perror "bgp_peer_num is neq host_if_num"
-    fi
-
-    neighbor_routemap_num=`vtysh -c "show run" | grep route-map | grep neighbor | wc -l` 
-    tmp_num1=`expr 2 \* $match_prefixlist_num`
-    if [ "$neighbor_routemap_num" != "$tmp_num1" ];then
-        perror "neighbor_routemap_num is wrong"
-    fi
-
-    routemap_permit_num=`vtysh -c "show run" | grep route-map | grep permit | wc -l` 
-    tmp_num2=`expr 2 \* $match_prefixlist_num`
-    if [ "$routemap_permit_num" != "$tmp_num2" ];then
-        perror "routemap_permit_num is wrong"
-    fi
-
-    ip_prefixlist_num=`vtysh -c "show run" | grep "ip prefix-list" | wc -l` 
-    tmp_num3=`expr 3 \* $match_prefixlist_num`
-    if [ "$ip_prefixlist_num" != "$tmp_num3" ];then
-        perror "ip_prefixlist_num is wrong"
-    fi
 } 
+
+function check_lsw1_cfg()
+{
+    first_hop=""
+    echo "Check the wiring of the lsw1"
+    
+    ip_list=$(vtysh -c "show run" | grep "peer-group lsw1" | awk -F " " '{print $2}')
+    ip_array=()
+
+    for ip in $ip_list; do
+        ip_array+=("$ip")
+    done
+
+    for ip in "${ip_array[@]}"
+    do
+        echo "Traceroute $ip ..."
+        hop=$(traceroute -n  -m 2 "$ip" | grep ms  | awk  -F " " '{print $2}')
+        
+        while [ "$hop" = "*" ]; do
+            sleep 1  
+            hop=$(traceroute -n  -m 2 "$ip" | grep ms  | awk  -F " " '{print $2}')
+        done
+        
+        if [ -z "$first_hop" ]; then
+            first_hop="$hop"
+            echo "First hop: $first_hop"
+        elif [ "$first_hop" != "$hop" ]; then
+            perror "First hop is different: $hop"
+        else
+            echo "First hop is the same: $hop"
+        fi
+    done
+    echo "lsw1 is ok"
+}
+
+function check_lsw2_cfg()
+{
+    first_hop=""
+    echo "Check the wiring of the lsw2"
+    
+    ip_list=$(vtysh -c "show run" | grep "peer-group lsw2" | awk -F " " '{print $2}')
+    ip_array=()
+
+    for ip in $ip_list; do
+        ip_array+=("$ip")
+    done
+
+    for ip in "${ip_array[@]}"
+    do
+        echo "Traceroute $ip ..."
+        hop=$(traceroute -n  -m 2 "$ip" | grep ms  | awk  -F " " '{print $2}')
+    
+        while [ "$hop" = "*" ]; do
+            sleep 1  
+            hop=$(traceroute -n  -m 2 "$ip" | grep ms  | awk  -F " " '{print $2}')
+        done
+
+        if [ -z "$first_hop" ]; then
+            first_hop="$hop"
+            echo "First hop: $first_hop"
+        elif [ "$first_hop" != "$hop" ]; then
+            perror "First hop is different: $hop"
+        else
+            echo "First hop is the same: $hop"
+        fi
+    done
+    echo "lsw2 is ok"
+}
 
 function check_bgp_state()
 {
-    bgp_peer_num=`vtysh -c "show run" | grep neighbor | grep remote-as | wc -l`
+    bgp_peer_num=`vtysh -c "show run" | grep  peer-group | grep ipv6-lsw  | wc -l`
+    bgp_peer_num=$((bgp_peer_num - 1))
+    bgp_peer_num=$((bgp_peer_num * 2 ))
+
     bgp_Established_num=`vtysh -c "show bgp neighbors "  | grep Established | wc -l`
     if [ "$bgp_peer_num" != "$bgp_Established_num" ];then
         perror "bgp_peer_num is neq bgp_Established_num"
     fi
-    
+    echo "bgp_Established_num is $bgp_Established_num"
+    echo "v4 and v6 bgp_peer_num is $bgp_peer_num"
+
     Hold_time=`vtysh -c "show bgp neighbors "  | grep  "Hold time" | awk -F " " '{print $4}' | awk -F "," 'NR==1{print $1}'`
     if [ "$Hold_time" != 15 ];then
         perror "Hold_time is neq 15"
@@ -158,9 +225,11 @@ function check_cron_and_syslog()
 
 function main()
 {
-    echo "--------------Test ping hbgw gw ip---------------"
-    get_all_hbgw_gw_ip
-    ping_hbgw_gwip
+    echo "--------------Test ping higw gw ip---------------"
+    get_all_higw_ipv4gw_ip
+    ping_higw_ipv4gwip
+    get_all_higw_ipv6gw_ip
+    ping_higw_ipv6gwip
         
     echo "--------------Test lo state ---------------"
     check_lo_up
@@ -175,12 +244,18 @@ function main()
     check_bgpd
     check_bgp_cfg
     
+    echo "--------------Test lsw line config---------------"
+    check_lsw1_cfg
+    check_lsw2_cfg
+    
     echo "--------------Test bgp state---------------"
     check_bgp_state
-    
+
     echo "--------------Test default route ---------------"
     check_default_route
     echo "default_route is bgp route"
 }
 
 main
+
+
