@@ -111,6 +111,21 @@ function check_bgp_cfg()
     fi
 } 
 
+function check_as_path_cfg()
+{
+    prefix="additive"
+    as_num=$(vtysh -c "show runn" | grep "router bgp" | awk -F " " '{print $3}')
+
+    for i in {2..10}; do
+        echo " check ${prefix}_${i}_as_path ..."
+        count=$(vtysh -c "show runn" | grep ${prefix}_${i}_as_path -A 1  | grep -v ${prefix}_${i}_as_path | grep -o $as_num | wc -l)
+        echo "${prefix}_${i}_as_path as num is: $count"
+        if [ "$count" -ne ${i} ]; then
+            perror "check_as_path_cfg error"
+        fi
+    done
+}
+
 function check_lsw1_cfg()
 {
     first_hop=""
@@ -243,6 +258,7 @@ function main()
     echo "--------------Test frr show running-config---------------"
     check_bgpd
     check_bgp_cfg
+    check_as_path_cfg
     
     echo "--------------Test lsw line config---------------"
     check_lsw1_cfg
@@ -257,5 +273,3 @@ function main()
 }
 
 main
-
-
