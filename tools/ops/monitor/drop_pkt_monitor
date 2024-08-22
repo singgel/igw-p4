@@ -34,44 +34,40 @@ DPC_CMD="/usr/local/bin/dpc stats"
 
 function drop_pkt_monitor()
 {   
-    route_drop_stats1=`$DPC_CMD | grep route_drop_stats | grep "index=1" \
+    vm_host_drop_stats1=`$DPC_CMD | grep vm_host_drop_stats \
         | awk -F "packets" '{print $2}' | awk -F "=" '{print $2}' | awk -F "," '{print $1}'`
-    exit_str_null "droppkt_state:0, desc: no drop_pkt" $route_drop_stats1
+    exit_str_null "droppkt_state:0, desc: no drop_pkt" $vm_host_drop_stats1
     
-    nexthop_drop_stats1=`$DPC_CMD | grep nexthop_drop_stats | grep "index=1" \
-        | awk -F "packets" '{print $2}' | awk -F "=" '{print $2}' | awk -F "," '{print $1}'`
+    nexthop_drop_stats1=`$DPC_CMD | grep nexthop_drop_stats | awk -F "packets" '{print $2}' | awk -F "=" '{print $2}' | awk -F "," '{print $1}'`
     exit_str_null "droppkt_state:0, desc: no drop_pkt" $nexthop_drop_stats1
 
-    dstip_drop_stats1=`$DPC_CMD | grep dstip_drop_stats | grep "index=1" \
-	    		        | awk -F "packets" '{print $2}' | awk -F "=" '{print $2}' | awk -F "," '{print $1}'`
+    dstip_drop_stats1=`$DPC_CMD | grep dstip_drop_stats | awk -F "packets" '{print $2}' | awk -F "=" '{print $2}' | awk -F "," '{print $1}'`
     exit_str_null "droppkt_state:0, desc: no drop_pkt" $dstip_drop_stats1
 
     sleep 1
 
-    route_drop_stats2=`$DPC_CMD | grep route_drop_stats | grep "index=1" \
+    vm_host_drop_stats2=`$DPC_CMD | grep vm_host_drop_stats \
         | awk -F "packets" '{print $2}' | awk -F "=" '{print $2}' | awk -F "," '{print $1}'`
-    exit_str_null "droppkt_state:0, desc: no drop_pkt" $route_drop_stats2
+    exit_str_null "droppkt_state:0, desc: no drop_pkt" $vm_host_drop_stats2
     
-    nexthop_drop_stats2=`$DPC_CMD | grep nexthop_drop_stats | grep "index=1" \
-        | awk -F "packets" '{print $2}' | awk -F "=" '{print $2}' | awk -F "," '{print $1}'`
+    nexthop_drop_stats2=`$DPC_CMD | grep nexthop_drop_stats | awk -F "packets" '{print $2}' | awk -F "=" '{print $2}' | awk -F "," '{print $1}'`
     exit_str_null "droppkt_state:0, desc: no drop_pkt" $nexthop_drop_stats2
-    
-    dstip_drop_stats2=`$DPC_CMD | grep dstip_drop_stats | grep "index=1" \
-	    		        | awk -F "packets" '{print $2}' | awk -F "=" '{print $2}' | awk -F "," '{print $1}'`
+
+    dstip_drop_stats2=`$DPC_CMD | grep dstip_drop_stats | awk -F "packets" '{print $2}' | awk -F "=" '{print $2}' | awk -F "," '{print $1}'`
     exit_str_null "droppkt_state:0, desc: no drop_pkt" $dstip_drop_stats2
 
-    if [ "$route_drop_stats2" -gt "$route_drop_stats1" ];then
-         echo "droppkt_state:255, desc: barefoot have route_drop!"
+    if [ "$vm_host_drop_stats2" -gt "$vm_host_drop_stats1" ];then
+         echo "droppkt_state:255, desc: igw have no vm location dorp!"
          exit 0
     fi
     
     if [ "$nexthop_drop_stats2" -gt "$nexthop_drop_stats1" ];then
-         echo "droppkt_state:255, desc: barefoot have nexthop_drop!"
+         echo "droppkt_state:255, desc: igw have nexthop_drop!"
          exit 0
     fi
     
     if [ "$dstip_drop_stats2" -gt "$dstip_drop_stats1" ];then
-	    echo "droppkt_state:255, desc: barefoot have dstip_drop!"
+	    echo "droppkt_state:255, desc: igw have dstip_drop!"
 	    exit 0
     fi
 }

@@ -1,0 +1,69 @@
+#!/bin/bash
+
+DPC_CMD="/usr/local/bin/dpc table-info"
+
+data_center="cn-north-1"
+timestamp=$(date +%s)
+resourceId=$(hostname)
+
+vm_hostroute_mapping_cap=`$DPC_CMD | grep vm_hostroute_mapping | awk -F " " '{print $6}'`
+vxlan_route_cap=`$DPC_CMD | grep vxlan_route.vxlan_route | awk -F " " '{print $6}'`
+route_ecmp_cap=`$DPC_CMD | grep route_ecmp| grep -v "route_ecmp_group_selector" | awk -F " " '{print $6}'`
+route_ecmp_group_selector_cap=`$DPC_CMD | grep route_ecmp_group_selector | grep -v "route_ecmp_group_selector_get_member"| awk -F " " '{print $6}'`
+route_action_profile_cap=`$DPC_CMD | grep route_action_profile | awk -F " " '{print $6}'`
+route_nexthop_cap=`$DPC_CMD | grep route_nexthop | awk -F " " '{print $6}'`
+
+#echo "vm_hostroute_mapping_cap $vm_hostroute_mapping_cap"
+#echo "vxlan_route_cap $vxlan_route_cap"
+#echo "route_ecmp_cap $route_ecmp_cap"
+#echo "route_ecmp_group_selector_cap $route_ecmp_group_selector_cap"
+#echo "route_action_profile_cap $route_action_profile_cap"
+#echo "route_nexthop_cap $route_nexthop_cap"
+
+# 在metric中使用$resourceId变量
+curl -X POST http://iaas-monitor.hb.jcloud.com/v2/put \
+-H 'Content-Type: application/json; charset=utf-8' \
+-H 'Trace-Id: yxvqn1hybv' \
+-H 'Host: iaas-monitor.hb.jcloud.com' \
+-d '{
+    "appCode": "jcloud",
+    "serviceCode": "hbgw",
+    "dataCenter": "'"$data_center"'",
+    "resourceId": "'"$resourceId"'",
+    "dataPoints": [
+        {
+            "metric": "vm_hostroute_mapping_cap.size",
+            "timestamp": '"$timestamp"',
+            "value": '$vm_hostroute_mapping_cap',
+        },
+        {
+            "metric": "vxlan_route_cap.size",
+            "timestamp": '"$timestamp"',
+            "value": '$vxlan_route_cap',
+        },
+        ,
+        {
+            "metric": "route_ecmp_cap.size",
+            "timestamp": '"$timestamp"',
+            "value": '$route_ecmp_cap',
+        },
+        ,
+        {
+            "metric": "route_ecmp_group_selector_cap.size",
+            "timestamp": '"$timestamp"',
+            "value": '$route_ecmp_group_selector_cap',
+        },
+        ,
+        {
+            "metric": "route_action_profile_cap.size",
+            "timestamp": '"$timestamp"',
+            "value": '$route_action_profile_cap',
+        },
+        ,
+        {
+            "metric": "route_nexthop_cap.size",
+            "timestamp": '"$timestamp"',
+            "value": '$route_nexthop_cap',
+        }
+    ]
+}'

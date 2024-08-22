@@ -1,0 +1,40 @@
+#!/bin/bash
+
+DPC_CMD="/usr/local/bin/dpc stats"
+
+data_center="cn-south-1"
+timestamp=$(date +%s)
+resourceId=$(hostname)
+
+vm_host_drop_stats=`$DPC_CMD | grep vm_host_drop_stats | awk -F "packets" '{print $2}' | awk -F "=" '{print $2}' | awk -F "," '{print $1}'`
+nexthop_drop_stats=`$DPC_CMD | grep nexthop_drop_stats | awk -F "packets" '{print $2}' | awk -F "=" '{print $2}' | awk -F "," '{print $1}'`
+dstip_drop_stats=`$DPC_CMD | grep dstip_drop_stats | awk -F "packets" '{print $2}' | awk -F "=" '{print $2}' | awk -F "," '{print $1}'`
+
+# 在metric中使用$resourceId变量
+curl -X POST http://iaas-monitor.hb.jcloud.com/v2/put \
+-H 'Content-Type: application/json; charset=utf-8' \
+-H 'Trace-Id: yxvqn1hybv' \
+-H 'Host: iaas-monitor.hb.jcloud.com' \
+-d '{
+    "appCode": "jcloud",
+    "serviceCode": "igw",
+    "dataCenter": "'"$data_center"'",
+    "resourceId": "'"$resourceId"'",
+    "dataPoints": [
+        {
+            "metric": "vm_host_drop_stats.size",
+            "timestamp": '"$timestamp"',
+            "value": '$vm_host_drop_stats',
+        },
+        {
+            "metric": "nexthop_drop_stats.size",
+            "timestamp": '"$timestamp"',
+            "value": '$nexthop_drop_stats',
+        },
+        {
+            "metric": "dstip_drop_stats.size",
+            "timestamp": '"$timestamp"',
+            "value": '$dstip_drop_stats',
+        }
+    ]
+}'

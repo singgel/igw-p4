@@ -1,0 +1,45 @@
+#!/bin/bash
+
+function perror()
+{
+    echo -e "$@"
+    exit 0
+}
+
+function pnerror()
+{
+    echo -e "$@"
+}
+
+function pinfo()
+{
+    echo "Info: $@"
+}
+
+function check_str_null()
+{
+    if [ "$2" == "" ];then
+        pnerror "$1"
+    fi
+}
+
+function exit_str_null()
+{
+    if [ "$2" == "" ];then
+        perror "$1"
+    fi
+}
+
+function check_default_route()
+{
+    DEFAULT_ROUTE=`vtysh -c "show ip route bgp"  | grep 0.0.0.0/0 | grep Ethernet`
+    exit_str_null "not found bgp route 0.0.0.0/0" $DEFAULT_ROUTE
+} 
+
+function main()
+{
+    check_default_route
+    echo "default_route_state:0, desc: default_route is bgp"
+}
+
+main

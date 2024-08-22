@@ -32,22 +32,112 @@ function exit_str_null()
 
 DPC_CMD="/usr/local/bin/dpc table-info"
 
-function vm_hostroute_mapping_monitor()
+function eip_out_redirect_monitor()
 {   
-    vm_hostroute_mapping_cap=`$DPC_CMD | grep vm_hostroute_mapping | awk -F " " '{print $6}'`
-    exit_str_null "capacity_state:0, desc: normal capacity" $vm_hostroute_mapping_cap
-    if [ "$vm_hostroute_mapping_cap" -ge "614400" ];then
-         echo "capacity_state:255, desc: vm_hostroute_mapping capacity is $vm_hostroute_mapping_cap"
+    eip_out_redirect_cap=`$DPC_CMD | grep eip_out_redirect.eip_out_redirect | awk -F " " '{print $6}'`
+    exit_str_null "capacity_state:0, desc: normal capacity" $eip_out_redirect_cap
+    if [ "$eip_out_redirect_cap" -ge "40000" ];then
+         echo "capacity_state:255, desc: eip_out_redirect_cap capacity is $eip_out_redirect_cap"
          exit 0
     fi
 }
 
-function vxlan_route_monitor()
+function have_shared_bd_monitor()
 {   
-    vxlan_route_cap=`$DPC_CMD | grep vxlan_route.vxlan_route | awk -F " " '{print $6}'`
-    exit_str_null "capacity_state:0, desc: normal capacity" $vxlan_route_cap
-    if [ "$vxlan_route_cap" -ge "24000" ];then
-         echo "capacity_state:255, desc: vxlan_route capacity is $vxlan_route_cap"
+    have_shared_bd_cap=`$DPC_CMD | grep  have_shared_bd | grep -v inner_have_shared_bd | awk -F " " '{print $6}'`
+    exit_str_null "capacity_state:0, desc: normal capacity" $have_shared_bd_cap
+    if [ "$have_shared_bd_cap" -ge "24000" ];then
+         echo "capacity_state:255, desc: have_shared_bd_cap capacity is $have_shared_bd_cap"
+         exit 0
+    fi
+}
+
+function eip_in_shared_bw_ratelimit_monitor()
+{   
+    eip_in_shared_bw_cap=`$DPC_CMD | grep eip_in_shared_meter.shared_bw_ratelimit | awk -F " " '{print $6}'`
+    exit_str_null "capacity_state:0, desc: normal capacity" $eip_in_shared_bw_cap
+    if [ "$eip_in_shared_bw_cap" -ge "2000" ];then
+         echo "capacity_state:255, desc: eip_in_shared_bw_cap capacity is $eip_in_shared_bw_cap"
+         exit 0
+    fi
+}
+
+function vm_loc_mapping_monitor()
+{   
+    vm_loc_mapping_cap=`$DPC_CMD | grep  vm_location_mapping.vm_loc_mapping | awk -F " " '{print $6}'`
+    exit_str_null "capacity_state:0, desc: normal capacity" $vm_loc_mapping_cap
+    if [ "$vm_loc_mapping_cap" -ge "40000" ];then
+         echo "capacity_state:255, desc: vm_loc_mapping_cap capacity is $vm_loc_mapping_cap"
+         exit 0
+    fi
+}
+
+function vm6_loc_mapping_monitor()
+{   
+    vm6_loc_mapping_cap=`$DPC_CMD | grep  ipv6_vm_loc_mapping | awk -F " " '{print $6}'`
+    exit_str_null "capacity_state:0, desc: normal capacity" $vm6_loc_mapping_cap
+    if [ "$vm6_loc_mapping_cap" -ge "2000" ];then
+         echo "capacity_state:255, desc: vm6_loc_mapping_cap capacity is $vm6_loc_mapping_cap"
+         exit 0
+    fi
+}
+
+function eip_in_redirect_monitor()
+{   
+    eip_in_redirect_cap=`$DPC_CMD | grep eip_in_redirect.eip_in_redirect | awk -F " " '{print $6}'`
+    exit_str_null "capacity_state:0, desc: normal capacity" $eip_in_redirect_cap
+    if [ "$eip_in_redirect_cap" -ge "40000" ];then
+         echo "capacity_state:255, desc: eip_in_redirect_cap capacity is $eip_in_redirect_cap"
+         exit 0
+    fi
+}
+
+function eip_in_bw_ratelimit_monitor()
+{   
+    eip_in_bw_cap=`$DPC_CMD | grep eip_in_meter.bw_ratelimit | awk -F " " '{print $6}'`
+    exit_str_null "capacity_state:0, desc: normal capacity" $eip_in_bw_cap
+    if [ "$eip_in_bw_cap" -ge "20000" ];then
+         echo "capacity_state:255, desc: eip_in_bw_cap capacity is $eip_in_bw_cap"
+         exit 0
+    fi
+}
+
+function eip6_in_bw_ratelimit_monitor()
+{   
+    eip6_in_bw_cap=`$DPC_CMD | grep eip_in_meter.ipv6_bw_ratelimit | awk -F " " '{print $6}'`
+    exit_str_null "capacity_state:0, desc: normal capacity" $eip6_in_bw_cap
+    if [ "$eip6_in_bw_cap" -ge "5000" ];then
+         echo "capacity_state:255, desc: eip6_in_bw_cap capacity is $eip6_in_bw_cap"
+         exit 0
+    fi
+}
+
+function eip_out_bw_ratelimit_monitor()
+{   
+    eip_out_bw_cap=`$DPC_CMD | grep eip_out_meter.bw_ratelimit | awk -F " " '{print $6}'`
+    exit_str_null "capacity_state:0, desc: normal capacity" $eip_out_bw_cap
+    if [ "$eip_out_bw_cap" -ge "20000" ];then
+         echo "capacity_state:255, desc: eip_out_bw_cap capacity is $eip_out_bw_cap"
+         exit 0
+    fi
+}
+
+function eip6_out_bw_ratelimit_monitor()
+{   
+    eip6_out_bw_cap=`$DPC_CMD | grep eip_out_meter.ipv6_bw_ratelimit | awk -F " " '{print $6}'`
+    exit_str_null "capacity_state:0, desc: normal capacity" $eip6_out_bw_cap
+    if [ "$eip6_out_bw_cap" -ge "2000" ];then
+         echo "capacity_state:255, desc: eip6_out_bw_cap capacity is $eip6_out_bw_cap"
+         exit 0
+    fi
+}
+
+function eip_out_shared_bw_ratelimit_monitor()
+{   
+    eip_out_shared_bw_cap=`$DPC_CMD | grep eip_out_shared_meter.shared_bw_ratelimit | awk -F " " '{print $6}'`
+    exit_str_null "capacity_state:0, desc: normal capacity" $eip_out_shared_bw_cap
+    if [ "$eip_out_shared_bw_cap" -ge "2000" ];then
+         echo "capacity_state:255, desc: eip_out_shared_bw_cap capacity is $eip_out_shared_bw_cap"
          exit 0
     fi
 }
@@ -92,25 +182,32 @@ function route_nexthop_monitor()
     fi
 }
 
-function tunnel_inner_rewrite_monitor()
-{   
-    tunnel_inner_rewrite_cap=`$DPC_CMD | grep tunnel_inner_rewrite | awk -F " " '{print $6}'`
-    exit_str_null "capacity_state:0, desc: normal capacity" $tunnel_inner_rewrite_cap
-    if [ "$tunnel_inner_rewrite_cap" -ge "39400" ];then
-         echo "capacity_state:255, desc: tunnel_inner_rewrite capacity is $tunnel_inner_rewrite_cap"
-         exit 0
-    fi
-}
-
 function main()
 {
-    vm_hostroute_mapping_monitor
-    vxlan_route_monitor
+    #P02 ingress cap monitor
+    eip_out_redirect_monitor
+    have_shared_bd_monitor
+
+    #P13 ingress cap monitor
+    eip_in_shared_bw_ratelimit_monitor
+    vm_loc_mapping_monitor
+    vm6_loc_mapping_monitor
+
+    #P13 egress cap monitor
+    eip_in_redirect_monitor
+    eip_in_bw_ratelimit_monitor
+    eip6_in_bw_ratelimit_monitor
+
+    #P02 egress cap monitor
+    eip_out_bw_ratelimit_monitor
+    eip6_out_bw_ratelimit_monitor
+    eip_out_shared_bw_ratelimit_monitor
+
+    #ecmp cap monitor
     route_ecmp_monitor
     route_ecmp_group_selector_monitor
     route_action_profile_monitor
     route_nexthop_monitor
-    tunnel_inner_rewrite_monitor
     echo "capacity_state:0, desc: normal capacity"
 }
 

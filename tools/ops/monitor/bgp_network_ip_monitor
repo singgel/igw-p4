@@ -32,9 +32,24 @@ function exit_str_null()
 
 function network_vip_check()
 {
-     VIP=`cat /etc/hostif.json | grep vip | grep -v backup_vip | awk -F '"' '{print $4}'`
+     VIP=`cat /etc/hostif.json | grep vip |grep -v shared_bandwith_vip | grep -v backup_vip | awk -F '"' '{print $4}'`
      VIP_STATE=`vtysh -c "show run" | grep "network $VIP/32"`
      exit_str_null "bgp_network:255, desc: vip is no network!" $VIP_STATE
+}
+
+function network_dlip_check()
+{
+     DLIP=`cat /etc/hostif.json | grep dl_network1 | awk -F '"' '{print $4}'`
+     VIP_STATE=`vtysh -c "show run" | grep "network $DLIP"`
+     exit_str_null "bgp_network:255, desc: dl_network1 is no network!" $VIP_STATE
+
+     DLIP=`cat /etc/hostif.json | grep dl_network2 | awk -F '"' '{print $4}'`
+     VIP_STATE=`vtysh -c "show run" | grep "network $DLIP"`
+     exit_str_null "bgp_network:255, desc: dl_network2 is no network!" $VIP_STATE
+
+     DLIP=`cat /etc/hostif.json | grep dl_network3 | awk -F '"' '{print $4}'`
+     VIP_STATE=`vtysh -c "show run" | grep "network $DLIP"`
+     exit_str_null "bgp_network:255, desc: dl_network3 is no network!" $VIP_STATE
 }
 
 function network_mip_check()
@@ -48,7 +63,8 @@ function network_monitor()
 {   
     network_mip_check
     network_vip_check
-    echo "bgp_network:0, desc: mgt_ip and vip is network"
+    network_dlip_check
+    echo "bgp_network:0, desc: mgt_ip , vip , dl ip is network"
 }
 
 function main()
