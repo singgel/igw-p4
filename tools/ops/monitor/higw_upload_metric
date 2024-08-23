@@ -2,12 +2,21 @@
 
 DPC_CMD="/usr/local/bin/dpc table-info"
 
-data_center="cn-north-1"
+data_center="cn-south-1"
 timestamp=$(date +%s)
 resourceId=$(hostname)
 
-vm_hostroute_mapping_cap=`$DPC_CMD | grep vm_hostroute_mapping | awk -F " " '{print $6}'`
-vxlan_route_cap=`$DPC_CMD | grep vxlan_route.vxlan_route | awk -F " " '{print $6}'`
+eip_in_bw_cap=`$DPC_CMD | grep eip_in_meter.bw_ratelimit | awk -F " " '{print $6}'`
+eip6_in_bw_cap=`$DPC_CMD | grep eip_in_meter.ipv6_bw_ratelimit | awk -F " " '{print $6}'`
+eip_in_shared_bw_cap=`$DPC_CMD | grep eip_in_shared_meter.shared_bw_ratelimit | awk -F " " '{print $6}'`
+
+vm_location_cap=`$DPC_CMD | grep vm_location_mapping.vm_loc_mapping | awk -F " " '{print $6}'`
+vm6_location_cap=`$DPC_CMD | grep ipv6_vm_loc_mapping | awk -F " " '{print $6}'`
+
+eip_out_bw_cap=`$DPC_CMD | grep eip_out_meter.bw_ratelimit | awk -F " " '{print $6}'`
+eip6_out_bw_cap=`$DPC_CMD | grep eip_out_meter.ipv6_bw_ratelimit | awk -F " " '{print $6}'`
+eip_out_shared_bw_cap=`$DPC_CMD | grep eip_out_shared_meter.shared_bw_ratelimit | awk -F " " '{print $6}'`
+
 route_ecmp_cap=`$DPC_CMD | grep route_ecmp| grep -v "route_ecmp_group_selector" | awk -F " " '{print $6}'`
 route_ecmp_group_selector_cap=`$DPC_CMD | grep route_ecmp_group_selector | grep -v "route_ecmp_group_selector_get_member"| awk -F " " '{print $6}'`
 route_action_profile_cap=`$DPC_CMD | grep route_action_profile | awk -F " " '{print $6}'`
@@ -27,27 +36,56 @@ curl -X POST http://iaas-monitor.hb.jcloud.com/v2/put \
 -H 'Host: iaas-monitor.hb.jcloud.com' \
 -d '{
     "appCode": "jcloud",
-    "serviceCode": "hbgw",
+    "serviceCode": "igw",
     "dataCenter": "'"$data_center"'",
     "resourceId": "'"$resourceId"'",
     "dataPoints": [
         {
-            "metric": "vm_hostroute_mapping_cap.size",
+            "metric": "eip_in_bw_cap.size",
             "timestamp": '"$timestamp"',
-            "value": '$vm_hostroute_mapping_cap',
+            "value": '$eip_in_bw_cap',
         },
         {
-            "metric": "vxlan_route_cap.size",
+            "metric": "eip6_in_bw_cap.size",
             "timestamp": '"$timestamp"',
-            "value": '$vxlan_route_cap',
+            "value": '$eip6_in_bw_cap',
         },
-        ,
+        {
+            "metric": "eip_in_shared_bw_cap.size",
+            "timestamp": '"$timestamp"',
+            "value": '$eip_in_shared_bw_cap',
+        },
+        {
+            "metric": "vm_location_cap.size",
+            "timestamp": '"$timestamp"',
+            "value": '$vm_location_cap',
+        },
+        {
+            "metric": "vm6_location_cap.size",
+            "timestamp": '"$timestamp"',
+            "value": '$vm6_location_cap',
+        },
+        {
+            "metric": "eip_out_bw_cap.size",
+            "timestamp": '"$timestamp"',
+            "value": '$eip_out_bw_cap',
+        },
+        {
+            "metric": "eip6_out_bw_cap.size",
+            "timestamp": '"$timestamp"',
+            "value": '$eip6_out_bw_cap',
+        },
+        {
+            "metric": "eip_out_shared_bw_cap.size",
+            "timestamp": '"$timestamp"',
+            "value": '$eip_out_shared_bw_cap',
+        },
         {
             "metric": "route_ecmp_cap.size",
             "timestamp": '"$timestamp"',
             "value": '$route_ecmp_cap',
         },
-        ,
+
         {
             "metric": "route_ecmp_group_selector_cap.size",
             "timestamp": '"$timestamp"',
