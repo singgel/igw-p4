@@ -151,6 +151,7 @@ parser P13_EgressParser(
         meta.tunnel.vxlan_type = VXLAN_TYPE_JD;
         transition select(hdr.inner_ethernet.etherType) {
             ETHERTYPE_IPV4 : parse_inner_ipv4;
+            ETHERTYPE_IPV6 : parse_inner_ipv6;
             default : accept;
         }
     }  
@@ -168,6 +169,11 @@ parser P13_EgressParser(
     state parse_inner_ipv4 {
         pkt.extract(hdr.inner_ipv4);
         meta.l3.lkp_ip_proto = hdr.inner_ipv4.protocol;
+        transition accept;
+    }
+    state parse_inner_ipv6 {
+        pkt.extract(hdr.inner_ipv6);
+        meta.l3.lkp_ip_proto = hdr.inner_ipv6.nextHdr;
         transition accept;
     }
 #else
