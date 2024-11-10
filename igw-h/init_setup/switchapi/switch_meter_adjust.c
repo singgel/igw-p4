@@ -54,11 +54,11 @@ static void eip_out_share_meter_adjust_init() {
 
 void meter_adjust_init() {
 	eip_in_meter_adjust_init();
-	eip6_in_meter_adjust_init();
+	//eip6_in_meter_adjust_init();
 	eip_in_share_meter_adjust_init();
 
 	eip_out_meter_adjust_init();
-	eip6_out_meter_adjust_init();
+	//eip6_out_meter_adjust_init();
 	eip_out_share_meter_adjust_init();
 }
 

@@ -41,8 +41,8 @@ static void internet_in_symmetric_mode_set() {
 	//eip_in_meter
 	table_symmetric_mode_set(
 		"P13_Egress.eip_in_meter.bw_ratelimit");
-	table_symmetric_mode_set(
-		"P13_Egress.eip_in_meter.ipv6_bw_ratelimit");
+	//table_symmetric_mode_set(
+		//"P13_Egress.eip_in_meter.ipv6_bw_ratelimit");
 
 	/*************************P13 ingress***************************/
 	//fip_dnat
@@ -73,8 +73,8 @@ static void internet_out_symmetric_mode_set() {
 	//eip_out_meter
 	table_symmetric_mode_set(
 		"P02_Egress.process_gw_egress.eip_out_meter.bw_ratelimit");
-	table_symmetric_mode_set(
-		"P02_Egress.process_gw_egress.eip_out_meter.ipv6_bw_ratelimit");
+	//table_symmetric_mode_set(
+		//"P02_Egress.process_gw_egress.eip_out_meter.ipv6_bw_ratelimit");
 
 	//eip_out_egress_pkt_stats
 	table_symmetric_mode_set(

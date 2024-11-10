@@ -13,8 +13,7 @@ control EipInMeter(
         inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
     DirectMeter(MeterType_t.BYTES) rl_meter;    
-    DirectMeter(MeterType_t.BYTES) ipv6_rl_meter;    
-
+  
     action execute_ratelimit() {
         hdr.bg_md.meter_packet_color = (bit<2>)rl_meter.execute(); 
     }
@@ -26,30 +25,13 @@ control EipInMeter(
         actions = {
             execute_ratelimit;
         }
-        size = EIP_SIZE;
+        size = 100000;
         meters = rl_meter;
     }
 
-    action execute_ipv6_ratelimit() {
-        hdr.bg_md.meter_packet_color = (bit<2>)ipv6_rl_meter.execute(); 
-    }
-
-    table ipv6_bw_ratelimit {
-        key = {
-            meta.ratelimit.bandwidth_id : exact;
-        }
-        actions = {
-            execute_ipv6_ratelimit;
-        }
-        size = EIP6_SIZE;
-        meters = ipv6_rl_meter;
-    }
-    
     apply {
-        if (hdr.inner_ipv4.isValid()) {
+        if (hdr.inner_ipv4.isValid() || hdr.inner_ipv6.isValid()) {
             bw_ratelimit.apply();
-        } else if (hdr.inner_ipv6.isValid()) {
-            ipv6_bw_ratelimit.apply();
         }
     }
 }
@@ -154,7 +136,6 @@ control EipOutMeter(
         inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
         inout egress_intrinsic_metadata_for_output_port_t eg_output_md) {
     DirectMeter(MeterType_t.BYTES) rl_meter;    
-    DirectMeter(MeterType_t.BYTES) ipv6_rl_meter;    
 
     action execute_ratelimit() {
         hdr.bg_md.meter_packet_color = (bit<2>)rl_meter.execute(); 
@@ -167,30 +148,13 @@ control EipOutMeter(
         actions = {
             execute_ratelimit;
         }
-        size = EIP_SIZE;
+        size = 100000;
         meters = rl_meter;
     }
 
-    action execute_ipv6_ratelimit() {
-        hdr.bg_md.meter_packet_color = (bit<2>)ipv6_rl_meter.execute(); 
-    }
-
-    table ipv6_bw_ratelimit {
-        key = {
-            meta.ratelimit.bandwidth_id : exact;
-        }
-        actions = {
-            execute_ipv6_ratelimit;
-        }
-        size = EIP6_SIZE;
-        meters = ipv6_rl_meter;
-    }
-    
     apply {
-        if (hdr.inner_ipv4.isValid()) {
+        if (hdr.inner_ipv4.isValid() || hdr.inner_ipv6.isValid()) {
             bw_ratelimit.apply();
-        } else if (hdr.inner_ipv6.isValid()) {
-            ipv6_bw_ratelimit.apply();
         }
     }
 }
