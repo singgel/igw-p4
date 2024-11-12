@@ -11,7 +11,7 @@ control ComputeIpHashes(inout headers_t hdr,
             inout ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
             inout ingress_intrinsic_metadata_for_tm_t  ig_tm_md) {
     Hash<bit<16>>(HashAlgorithm_t.CRC16) ip_hash;
-    Hash<bit<16>>(HashAlgorithm_t.CRC16) nlb_ip_hash;
+    //Hash<bit<32>>(HashAlgorithm_t.CRC32) nlb_ip_hash;
 
     action compute_inner_ip_hashes(){
         hdr.bg_md.l3_ecmp_entry_idx = ip_hash.get({meta.l3.lkp_sip,
@@ -22,7 +22,8 @@ control ComputeIpHashes(inout headers_t hdr,
     }
     
     action compute_nlb_ip_hashes(){
-        hdr.bg_md.l3_ecmp_entry_idx = nlb_ip_hash.get({meta.l3.lkp_sip,(bit<16>)0,(bit<128>)0,(bit<16>)0,(bit<8>)0});
+        //hdr.bg_md.l3_ecmp_entry_idx = nlb_ip_hash.get({meta.l3.lkp_sip,(bit<16>)0,(bit<128>)0,(bit<16>)0,(bit<8>)0});
+        hdr.bg_md.l3_ecmp_entry_idx = (<bit16>) meta.l3.lkp_sip;
     }
 
     apply {
