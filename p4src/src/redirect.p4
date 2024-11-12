@@ -180,7 +180,7 @@ control EipOutRedirect(inout headers_t hdr,
             nop;
         }
 
-        size = EIP6_SIZE * 2;
+        size = 20000;
         const default_action = nop();
     }
 
