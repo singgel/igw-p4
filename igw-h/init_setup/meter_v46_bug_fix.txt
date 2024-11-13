@@ -1,7 +1,0 @@
-access
-
-wr dev_0 pipes[2] mau[4] rams match adrdist adr_dist_idletime_adr_oxbar_ctl[0] 0x11   
-wr dev_0 pipes[0] mau[4] rams match adrdist adr_dist_idletime_adr_oxbar_ctl[0] 0x11  
-
-quit
-exit
