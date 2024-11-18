@@ -1,0 +1,15 @@
+#!/bin/bash
+#coding=utf-8
+
+date_val=$(date -u +"%a %b %d %H:%M")
+get_one_min_fcserr=$(grep FCSError /var/log/messages|grep "init_setup"|grep "${date_val}"|tail -n 1)
+
+if [[ ${get_one_min_fcserr} != "" ]];then
+    fcs_err_val=$(echo ${get_one_min_fcserr} | awk -F "FCSError:" '{print $2}'|awk '{print $1}')
+    port_num=$(echo ${get_one_min_fcserr} | awk -F "fp_port:" '{print $2}'|awk '{print $1}')
+    echo "port_state:255, desc: port ${port_num} FCSError is ${fcs_err_val}"
+else
+    fcs_err_val=0
+    port_num=""
+    echo "port_state:0, desc: all port FCSError is zero"
+fi
