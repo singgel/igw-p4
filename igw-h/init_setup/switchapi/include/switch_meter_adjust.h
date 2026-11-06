@@ -1,6 +1,6 @@
 /**********************************************************************
 * 
-* Copyright (c) 2022 jd.com, Inc. All Rights Reserved
+* Copyright (c) 2022 singgel All Rights Reserved
 * @author       hekuangsheng@163.com
 * 
 ***********************************************************************/
