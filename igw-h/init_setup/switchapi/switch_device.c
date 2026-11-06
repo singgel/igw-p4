@@ -33,7 +33,7 @@ static int switch_device_init(bf_dev_id_t device) {
     switch_api_port_info_t api_port_info;
 
 	/***********************************************************
-	  In box 32X: 33 connect to cpu, 33/0ï¼Œ33/2 two 10g interface
+	  In box 32X: 33 connect to cpu, 33/0£¬33/2 two 10g interface
 	  In box 65X: 65 connet to panel, so can not set fec
 	  here, we skip 33/65 port create
 	**********************************************************/
@@ -55,7 +55,7 @@ static int switch_device_init(bf_dev_id_t device) {
 		}
 	}
 
-	#if 0  //ç›®å‰ç”¨çš„è®¾å¤‡è¿˜æ˜¯æ—§æ¬¾ï¼Œä¸æ”¯æŒä½¿ç”¨10g kræ¥ä¼ è¾“,æ‰€ä»¥é“¾è·¯å¯èƒ½ä¼šå‡ºçŽ°ä¸ç¨³
+	#if 0  //Ä¿Ç°ÓÃµÄÉè±¸»¹ÊÇ¾É¿î£¬²»Ö§³ÖÊ¹ÓÃ10g krÀ´´«Êä,ËùÒÔÁ´Â·¿ÉÄÜ»á³öÏÖ²»ÎÈ
 	//33/0 33/2--->connect to cpu
 	if (switch_cfg.hardware_model == Wedge_100BF_32X) {
 		for (port = device_ctx->max_ports - 4; port < device_ctx->max_ports; port += 2) {
